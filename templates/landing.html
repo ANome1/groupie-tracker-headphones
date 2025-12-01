@@ -1,0 +1,62 @@
+<!-- RESPONSABLE: @Nome -->
+<!-- Landing page - Page d'accueil du site -->
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Groupie Tracker - Jeux Musicaux</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- TODO @Nome: Créer une page d'accueil attractive avec:
+         - Header avec logo et liens de connexion/inscription
+         - Section hero avec titre accrocheur
+         - Présentation des 2 jeux:
+           * Blind Test: "Devinez la musique !"
+           * Petit Bac: "Trouvez des mots qui commencent par..."
+         - Boutons pour créer ou rejoindre une salle
+         - Footer
+         
+         Couleurs: Orange (#FF6B35) et Jaune (#FFD23F)
+         Style: Moderne, fun, responsive
+    -->
+    
+    <header>
+        <h1>🎵 Groupie Tracker</h1>
+        <nav>
+            <a href="/login">Connexion</a>
+            <a href="/register">Inscription</a>
+        </nav>
+    </header>
+    
+    <main>
+        <section class="hero">
+            <h2>Jouez à des jeux musicaux avec vos amis !</h2>
+        </section>
+        
+        <section class="games">
+            <div class="game-card">
+                <h3>🎶 Blind Test</h3>
+                <p>Devinez le titre et l'artiste le plus vite possible !</p>
+                <a href="/room/create?type=blindtest">Créer une partie</a>
+            </div>
+            
+            <div class="game-card">
+                <h3>📝 Petit Bac</h3>
+                <p>Trouvez des mots dans différentes catégories !</p>
+                <a href="/room/create?type=petitbac">Créer une partie</a>
+            </div>
+        </section>
+        
+        <section class="join">
+            <h3>Ou rejoindre une partie existante :</h3>
+            <form action="/room/join" method="GET">
+                <input type="text" name="code" placeholder="Code de la salle" maxlength="6">
+                <button type="submit">Rejoindre</button>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

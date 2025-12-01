@@ -1,0 +1,49 @@
+<!-- RESPONSABLE: @Nome (HTML/CSS) + @Quoc Huy & @ilian (WebSocket) -->
+<!-- Lobby d'attente avant le début de la partie -->
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Lobby - Groupie Tracker</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- TODO @Nome: Afficher:
+         - Nom de la salle
+         - Code de la salle (pour inviter)
+         - Type de jeu
+         - Liste des joueurs connectés (mise à jour en temps réel)
+         - Bouton Démarrer (seulement pour l'hôte)
+    -->
+    
+    <!-- TODO @Quoc Huy & @ilian: WebSocket pour:
+         - Mettre à jour la liste des joueurs en temps réel
+         - Recevoir l'événement "game_start"
+         - Rediriger vers la page de jeu appropriée
+    -->
+    
+    <h1>Salle: <span id="room-name"></span></h1>
+    <p>Code: <strong id="room-code"></strong></p>
+    <p>Jeu: <span id="game-type"></span></p>
+    
+    <h2>Joueurs:</h2>
+    <ul id="players-list">
+        <!-- Sera rempli par JavaScript -->
+    </ul>
+    
+    <button id="start-game">Démarrer la partie</button>
+    
+    <script src="/static/js/websocket.js"></script>
+    <script>
+        // TODO @Quoc Huy & @ilian: Implémenter la connexion WebSocket
+        // const ws = new WebSocket('ws://localhost:8080/ws?room=' + roomID);
+        // ws.onmessage = function(event) {
+        //   const message = JSON.parse(event.data);
+        //   if (message.type === 'room_state') {
+        //     updatePlayersList(message.payload.players);
+        //   }
+        // };
+    </script>
+</body>
+</html>

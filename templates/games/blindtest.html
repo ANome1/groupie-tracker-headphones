@@ -1,0 +1,67 @@
+<!-- RESPONSABLE: @Quoc Huy -->
+<!-- Interface de jeu Blind Test -->
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Blind Test - Groupie Tracker</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/game.css">
+</head>
+<body>
+    <!-- TODO @Quoc Huy: Créer l'interface avec:
+         
+         1. Sélection de playlist (au début):
+            - "Choisis une des playlist !"
+            - Boutons: Rock, Rap, Pop
+         
+         2. Zone de jeu:
+            - Lecteur audio (lecture automatique de l'extrait)
+            - Timer visuel (37 secondes)
+            - Numéro du round (ex: "Round 3/10")
+            
+         3. Zone de réponse:
+            - Champ de saisie pour "Artiste - Titre"
+            - Bouton Valider
+            
+         4. Scoreboard:
+            - Liste des joueurs avec leurs scores
+            - Mise à jour en temps réel
+            
+         Système de points:
+         - Réponse en < 10s: 3 points
+         - Réponse en < 20s: 2 points
+         - Réponse en < 37s: 1 point
+    -->
+    
+    <div class="game-container">
+        <div id="playlist-selection" style="display: block;">
+            <h2>Choisis une des playlist !</h2>
+            <button onclick="selectPlaylist('Rock')">Rock</button>
+            <button onclick="selectPlaylist('Rap')">Rap</button>
+            <button onclick="selectPlaylist('Pop')">Pop</button>
+        </div>
+        
+        <div id="game-area" style="display: none;">
+            <div class="timer" id="timer">37</div>
+            <div class="round-info">Round <span id="current-round">1</span>/<span id="total-rounds">10</span></div>
+            
+            <audio id="audio-player" autoplay></audio>
+            
+            <form id="answer-form">
+                <input type="text" id="answer-input" placeholder="Artiste - Titre">
+                <button type="submit">Valider</button>
+            </form>
+        </div>
+        
+        <div class="scoreboard">
+            <h3>Scores</h3>
+            <ul id="scores-list"></ul>
+        </div>
+    </div>
+    
+    <script src="/static/js/websocket.js"></script>
+    <script src="/static/js/blindtest.js"></script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+/* RESPONSABLE: @Nome */
+/* Styles pour les pages d'authentification (login, register) */
+
+/* TODO @Nome: Styler:
+   - Container centré
+   - Formulaire avec fond semi-transparent
+   - Inputs avec bordures orange/jaune
+   - Messages d'erreur en rouge
+   - Animations d'entrée
+*/
+
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.auth-container form {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 40px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.auth-container input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 2px solid var(--orange);
+    border-radius: 6px;
+    background: transparent;
+    color: white;
+}
+
+/* TODO @Nome: Ajouter plus de styles */

@@ -1,0 +1,29 @@
+<!-- RESPONSABLE: @Nome -->
+<!-- Page de connexion -->
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Connexion - Groupie Tracker</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/auth.css">
+</head>
+<body>
+    <!-- TODO @Nome: Formulaire de connexion avec:
+         - Champ Username ou Email
+         - Champ Password
+         - Bouton Se connecter
+         - Lien vers l'inscription
+    -->
+    <div class="auth-container">
+        <h1>Connexion</h1>
+        <form action="/login" method="POST">
+            <input type="text" name="username" placeholder="Pseudo" required>
+            <input type="password" name="password" placeholder="Mot de passe" required>
+            <button type="submit">Se connecter</button>
+        </form>
+        <p>Pas encore de compte ? <a href="/register">Inscrivez-vous</a></p>
+    </div>
+</body>
+</html>

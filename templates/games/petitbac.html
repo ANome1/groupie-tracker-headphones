@@ -1,0 +1,80 @@
+<!-- RESPONSABLE: @ilian -->
+<!-- Interface de jeu Petit Bac -->
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Petit Bac - Groupie Tracker</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/game.css">
+</head>
+<body>
+    <!-- TODO @ilian: Créer l'interface avec:
+         
+         1. En haut:
+            - Grande lettre affichée au centre
+            - Timer visuel
+            - Numéro de la manche (ex: "Manche 3/9")
+            - Note: NbrsManche = 9 (constante dans models/petitbac.go)
+         
+         2. Grille de saisie:
+            - Une ligne par catégorie
+            - Champ de saisie pour chaque catégorie
+            - Catégories par défaut: Prénom, Ville, Pays, Animal, Métier, etc.
+            - Bouton pour gérer les catégories personnalisées
+         
+         3. Phase de validation:
+            - Afficher toutes les réponses de tous les joueurs
+            - Permettre de voter (valider/invalider)
+            - Système: 2/3 des joueurs doivent valider
+         
+         4. Scoreboard:
+            - scoreboardActualPointInGame pour suivi en temps réel
+            - Points: 2 (unique), 1 (commun), 0 (invalidé/vide)
+         
+         5. Gestion des catégories (CRUD):
+            - Modal pour ajouter/modifier/supprimer des catégories
+    -->
+    
+    <div class="game-container">
+        <div class="letter-display" id="letter">A</div>
+        <div class="timer" id="timer">60</div>
+        <div class="round-info">Manche <span id="current-round">1</span>/<span id="total-rounds">9</span></div>
+        
+        <button id="manage-categories">Gérer les catégories</button>
+        
+        <form id="answers-form">
+            <div class="categories-grid" id="categories">
+                <!-- Catégories générées dynamiquement -->
+            </div>
+            <button type="submit">Valider mes réponses</button>
+        </form>
+        
+        <div id="validation-phase" style="display: none;">
+            <h3>Validation collective</h3>
+            <div id="all-answers">
+                <!-- Réponses de tous les joueurs -->
+            </div>
+        </div>
+        
+        <div class="scoreboard">
+            <h3>Scores</h3>
+            <ul id="scores-list"></ul>
+        </div>
+    </div>
+    
+    <!-- Modal pour gérer les catégories -->
+    <div id="categories-modal" style="display: none;">
+        <h3>Gestion des catégories</h3>
+        <ul id="categories-list"></ul>
+        <form id="add-category-form">
+            <input type="text" placeholder="Nouvelle catégorie">
+            <button type="submit">Ajouter</button>
+        </form>
+    </div>
+    
+    <script src="/static/js/websocket.js"></script>
+    <script src="/static/js/petitbac.js"></script>
+</body>
+</html>
