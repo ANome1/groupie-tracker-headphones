@@ -8,14 +8,25 @@ import (
 
 // RESPONSABLE: @Nome (infrastructure), @Quoc Huy (WebSocket Blind Test), @ilian (WebSocket Petit Bac)
 
-// Home - Page d'accueil
-func Home(w http.ResponseWriter, r *http.Request) {
+// Landing - Page d'accueil
+func Landing(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
 		return
 	}
 
-	tmpl, err := template.ParseFiles("./templates/index.html")
+	tmpl, err := template.ParseFiles("./templates/landing.html", "./templates/header.html", "./templates/footer.html")
+	if err != nil {
+		log.Printf("Erreur: %v", err)
+		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
+		return
+	}
+	tmpl.Execute(w, nil)
+}
+
+// Home - Page de sélection de jeu
+func Home(w http.ResponseWriter, r *http.Request) {
+	tmpl, err := template.ParseFiles("./templates/home.html", "./templates/header.html", "./templates/footer.html")
 	if err != nil {
 		log.Printf("Erreur: %v", err)
 		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
@@ -154,7 +165,8 @@ func main() {
 	// db, err := sql.Open("sqlite3", "./database/groupie-tracker.db")
 
 	// Routes
-	http.HandleFunc("/", Home)
+	http.HandleFunc("/", Landing)
+	http.HandleFunc("/home", Home)
 	http.HandleFunc("/register", RegisterHandler)
 	http.HandleFunc("/login", LoginHandler)
 	http.HandleFunc("/room/create", CreateRoomHandler)
@@ -173,5 +185,5 @@ func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	log.Println("🎵 Serveur Groupie Tracker sur http://localhost:8080")
-	http.ListenAndServe(":8080", nil)
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }

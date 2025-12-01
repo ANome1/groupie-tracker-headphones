@@ -7,8 +7,9 @@
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
-<main>
-        <section class="hero">
+    {{template "header" .}}
+    <section class="hero">
+        <h1>Bienvenue sur Groupie Tracker</h1>
             <h2>Jouez à des jeux musicaux avec vos amis !</h2>
         </section>
         
@@ -33,6 +34,6 @@
                 <button type="submit">Rejoindre</button>
             </form>
         </section>
-    </main>
+    {{template "footer" .}}
 </body>
 </html>
