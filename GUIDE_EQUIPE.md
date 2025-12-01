@@ -218,4 +218,4 @@ Variable: scoreboardActualPointInGame (points de la manche)
 
 ---
 
-**Bon courage à toute l'équipe ! 🎵🎮**
+
