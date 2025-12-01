@@ -1,48 +1,17 @@
-/* RESPONSABLE: @Quoc Huy (Blind Test) & @ilian (Petit Bac) */
+/* RESPONSABLE: @Quoc Huy & @ilian */
 /* Styles pour les interfaces de jeu */
 
-/* TODO @Quoc Huy: Styler le Blind Test:
-   - Lecteur audio custom
-   - Timer circulaire animé
-   - Zone de réponse highlightée
-   - Scoreboard avec animations de points
-*/
+/* TODO @Quoc Huy: Styles Blind Test
+ * - Interface de sélection de playlist
+ * - Lecteur audio
+ * - Formulaire de réponse
+ * - Timer visuel (37s)
+ * - Scoreboard
+ */
 
-/* TODO @ilian: Styler le Petit Bac:
-   - Grande lettre au centre (font-size: 120px)
-   - Grille de catégories responsive
-   - Phase de validation avec cartes de réponses
-   - Modal de gestion des catégories
-*/
-
-.game-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-.timer {
-    font-size: 48px;
-    font-weight: bold;
-    color: var(--yellow);
-    text-align: center;
-    margin: 20px 0;
-}
-
-.letter-display {
-    font-size: 120px;
-    font-weight: bold;
-    color: var(--orange);
-    text-align: center;
-    margin: 30px 0;
-    text-shadow: 0 0 20px rgba(255, 107, 53, 0.5);
-}
-
-.scoreboard {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 20px;
-    border-radius: 12px;
-    margin-top: 30px;
-}
-
-/* TODO: Ajouter plus de styles */
+/* TODO @ilian: Styles Petit Bac
+ * - Affichage de la lettre
+ * - Grille des catégories et réponses
+ * - Interface de validation collective
+ * - Scoreboard avec scoreboardActualPointInGame
+ */

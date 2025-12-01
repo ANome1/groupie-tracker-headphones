@@ -1,51 +1,39 @@
 package handlers
 
+import "net/http"
+
 // RESPONSABLE: @Nome (avec collaboration de @Quoc Huy et @ilian)
 // Handlers pour la gestion des salles de jeu
 
-import "net/http"
+// TODO @Nome: CreateRoomHandler - Créer une nouvelle salle
+// - Méthode GET: Afficher le formulaire de création (templates/room/create.html)
+// - Méthode POST:
+//   1. Récupérer le nom de la salle, type de jeu (blindtest/petitbac), max joueurs
+//   2. Vérifier que l'utilisateur est connecté (session)
+//   3. Générer un code de salle unique (6 caractères)
+//   4. Créer la salle en base de données
+//   5. Ajouter le créateur comme premier participant
+//   6. Rediriger vers le lobby de la salle
 
-// CreateRoomHandler - Crée une nouvelle salle de jeu
-// TODO @Nome:
-//   - Méthode GET: Afficher le formulaire de création (templates/room/create.html)
-//     → Avec options: Blind Test ou Petit Bac
-//   - Méthode POST:
-//     1. Récupérer: room_name, game_type, max_players
-//     2. Générer un code de salle unique (6 caractères)
-//     3. Créer la salle en base de données
-//     4. Ajouter le créateur comme participant
-//     5. Rediriger vers le lobby de la salle
-func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implementation
-}
+// TODO @Nome: JoinRoomHandler - Rejoindre une salle existante
+// - Méthode GET: Afficher le formulaire pour entrer le code (templates/room/join.html)
+// - Méthode POST:
+//   1. Récupérer le code de la salle
+//   2. Vérifier que l'utilisateur est connecté
+//   3. Vérifier que la salle existe et n'est pas pleine
+//   4. Ajouter l'utilisateur comme participant
+//   5. Rediriger vers le lobby de la salle
 
-// JoinRoomHandler - Permet de rejoindre une salle existante
-// TODO @Nome:
-//   - Méthode GET: Afficher le formulaire (templates/room/join.html)
-//     → Champ pour entrer le code de la salle
-//   - Méthode POST:
-//     1. Récupérer le code de salle
-//     2. Vérifier que la salle existe
-//     3. Vérifier que la salle n'est pas pleine
-//     4. Vérifier que la salle est en statut 'waiting'
-//     5. Ajouter le joueur à la salle
-//     6. Rediriger vers le lobby de la salle
-func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implementation
-}
+// TODO @Nome: LobbyHandler - Affiche le lobby d'attente avant le jeu
+// - Afficher la liste des participants
+// - Afficher le code de la salle pour partager
+// - Bouton "Commencer" visible uniquement pour l'hôte
+// - WebSocket pour mettre à jour la liste en temps réel
 
-// LobbyHandler - Affiche le lobby d'une salle
-// TODO @Nome:
-//   - Afficher les informations de la salle (templates/room/lobby.html):
-//     → Nom de la salle
-//     → Code de la salle (pour inviter d'autres joueurs)
-//     → Type de jeu
-//     → Liste des participants
-//     → Bouton "Démarrer" (seulement pour l'hôte)
-//   - Utiliser WebSocket pour mettre à jour la liste des joueurs en temps réel
-func LobbyHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: Implementation
-}
+// TODO @Nome: LeaveRoomHandler - Quitter une salle
+// - Retirer l'utilisateur des participants
+// - Si c'était l'hôte, transférer à un autre joueur ou supprimer la salle
+// - Notifier les autres joueurs via WebSocket
 
 // LeaveRoomHandler - Quitter une salle
 // TODO @Nome:

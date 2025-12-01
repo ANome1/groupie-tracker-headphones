@@ -1,43 +1,22 @@
 package utils
 
 // RESPONSABLE: @Nome, @Quoc Huy, @ilian
-// Fonctions utilitaires partagées
+// Fonctions utilitaires générales
 
-import (
-	"encoding/json"
-	"net/http"
-)
+// TODO @Nome: Fonctions utilitaires
+// - func GenerateRandomCode(length int) string
+//   * Générer un code aléatoire (pour les codes de salle)
+// - func GetUserIDFromSession(r *http.Request) (int, error)
+//   * Récupérer l'ID utilisateur depuis la session
 
-// RespondJSON - Envoie une réponse JSON
-// TODO @Nome:
-// - Définir le Content-Type
-// - Encoder les données en JSON
-// - Gérer les erreurs d'encodage
-func RespondJSON(w http.ResponseWriter, status int, data interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(data)
-}
+// TODO @Quoc Huy: Fonctions pour Blind Test
+// - func NormalizeString(s string) string
+//   * Normaliser une chaîne (minuscules, sans accents, trim)
+// - func StringSimilarity(s1, s2 string) float64
+//   * Calculer la similarité entre deux chaînes (pour réponses partielles)
 
-// RespondError - Envoie une erreur en JSON
-// TODO @Nome:
-func RespondError(w http.ResponseWriter, status int, message string) {
-	RespondJSON(w, status, map[string]string{"error": message})
-}
-
-// ParseJSON - Parse le corps d'une requête JSON
-// TODO @Nome:
-func ParseJSON(r *http.Request, v interface{}) error {
-	return json.NewDecoder(r.Body).Decode(v)
-}
-
-// TODO @Quoc Huy: Fonction pour comparer deux strings (titre/artiste)
-// - Ignorer la casse
-// - Ignorer les accents
-// - Ignorer la ponctuation
-// func NormalizeString(s string) string
-// func CompareStrings(s1, s2 string) bool
-
-// TODO @ilian: Fonction pour tirer une lettre aléatoire
-// - Exclure les lettres difficiles (K, W, X, Y, Z) optionnel
-// func RandomLetter() string
+// TODO @ilian: Fonctions pour Petit Bac
+// - func StartsWithLetter(word, letter string) bool
+//   * Vérifier qu'un mot commence par une lettre donnée
+// - func CalculateVotesRequired(playerCount int) int
+//   * Calculer le nombre de votes requis (2/3 des joueurs)

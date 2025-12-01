@@ -3,15 +3,12 @@ package models
 // RESPONSABLE: @Nome
 // Modèle utilisateur pour l'authentification
 
-import "time"
-
-type User struct {
-	ID           int       `json:"id"`
-	Username     string    `json:"username"`
-	Email        string    `json:"email"`
-	PasswordHash string    `json:"-"` // Ne pas exposer le hash dans le JSON
-	CreatedAt    time.Time `json:"created_at"`
-}
+// TODO @Nome: Créer la structure User avec:
+// - ID int
+// - Username string
+// - Email string
+// - PasswordHash string (ne pas exposer dans le JSON)
+// - CreatedAt time.Time
 
 // TODO @Nome: Ajouter les méthodes suivantes:
 // - func CreateUser(username, email, passwordHash string) (*User, error)

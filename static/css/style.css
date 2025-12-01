@@ -1,50 +1,9 @@
 /* RESPONSABLE: @Nome */
-/* Styles principaux - Thème Orange et Jaune */
+/* Styles généraux de l'application */
 
-/* TODO @Nome: Créer une charte graphique avec:
-   - Couleurs principales:
-     * Orange: #FF6B35
-     * Jaune: #FFD23F
-     * Fond sombre: #1a1a1a
-   - Typographie moderne
-   - Boutons avec effets hover
-   - Cards avec ombres
-   - Animations subtiles
-*/
-
-:root {
-    --orange: #FF6B35;
-    --yellow: #FFD23F;
-    --dark: #1a1a1a;
-    --light: #f5f5f5;
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Arial', sans-serif;
-    background-color: var(--dark);
-    color: var(--light);
-}
-
-/* Buttons */
-button, .btn {
-    background: linear-gradient(135deg, var(--orange), var(--yellow));
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: transform 0.2s;
-}
-
-button:hover, .btn:hover {
-    transform: translateY(-2px);
-}
-
-/* TODO @Nome: Ajouter plus de styles */
+/* TODO @Nome: Styles de base
+ * - Reset CSS
+ * - Variables CSS pour les couleurs (#FF6B35 et #FFD23F)
+ * - Typographie
+ * - Layout général
+ */

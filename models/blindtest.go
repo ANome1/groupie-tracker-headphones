@@ -3,50 +3,46 @@ package models
 // RESPONSABLE: @Quoc Huy
 // Modèle pour le jeu Blind Test
 
-type BlindTestGame struct {
-	CurrentRound  int         `json:"current_round"`
-	TotalRounds   int         `json:"total_rounds"`
-	CurrentTrack  *Track      `json:"current_track,omitempty"`
-	PlayerScores  map[int]int `json:"player_scores"` // userID -> score
-	RoundStarted  bool        `json:"round_started"`
-	TimeRemaining int         `json:"time_remaining"` // En secondes (défaut: 37)
-	Playlist      string      `json:"playlist"`       // "Rock", "Rap", ou "Pop"
-}
+// TODO @Quoc Huy: Définir la constante DefaultBlindTestTimer = 37 secondes
 
-// TIMER PAR DÉFAUT: 37 secondes par musique
-const DefaultBlindTestTimer = 37
+// TODO @Quoc Huy: Créer la structure BlindTestGame avec:
+// - RoomID int
+// - CurrentTrack *Track
+// - Tracks []*Track
+// - CurrentIndex int
+// - StartTime time.Time
+// - PlayerAnswers map[int]*Answer (userID -> Answer)
+// - Scores map[int]int (userID -> score)
 
-type Track struct {
-	ID         string `json:"id"`          // ID Spotify
-	Title      string `json:"title"`       // Titre de la chanson
-	Artist     string `json:"artist"`      // Artiste
-	PreviewURL string `json:"preview_url"` // URL de l'extrait (30s)
-	Album      string `json:"album,omitempty"`
-	Year       int    `json:"year,omitempty"`
-}
+// TODO @Quoc Huy: Créer la structure Track avec:
+// - SpotifyID string
+// - Title string
+// - Artist string
+// - PreviewURL string (URL audio 30s)
 
-func (g *BlindTestGame) GetType() string {
-	return "blindtest"
-}
+// TODO @Quoc Huy: Créer la structure Answer avec:
+// - UserID int
+// - Title string
+// - Artist string
+// - Timestamp time.Time (moment de la réponse)
+// - IsCorrect bool
+// - Points int (3, 2, 1 ou 0 points)
 
-func (g *BlindTestGame) IsFinished() bool {
-	return g.CurrentRound >= g.TotalRounds
-}
+// TODO @Quoc Huy: Implémenter les méthodes de l'interface Game:
+// - func (g *BlindTestGame) GetType() string { return "blindtest" }
+// - func (g *BlindTestGame) IsFinished() bool
+// - func (g *BlindTestGame) GetScores() map[int]int
 
-func (g *BlindTestGame) GetScores() map[int]int {
-	return g.PlayerScores
-}
+// TODO @Quoc Huy: Système de points (selon le temps de réponse):
+// - Réponse correcte en moins de 10s: 3 points
+// - Réponse correcte en moins de 20s: 2 points
+// - Réponse correcte en moins de 37s: 1 point
+// - Pas de réponse ou fausse réponse: 0 point
 
-// TODO @Quoc Huy: Implémenter les fonctions suivantes:
-// - func NewBlindTestGame(playlist string, totalRounds int) *BlindTestGame
-// - func (g *BlindTestGame) StartRound(track *Track)
-// - func (g *BlindTestGame) SubmitAnswer(userID int, answer string, timeElapsed int) (correct bool, points int)
-//   → Système de points basé sur la rapidité:
-//     * Réponse correcte en < 10s: 3 points
-//     * Réponse correcte en < 20s: 2 points
-//     * Réponse correcte en < 37s: 1 point
-// - func (g *BlindTestGame) NextRound()
-// - func (g *BlindTestGame) GetLeaderboard() []struct{UserID int; Score int}
+// TODO @Quoc Huy: Ajouter une fonction pour valider les réponses:
+// - func ValidateAnswer(userAnswer, correctAnswer string) bool
+// - Ignorer la casse et les espaces supplémentaires
+// - Accepter les réponses partielles (ex: "Bohemian" pour "Bohemian Rhapsody")
 
 // TODO @Quoc Huy: Intégration Spotify API
 // - func GetRandomTracksFromPlaylist(playlist string, count int) ([]*Track, error)
