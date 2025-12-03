@@ -1,9 +1,11 @@
 package config
 
 import (
-	// "database/sql"
-	_ "github.com/mattn/go-sqlite3"
+	"os"
 )
+
+// RESPONSABLE: @Nome
+// Configuration de l'application
 
 type Config struct {
 	DatabasePath string
@@ -11,8 +13,18 @@ type Config struct {
 }
 
 func Load() *Config {
+	dbPath := os.Getenv("DB_PATH")
+	if dbPath == "" {
+		dbPath = "./database/groupie-tracker.db"
+	}
+
+	serverPort := os.Getenv("SERVER_PORT")
+	if serverPort == "" {
+		serverPort = "8080"
+	}
+
 	return &Config{
-		DatabasePath: "",
-		ServerPort:   "8080",
+		DatabasePath: dbPath,
+		ServerPort:   serverPort,
 	}
 }
