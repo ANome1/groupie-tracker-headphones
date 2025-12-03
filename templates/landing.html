@@ -3,16 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Groupie Tracker - Accueil</title>
+    <title>HeadPhone - Accueil</title>
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
     {{template "header" .}}
     <section class="landing-hero">
-        <h1>Bienvenue sur Groupie Tracker</h1>
-        <p>Jouez à des jeux musicaux amusants avec vos amis en ligne !</p>
-        <a href="/register" class="btn-primary">Inscrivez-vous</a>
-        <a href="/login" class="btn-secondary">Connectez-vous</a>
+        <div class="general">
+            <h1>Bienvenue sur HeadPhone</h1>
+            <p>Jouez à des jeux musicaux amusants avec vos amis en ligne !</p>
+            <a href="/register" class="btn-primary">Inscrivez-vous</a>
+            <a href="/login" class="btn-secondary">Connectez-vous</a>
+        </div>
+        <div class="presetation-card">
+            <h2>Découvrez HeadPhone</h2>
+            <p>HeadPhone est la plateforme idéale pour les amateurs de musique et de jeux en ligne. Rejoignez-nous pour défier vos amis et tester vos connaissances musicales dans une ambiance conviviale et divertissante.</p>
+            <div class="features-card">
+                <div class="feature-item">
+                    <h3>Multijoueur</h3>
+                    <p>Jouez avec vos amis (jusqu'à 8 joueurs).</p>
+                </div>
+                <div class="feature-item">
+                    <h3>Playlists variées</h3>
+                    <p>Découvrez une large gamme de playlists pour tous les goûts.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>Classements</h3>
+                    <p>Grimpez dans les classements.</p>
+                </div>
+            </div>
+        </div>
+        <div class="our-games">
+            <h2>Nos jeux</h2>
+            <div class="games-list">
+                <div class="game-item">
+                    <h3>Blind Test</h3>
+                    <p>Écoutez des extraits et devinez le titre ou l'artiste.</p>
+                </div>
+                <div class="game-item">
+                    <h3>Petit Bac</h3>
+                    <p>Testez vos connaissances générales du monde musical.</p>
+                </div>
+            </div>        
+        </div>        
     </section>
     {{template "footer" .}}
 </body>
