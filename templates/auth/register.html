@@ -11,19 +11,17 @@
     <link rel="stylesheet" href="/static/css/auth.css">
 </head>
 <body>
-    <!-- TODO @Nome: Créer un formulaire d'inscription avec:
-         - Champ Username (3-20 caractères, alphanumérique)
-         - Champ Email (format email valide)
-         - Champ Password (minimum 8 caractères)
-         - Champ Confirm Password
-         - Bouton S'inscrire
-         - Lien vers la page de connexion
-         
+    {{template "header" .}}
+    <!-- TODO @Nome:          
          Validations côté client (HTML5) et côté serveur (utils/validator.go)
          Afficher les erreurs de validation
     -->
-    
-    <div class="auth-container">
+    <section class="auth-hero">
+        <div class="auth-info">
+            <h2>Rejoignez HeadPhone dès aujourd'hui !</h2>
+            <p>Inscrivez-vous pour commencer à jouer à des jeux musicaux amusants avec vos amis en ligne.</p>
+        </div>
+        <div class="auth-container">
         <h1>Inscription</h1>
         <form action="/register" method="POST">
             <input type="text" name="username" placeholder="Pseudo" required>
@@ -34,5 +32,7 @@
         </form>
         <p>Déjà un compte ? <a href="/login">Connectez-vous</a></p>
     </div>
+    </section>
+    {{template "footer" .}}
 </body>
 </html>
