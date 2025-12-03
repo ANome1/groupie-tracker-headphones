@@ -20,5 +20,6 @@ type RoomParticipant struct {
 	ID       int
 	RoomID   int
 	UserID   int
+	Score    int
 	JoinedAt time.Time
 }
