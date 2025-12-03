@@ -10,13 +10,13 @@
     <link rel="stylesheet" href="/static/css/auth.css">
 </head>
 <body>
-    <!-- TODO @Nome: Formulaire de connexion avec:
-         - Champ Username ou Email
-         - Champ Password
-         - Bouton Se connecter
-         - Lien vers l'inscription
-    -->
-    <div class="auth-container">
+    {{template "header" .}}
+    <section class="auth-hero">
+        <div class="auth-info">
+            <h2>Bienvenue de retour sur HeadPhone !</h2>
+            <p>Connectez-vous pour continuer à jouer à des jeux musicaux amusants avec vos amis en ligne.</p>
+        </div>
+        <div class="auth-container">
         <h1>Connexion</h1>
         <form action="/login" method="POST">
             <input type="text" name="username" placeholder="Pseudo" required>
@@ -24,6 +24,8 @@
             <button type="submit">Se connecter</button>
         </form>
         <p>Pas encore de compte ? <a href="/register">Inscrivez-vous</a></p>
-    </div>
+
+    </section>
+    {{template "footer" .}}
 </body>
 </html>
