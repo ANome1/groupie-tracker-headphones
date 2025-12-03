@@ -48,13 +48,7 @@ CREATE TABLE IF NOT EXISTS game_sessions (
 );
 
 -- TODO @ilian: Table pour les catégories personnalisées du Petit Bac
--- CREATE TABLE IF NOT EXISTS petitbac_categories (
---     id INTEGER PRIMARY KEY AUTOINCREMENT,
---     name TEXT NOT NULL,
---     created_by INTEGER,
---     is_default BOOLEAN DEFAULT 0,
---     FOREIGN KEY (created_by) REFERENCES users(id)
--- );
+
 
 -- Index pour améliorer les performances
 CREATE INDEX IF NOT EXISTS idx_rooms_code ON rooms(code);
