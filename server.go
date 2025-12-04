@@ -3,6 +3,7 @@ package main
 import (
 	"groupie-tracker/config"
 	"groupie-tracker/database"
+	"groupie-tracker/handlers"
 	"groupie-tracker/services"
 	"log"
 	"net/http"
@@ -44,7 +45,7 @@ func Home(w http.ResponseWriter, r *http.Request) {
 // TODO @Nome: Insérer en base de données, créer une session
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
-		// TODO: Logique d'inscription
+
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
@@ -58,10 +59,6 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, nil)
 }
 
-// LoginHandler - Connexion
-// TODO @Nome: Récupérer username, password du formulaire
-// TODO @Nome: Vérifier en base, comparer les hash
-// TODO @Nome: Créer une session si succès
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		// TODO: Logique de connexion
@@ -78,13 +75,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, nil)
 }
 
-// CreateRoomHandler - Créer une salle
-// TODO @Nome: Récupérer room_name, game_type (blindtest/petitbac), max_players
-// TODO @Nome: Générer un code unique (6 caractères)
-// TODO @Nome: Insérer en base, ajouter le créateur comme participant
 func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
-		// TODO: Logique création salle
 		http.Redirect(w, r, "/room/lobby", http.StatusSeeOther)
 		return
 	}
@@ -98,13 +90,8 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, nil)
 }
 
-// JoinRoomHandler - Rejoindre une salle
-// TODO @Nome: Récupérer room_code du formulaire
-// TODO @Nome: Vérifier que la salle existe et n'est pas pleine
-// TODO @Nome: Ajouter le joueur aux participants
 func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
-		// TODO: Logique rejoindre salle
 		http.Redirect(w, r, "/room/lobby", http.StatusSeeOther)
 		return
 	}
@@ -118,10 +105,6 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, nil)
 }
 
-// LobbyHandler - Lobby d'attente
-// TODO @Nome: Charger les participants de la salle depuis la base
-// TODO @Nome: Afficher le code de salle, liste des joueurs
-// TODO @Nome: Bouton "Commencer" uniquement pour l'hôte
 func LobbyHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl, err := template.ParseFiles("./templates/room/lobby.html", "./templates/header.html", "./templates/footer.html")
 	if err != nil {
@@ -129,7 +112,7 @@ func LobbyHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
 		return
 	}
-	// TODO: Passer les données de la salle au template
+
 	tmpl.Execute(w, nil)
 }
 
@@ -175,6 +158,10 @@ func main() {
 
 	authService = &services.AuthService{DB: db}
 	roomService = &services.RoomService{DB: db}
+
+	// Initialiser les handlers avec les services
+	handlers.Init(authService, roomService)
+
 	// Routes
 	http.HandleFunc("/", Landing)
 	http.HandleFunc("/home", Home)
