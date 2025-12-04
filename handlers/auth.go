@@ -5,13 +5,17 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 type RegisterData struct {
 	Error string
 }
 
-// TODO @Nome: Handler POST pour inscription (récupérer form, valider, hasher SHA256, insérer en DB)
+type LoginData struct {
+	Error string
+}
+
 // TODO @Nome: Handler POST pour connexion (vérifier credentials, créer session)
 // TODO @Nome: Handler pour déconnexion
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
@@ -57,4 +61,44 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	tmpl.Execute(w, RegisterData{Error: ""})
+}
+
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		username := r.FormValue("username")
+		password := r.FormValue("password")
+
+		if username == "" || password == "" {
+			tmpl, _ := template.ParseFiles("./templates/auth/login.html", "./templates/header.html", "./templates/footer.html")
+			tmpl.Execute(w, LoginData{Error: "Nom d'utilisateur et mot de passe requis"})
+			return
+		}
+
+		user, err := AuthService.ValidateUserCredentials(username, password)
+		if err != nil {
+			tmpl, _ := template.ParseFiles("./templates/auth/login.html", "./templates/header.html", "./templates/footer.html")
+			tmpl.Execute(w, LoginData{Error: "Identifiants invalides"})
+			return
+		}
+
+		// Créer un cookie de session
+		http.SetCookie(w, &http.Cookie{
+			Name:   "user_id",
+			Value:  strconv.Itoa(user.ID),
+			MaxAge: 3600 * 24 * 7, // 7 jours
+			Path:   "/",
+		})
+
+		log.Printf("Utilisateur connecté : %s (ID: %d)", user.Username, user.ID)
+		http.Redirect(w, r, "/home", http.StatusSeeOther)
+		return
+	}
+
+	tmpl, err := template.ParseFiles("./templates/auth/login.html", "./templates/header.html", "./templates/footer.html")
+	if err != nil {
+		log.Printf("Erreur: %v", err)
+		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
+		return
+	}
+	tmpl.Execute(w, LoginData{Error: ""})
 }

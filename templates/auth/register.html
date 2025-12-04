@@ -23,6 +23,11 @@
         </div>
         <div class="auth-container">
         <h1>Inscription</h1>
+        {{if .Error}}
+        <div style="background-color: #ff4444; color: white; padding: 12px; margin-bottom: 16px; border-radius: 4px;">
+            {{.Error}}
+        </div>
+        {{end}}
         <form action="/register" method="POST">
             <input type="text" name="username" placeholder="Pseudo" required>
             <input type="email" name="email" placeholder="Email" required>

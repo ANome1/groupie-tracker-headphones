@@ -18,6 +18,11 @@
         </div>
         <div class="auth-container">
         <h1>Connexion</h1>
+        {{if .Error}}
+        <div style="background-color: #ff4444; color: white; padding: 12px; margin-bottom: 16px; border-radius: 4px;">
+            {{.Error}}
+        </div>
+        {{end}}
         <form action="/login" method="POST">
             <input type="text" name="username" placeholder="Pseudo" required>
             <input type="password" name="password" placeholder="Mot de passe" required>

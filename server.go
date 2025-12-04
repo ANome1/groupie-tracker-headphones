@@ -40,39 +40,13 @@ func Home(w http.ResponseWriter, r *http.Request) {
 }
 
 // RegisterHandler - Inscription
-// TODO @Nome: Récupérer username, email, password du formulaire
-// TODO @Nome: Valider les données, hasher le mot de passe (SHA256)
-// TODO @Nome: Insérer en base de données, créer une session
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	tmpl, err := template.ParseFiles("./templates/auth/register.html", "./templates/header.html", "./templates/footer.html")
-	if err != nil {
-		log.Printf("Erreur: %v", err)
-		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
-		return
-	}
-	tmpl.Execute(w, nil)
+	handlers.RegisterHandler(w, r)
 }
 
+// LoginHandler - Connexion
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-		// TODO: Logique de connexion
-		http.Redirect(w, r, "/home", http.StatusSeeOther)
-		return
-	}
-
-	tmpl, err := template.ParseFiles("./templates/auth/login.html", "./templates/header.html", "./templates/footer.html")
-	if err != nil {
-		log.Printf("Erreur: %v", err)
-		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
-		return
-	}
-	tmpl.Execute(w, nil)
+	handlers.LoginHandler(w, r)
 }
 
 func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
