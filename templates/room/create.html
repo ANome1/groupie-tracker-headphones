@@ -5,29 +5,37 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Créer une salle - Groupie Tracker</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/auth.css">
 </head>
 <body>
-    <!-- TODO @Nome: Formulaire de création avec:
-         - Nom de la salle
-         - Sélecteur de jeu (Blind Test ou Petit Bac)
-         - Nombre de joueurs max (2-8)
-         - Bouton Créer
-    -->
-    <h1>Créer une salle de jeu</h1>
-    <form action="/room/create" method="POST">
-        <input type="text" name="room_name" placeholder="Nom de la salle" required>
-        <select name="game_type" required>
-            <option value="blindtest">Blind Test</option>
-            <option value="petitbac">Petit Bac</option>
-        </select>
-        <select name="max_players">
-            <option value="4">4 joueurs</option>
-            <option value="6">6 joueurs</option>
-            <option value="8" selected>8 joueurs</option>
-        </select>
-        <button type="submit">Créer</button>
-    </form>
+    {{template "header" .}}
+    <section class="auth-hero">
+        <div class="auth-info">
+            <h2>Créer une nouvelle salle</h2>
+            <p>Invitez vos amis à rejoindre une partie et testez vos connaissances musicales !</p>
+        </div>
+        <div class="auth-container">
+            <h1>Nouvelle salle</h1>
+            <form action="/room/create" method="POST">
+                <input type="text" name="room_name" placeholder="Nom de la salle" required>
+                <select name="game_type" required>
+                    <option value="">-- Choisir un jeu --</option>
+                    <option value="blindtest">Blind Test</option>
+                    <option value="petitbac">Petit Bac</option>
+                </select>
+                <select name="max_players">
+                    <option value="4">4 joueurs</option>
+                    <option value="6">6 joueurs</option>
+                    <option value="8" selected>8 joueurs</option>
+                </select>
+                <button type="submit">Créer la salle</button>
+            </form>
+            <p>Ou <a href="/home">retourner au menu</a></p>
+        </div>
+    </section>
+    {{template "footer" .}}
 </body>
 </html>

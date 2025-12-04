@@ -53,6 +53,19 @@
     border: 2px solid #000000;
 }
 
+.auth-container select {
+    padding: 12px 15px;
+    border: 1px solid #cccccc;
+    font-size: 1rem;
+    background-color: #ffffff;
+    cursor: pointer;
+}
+
+.auth-container select:focus {
+    outline: none;
+    border: 2px solid #000000;
+}
+
 .auth-container button {
     padding: 12px;
     background-color: #000000;
