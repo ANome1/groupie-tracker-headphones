@@ -1,5 +1,4 @@
 -- RESPONSABLE: @Nome
--- Schéma de base de données SQLite pour Groupie Tracker
 
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -13,7 +12,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS rooms (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    code TEXT UNIQUE NOT NULL, -
+    code TEXT UNIQUE NOT NULL,
     host_id INTEGER NOT NULL,
     game_type TEXT NOT NULL, -- 'blindtest' ou 'petitbac'
     max_players INTEGER DEFAULT 8,
