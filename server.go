@@ -1,6 +1,9 @@
 package main
 
 import (
+	"groupie-tracker/config"
+	"groupie-tracker/database"
+	"groupie-tracker/services"
 	"log"
 	"net/http"
 	"text/template"
@@ -160,10 +163,18 @@ func PetitBacHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, nil)
 }
 
+var authService *services.AuthService
+var roomService *services.RoomService
+
 func main() {
 	// TODO @Nome: Initialiser la connexion SQLite
-	// db, err := sql.Open("sqlite3", "./database/groupie-tracker.db")
+	cfg := config.Load()
 
+	db := database.InitDB(cfg.DatabasePath)
+	defer db.Close()
+
+	authService = &services.AuthService{DB: db}
+	roomService = &services.RoomService{DB: db}
 	// Routes
 	http.HandleFunc("/", Landing)
 	http.HandleFunc("/home", Home)
@@ -184,6 +195,6 @@ func main() {
 	fs := http.FileServer(http.Dir("static/"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	log.Println("🎵 Serveur Groupie Tracker sur http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Println("🎵 Serveur Groupie Tracker sur http://localhost:" + cfg.ServerPort)
+	log.Fatal(http.ListenAndServe(":"+cfg.ServerPort, nil))
 }
