@@ -102,3 +102,14 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	tmpl.Execute(w, LoginData{Error: ""})
 }
+
+func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:   "user_id",
+		MaxAge: -1,
+		Path:   "/",
+	})
+
+	log.Printf("Utilisateur déconnecté")
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}

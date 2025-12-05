@@ -49,45 +49,29 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	handlers.LoginHandler(w, r)
 }
 
+// LogoutHandler - Déconnexion
+func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	handlers.LogoutHandler(w, r)
+}
+
+// CreateRoomHandler - Créer une salle
 func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-		http.Redirect(w, r, "/room/lobby", http.StatusSeeOther)
-		return
-	}
-
-	tmpl, err := template.ParseFiles("./templates/room/create.html", "./templates/header.html", "./templates/footer.html")
-	if err != nil {
-		log.Printf("Erreur: %v", err)
-		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
-		return
-	}
-	tmpl.Execute(w, nil)
+	handlers.CreateRoomHandler(w, r)
 }
 
+// JoinRoomHandler - Rejoindre une salle
 func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-		http.Redirect(w, r, "/room/lobby", http.StatusSeeOther)
-		return
-	}
-
-	tmpl, err := template.ParseFiles("./templates/room/join.html", "./templates/header.html", "./templates/footer.html")
-	if err != nil {
-		log.Printf("Erreur: %v", err)
-		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
-		return
-	}
-	tmpl.Execute(w, nil)
+	handlers.JoinRoomHandler(w, r)
 }
 
+// LobbyHandler - Afficher la salle
 func LobbyHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles("./templates/room/lobby.html", "./templates/header.html", "./templates/footer.html")
-	if err != nil {
-		log.Printf("Erreur: %v", err)
-		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
-		return
-	}
+	handlers.LobbyHandler(w, r)
+}
 
-	tmpl.Execute(w, nil)
+// LeaveRoomHandler - Quitter une salle
+func LeaveRoomHandler(w http.ResponseWriter, r *http.Request) {
+	handlers.LeaveRoomHandler(w, r)
 }
 
 // BlindTestHandler - Jeu Blind Test
@@ -141,9 +125,11 @@ func main() {
 	http.HandleFunc("/home", Home)
 	http.HandleFunc("/register", RegisterHandler)
 	http.HandleFunc("/login", LoginHandler)
+	http.HandleFunc("/logout", LogoutHandler)
 	http.HandleFunc("/room/create", CreateRoomHandler)
 	http.HandleFunc("/room/join", JoinRoomHandler)
 	http.HandleFunc("/room/lobby", LobbyHandler)
+	http.HandleFunc("/room/leave", LeaveRoomHandler)
 	http.HandleFunc("/game/blindtest", BlindTestHandler)
 	http.HandleFunc("/game/petitbac", PetitBacHandler)
 
