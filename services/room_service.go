@@ -10,8 +10,6 @@ import (
 	"groupie-tracker/models"
 )
 
-// TODO @Nome: CreateRoom, GetRoomByCode, JoinRoom, LeaveRoom, GenerateRoomCode
-
 type RoomService struct {
 	DB *database.Database
 }
@@ -36,7 +34,6 @@ func (rs *RoomService) GenerateRoomCode() string {
 			log.Printf("Error checking room code: %v", err)
 			continue
 		}
-		// Si err est nil, le code existe déjà, on boucle
 	}
 }
 

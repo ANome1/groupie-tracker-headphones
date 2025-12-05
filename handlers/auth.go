@@ -16,8 +16,6 @@ type LoginData struct {
 	Error string
 }
 
-// TODO @Nome: Handler POST pour connexion (vérifier credentials, créer session)
-// TODO @Nome: Handler pour déconnexion
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		username := r.FormValue("username")
@@ -81,11 +79,10 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Créer un cookie de session
 		http.SetCookie(w, &http.Cookie{
 			Name:   "user_id",
 			Value:  strconv.Itoa(user.ID),
-			MaxAge: 3600 * 24 * 7, // 7 jours
+			MaxAge: 3600 * 24 * 7,
 			Path:   "/",
 		})
 
