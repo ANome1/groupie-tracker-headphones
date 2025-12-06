@@ -10,6 +10,23 @@ import (
 	"text/template"
 )
 
+// PageData - Structure générique pour passer des données aux templates
+type PageData struct {
+	Username string
+	Error    string
+	Success  string
+	Data     map[string]interface{}
+}
+
+// GetUsername - Récupère le nom d'utilisateur depuis les cookies
+func GetUsername(r *http.Request) string {
+	cookie, err := r.Cookie("username")
+	if err == nil {
+		return cookie.Value
+	}
+	return ""
+}
+
 // RESPONSABLE: @Nome (infrastructure), @Quoc Huy (WebSocket Blind Test), @ilian (WebSocket Petit Bac)
 
 // Landing - Page d'accueil
@@ -25,7 +42,7 @@ func Landing(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
 		return
 	}
-	tmpl.Execute(w, nil)
+	tmpl.Execute(w, PageData{Username: GetUsername(r)})
 }
 
 // Home - Page de sélection de jeu
@@ -36,7 +53,7 @@ func Home(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
 		return
 	}
-	tmpl.Execute(w, nil)
+	tmpl.Execute(w, PageData{Username: GetUsername(r)})
 }
 
 // RegisterHandler - Inscription
@@ -86,7 +103,7 @@ func BlindTestHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// TODO: Passer les données du jeu au template
-	tmpl.Execute(w, nil)
+	tmpl.Execute(w, PageData{Username: GetUsername(r)})
 }
 
 // PetitBacHandler - Jeu Petit Bac
@@ -101,7 +118,7 @@ func PetitBacHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// TODO: Passer les données du jeu au template
-	tmpl.Execute(w, nil)
+	tmpl.Execute(w, PageData{Username: GetUsername(r)})
 }
 
 var authService *services.AuthService
