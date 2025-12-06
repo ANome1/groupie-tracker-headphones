@@ -5,6 +5,106 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Groupie Tracker - Jeux Musicaux</title>
     <link rel="stylesheet" href="/static/css/main.css">
+    <style>
+        /* Home Page (Selection jeux) */
+        .hero {
+            text-align: center;
+            padding: 60px 20px;
+            background-color: #f5f5f5;
+            border-bottom: 1px solid #cccccc;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .hero h2 {
+            font-size: 1.5rem;
+            margin-top: 10px;
+        }
+
+        .games {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            padding: 50px 20px;
+            flex-wrap: wrap;
+        }
+
+        .game-card {
+            background: #ffffff;
+            padding: 30px;
+            border: 2px solid #000000;
+            text-align: center;
+            width: 300px;
+        }
+
+        .game-card h3 {
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .game-card p {
+            margin-bottom: 15px;
+        }
+
+        .game-card a {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 30px;
+            background-color: #000000;
+            color: #ffffff;
+            text-decoration: none;
+            border: 2px solid #000000;
+            font-weight: bold;
+        }
+
+        .game-card a:hover {
+            background-color: #ffffff;
+            color: #000000;
+        }
+
+        /* Join Section */
+        .join {
+            text-align: center;
+            padding: 40px 20px;
+            background-color: #f5f5f5;
+        }
+
+        .join h3 {
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .join form {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .join input {
+            padding: 10px 15px;
+            border: 2px solid #000000;
+            font-size: 1rem;
+            min-width: 200px;
+        }
+
+        .join button {
+            padding: 10px 30px;
+            background-color: #000000;
+            color: #ffffff;
+            border: 2px solid #000000;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .join button:hover {
+            background-color: #ffffff;
+            color: #000000;
+        }
+    </style>
 </head>
 <body>
     {{template "header" .}}
