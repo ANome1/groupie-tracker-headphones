@@ -10,20 +10,20 @@
         .hero {
             text-align: center;
             padding: 60px 20px;
-            background-color: #f5f5f5;
-            border-bottom: 1px solid #cccccc;
+            background-color: var(--light-bg);
+            border-bottom: 1px solid var(--border-light);
         }
 
         .hero h1 {
-            font-family: var(--font-display);
             font-size: 3rem;
             margin-bottom: 10px;
+            color: var(--primary);
         }
 
         .hero h2 {
-            font-family: var(--font-tech);
             font-size: 1.5rem;
             margin-top: 10px;
+            color: var(--border-color);
         }
 
         .games {
@@ -32,55 +32,56 @@
             gap: 30px;
             padding: 50px 20px;
             flex-wrap: wrap;
+            background-color: var(--background);
         }
 
         .game-card {
-            background: #ffffff;
+            background: var(--text);
             padding: 30px;
-            border: 2px solid #000000;
+            border: 2px solid var(--primary);
             text-align: center;
             width: 300px;
         }
 
         .game-card h3 {
-            font-family: var(--font-display);
             margin-bottom: 15px;
             font-size: 1.5rem;
+            color: var(--primary);
         }
 
         .game-card p {
-            font-family: var(--font-body);
             margin-bottom: 15px;
+            color: var(--border-color);
         }
 
         .game-card a {
             display: inline-block;
             margin-top: 20px;
             padding: 12px 30px;
-            background-color: #000000;
-            color: #ffffff;
+            background-color: var(--primary);
+            color: var(--background);
             text-decoration: none;
-            border: 2px solid #000000;
+            border: 2px solid var(--primary);
             font-weight: bold;
-            font-family: var(--font-body);
         }
 
         .game-card a:hover {
-            background-color: #ffffff;
-            color: #000000;
+            background-color: var(--accent);
+            border-color: var(--accent);
+            color: var(--text);
         }
 
         /* Join Section */
         .join {
             text-align: center;
             padding: 40px 20px;
-            background-color: #f5f5f5;
+            background-color: var(--light-bg);
         }
 
         .join h3 {
-            font-family: var(--font-tech);
             margin-bottom: 20px;
             font-size: 1.3rem;
+            color: var(--primary);
         }
 
         .join form {
@@ -92,9 +93,10 @@
 
         .join input {
             padding: 10px 15px;
-            border: 2px solid #000000;
+            border: 2px solid var(--primary);
             font-size: 1rem;
-            font-family: var(--font-body);
+            background-color: var(--text);
+            color: var(--border-color);
             min-width: 200px;
         }
 
