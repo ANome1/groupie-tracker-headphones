@@ -1,19 +1,28 @@
 {{define "footer"}}
     <footer class="site-footer">
-        <p>&copy; 2025 HeadPhone. Tous droits réservés.</p>
+        <p>&copy; 2025 HeadPhone - Pretty Flacko. Tous droits réservés.</p>
     </footer>
     <style>
         /* Footer */
         .site-footer {
-            background-color: #000000;
-            color: #ffffff;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 999;
+            background-color: transparent;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: var(--text);
             text-align: center;
-            padding: 20px;
-            margin-top: 50px;
+            padding: 30px 20px;
+            border-top: 2px solid rgba(166, 142, 224, 0.3);
         }
 
         .site-footer p {
             margin: 0;
+            font-size: 0.95rem;
+            opacity: 0.9;
         }
     </style>
 {{end}}

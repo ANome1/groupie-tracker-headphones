@@ -1,23 +1,127 @@
 {{define "header"}}
   <header class="site-header">
-    <h1 class="site-title">HeadPhone</h1>
-    <nav class="navigation">
-      <ul>
-        <li><a href="/">Home</a></li>
-        <li><a href="/scoreboard">Scoreboard</a></li>
-      </ul>
-    </nav>
+    <a class="logo">
+        <img src="/static/assets/images/logo.png" alt="Logo" class="logo-img">
+        <span class="logo-text">HeadPhone<span class="dot">.</span></span>
+    </a>
+    <nav class="main-nav">
+        <ul>
+          <li><a href="/home" class="nav-link">Accueil</a></li>
+        </ul>
+      </nav>
   </header>
   <style>
     .site-header {
-      background-color: #000000;
-      color: #ffffff;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: var(--text);
       padding: 20px;
       border-bottom: 2px solid #000000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
     .site-header h1 {
       font-size: 1.8rem;
     }
+.logo {
+  display: flex; /* Aligne image et texte côte à côte */
+  align-items: center; /* Centre verticalement */
+  gap: 12px; /* Espace entre le logo et le texte */
+  text-decoration: none;
+  transition: transform 0.3s ease;
+}
+
+.logo-img {
+  width: 32px; /* Taille ajustée pour ne pas être trop grosse */
+  height: 32px;
+  object-fit: contain;
+  border-radius: 6px; /* Légèrement arrondi si l'icone est carrée */
+  filter: drop-shadow(0 0 5px rgba(166, 142, 224, 0.5));
+  transition: all 0.3s ease;
+}
+
+.logo-text {
+  font-family: 'Kindred Youth', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 1px;
+  transition: color 0.3s ease;
+}
+
+.logo .dot {
+  color: var(--primary);
+  font-size: 2rem;
+  line-height: 0;
+}
+
+/* Interaction au survol (Hover) */
+.logo:hover {
+  transform: translateY(-2px);
+  cursor: default;
+}
+
+.logo:hover .logo-text {
+  color: var(--accent);
+  text-shadow: 0 0 10px var(--accent);
+}
+
+.logo:hover .logo-img {
+  transform: rotate(10deg) scale(1.1);
+  filter: drop-shadow(0 0 8px var(--accent));
+}
+
+.main-nav ul {
+  display: flex;
+  list-style: none;
+  gap: 32px;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+  font-family: 'Kindred Youth', sans-serif;
+  font-weight: 500;
+}
+
+.nav-link {
+  color: var(--text);
+  text-decoration: none;
+  font-size: 1.1rem;
+  font-weight: 500;
+  position: relative;
+  transition: all 0.3s ease;
+  opacity: 0.8;
+}
+
+/* Soulignement animé */
+.nav-link::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -4px;
+  left: 0;
+  background-color: var(--accent);
+  transition: width 0.3s ease;
+  box-shadow: 0 0 8px var(--accent);
+}
+
+.nav-link:hover {
+  color: var(--text);
+  opacity: 1;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+
   </style>
 {{end}} 

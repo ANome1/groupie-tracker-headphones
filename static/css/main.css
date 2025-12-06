@@ -20,6 +20,8 @@
 body {
     margin: 0;
   padding: 0;
+  padding-top: 80px;
+  padding-bottom: 100px;
   background-color: var(--background);
   color: var(--text);
   font-family: var(--font-body);
@@ -56,4 +58,29 @@ h1, h2, h3, h4, h5, h6 {
 
 .site-footer p {
     margin: 0;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(166, 142, 224, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--primary), var(--accent));
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--accent), var(--primary));
+  box-shadow: 0 0 15px rgba(101, 44, 239, 0.4);
+}
+
+/* Pour Firefox */
+* {
+  scrollbar-color: var(--primary) rgba(166, 142, 224, 0.05);
+  scrollbar-width: thin;
 }
