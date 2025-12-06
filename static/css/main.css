@@ -1,5 +1,16 @@
 /* TODO @Nome: DA avec couleurs (#FF6B35, #FFD23F) à faire plus tard */
 
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Host+Grotesk:wght@300;400;600&family=JetBrains+Mono&display=swap');
+
+@font-face {
+  font-family: 'Kindred Youth';
+  src: url('/fonts/KindredYouth.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+
 * {
     margin: 0;
     padding: 0;
@@ -7,21 +18,19 @@
 }
 
 body {
-    font-family: Arial, sans-serif;
+    font-family: var(--font-body);
     background-color: #ffffff;
     color: #000000;
     line-height: 1.6;
 }
 
-/* Footer */
-.site-footer {
-    background-color: #000000;
-    color: #ffffff;
-    text-align: center;
-    padding: 20px;
-    margin-top: 50px;
+:root {
+    --font-display: 'Kindred Youth', serif; /* Pour les TITRES H1 */
+    --font-tech: 'Space Grotesk', sans-serif; /* Pour les sous-titres */
+    --font-body: 'Host Grotesk', sans-serif; /* Pour le texte */
+    --font-code: 'JetBrains Mono', monospace; /* Pour les tags */
 }
 
-.site-footer p {
-    margin: 0;
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
 }
