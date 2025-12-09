@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	// "strconv" // TODO: Décommentez quand les cookies seront réactivés
+	"strconv"
 )
 
 type RegisterData struct {
@@ -79,15 +79,14 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// TODO: Cookies désactivés pour développement du front
-		/*
-			http.SetCookie(w, &http.Cookie{
-				Name:   "user_id",
-				Value:  strconv.Itoa(user.ID),
-				MaxAge: 3600 * 24 * 7,
-				Path:   "/",
-			})
-		*/
+		http.SetCookie(w, &http.Cookie{
+			Name:     "user_id",
+			Value:    strconv.Itoa(user.ID),
+			MaxAge:   3600 * 24 * 7, // 7 jours
+			Path:     "/",
+			HttpOnly: true,
+			SameSite: http.SameSiteStrictMode,
+		})
 
 		log.Printf("Utilisateur connecté : %s (ID: %d)", user.Username, user.ID)
 		http.Redirect(w, r, "/home", http.StatusSeeOther)
@@ -104,14 +103,11 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: Cookies désactivés pour développement du front
-	/*
-		http.SetCookie(w, &http.Cookie{
-			Name:   "user_id",
-			MaxAge: -1,
-			Path:   "/",
-		})
-	*/
+	http.SetCookie(w, &http.Cookie{
+		Name:   "user_id",
+		MaxAge: -1,
+		Path:   "/",
+	})
 
 	log.Printf("Utilisateur déconnecté")
 	http.Redirect(w, r, "/", http.StatusSeeOther)
