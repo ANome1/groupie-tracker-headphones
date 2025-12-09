@@ -127,6 +127,18 @@ func (rs *RoomService) GetRoomParticipants(roomID int) ([]models.RoomParticipant
 	return participants, nil
 }
 
+func (rs *RoomService) LeaveRoom(roomID, userID int) error {
+	_, err := rs.DB.DB.Exec(
+		"DELETE FROM room_participants WHERE room_id = ? AND user_id = ?",
+		roomID, userID,
+	)
+	if err != nil {
+		log.Printf("Error leaving room: %v", err)
+		return err
+	}
+	return nil
+}
+
 func (rs *RoomService) DeleteRoom(roomID int) error {
 	_, err := rs.DB.DB.Exec("DELETE FROM rooms WHERE id = ?", roomID)
 	if err != nil {

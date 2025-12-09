@@ -204,6 +204,13 @@ func LeaveRoomHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err = RoomService.LeaveRoom(room.ID, userID)
+	if err != nil {
+		log.Printf("Erreur lors de la sortie de la salle: %v", err)
+		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
+		return
+	}
+
 	log.Printf("Utilisateur %d a quitté la salle %s (ID: %d)", userID, roomCode, room.ID)
 
 	http.Redirect(w, r, "/home", http.StatusSeeOther)
