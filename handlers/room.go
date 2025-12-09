@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"strconv"
+	// "strconv" // TODO: Décommentez quand les cookies seront réactivés
 )
 
 type RoomData struct {
@@ -28,17 +28,23 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "POST" {
-		cookie, err := r.Cookie("user_id")
-		if err != nil {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
+		// TODO: Cookies désactivés pour développement du front
+		/*
+			cookie, err := r.Cookie("user_id")
+			if err != nil {
+				http.Redirect(w, r, "/login", http.StatusSeeOther)
+				return
+			}
 
-		userID, err := strconv.Atoi(cookie.Value)
-		if err != nil {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
+			userID, err := strconv.Atoi(cookie.Value)
+			if err != nil {
+				http.Redirect(w, r, "/login", http.StatusSeeOther)
+				return
+			}
+		*/
+
+		// Pour développement: utiliser un userID par défaut
+		userID := 1
 
 		name := r.FormValue("name")
 		gameType := r.FormValue("gameType") // "blindtest" ou "petitbac"
@@ -74,18 +80,23 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "POST" {
+		// TODO: Cookies désactivés pour développement du front
+		/*
+			cookie, err := r.Cookie("user_id")
+			if err != nil {
+				http.Redirect(w, r, "/login", http.StatusSeeOther)
+				return
+			}
 
-		cookie, err := r.Cookie("user_id")
-		if err != nil {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
+			userID, err := strconv.Atoi(cookie.Value)
+			if err != nil {
+				http.Redirect(w, r, "/login", http.StatusSeeOther)
+				return
+			}
+		*/
 
-		userID, err := strconv.Atoi(cookie.Value)
-		if err != nil {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
+		// Pour développement: utiliser un userID par défaut
+		userID := 1
 
 		roomCode := r.FormValue("roomCode")
 		if roomCode == "" {
@@ -132,13 +143,20 @@ func LobbyHandler(w http.ResponseWriter, r *http.Request) {
 		participants = []models.RoomParticipant{}
 	}
 
-	cookie, _ := r.Cookie("user_id")
-	userID := 0
-	isHost := false
-	if cookie != nil {
-		userID, _ = strconv.Atoi(cookie.Value)
-		isHost = (room.HostID == userID)
-	}
+	// TODO: Cookies désactivés pour développement du front
+	/*
+		cookie, _ := r.Cookie("user_id")
+		userID := 0
+		isHost := false
+		if cookie != nil {
+			userID, _ = strconv.Atoi(cookie.Value)
+			isHost = (room.HostID == userID)
+		}
+	*/
+
+	// Pour développement: utiliser un userID par défaut
+	userID := 1
+	isHost := (room.HostID == userID)
 
 	data := RoomData{
 		Room:         room,
@@ -163,17 +181,23 @@ func LeaveRoomHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie, err := r.Cookie("user_id")
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
+	// TODO: Cookies désactivés pour développement du front
+	/*
+		cookie, err := r.Cookie("user_id")
+		if err != nil {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
 
-	userID, err := strconv.Atoi(cookie.Value)
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
+		userID, err := strconv.Atoi(cookie.Value)
+		if err != nil {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+	*/
+
+	// Pour développement: utiliser un userID par défaut
+	userID := 1
 
 	roomCode := r.FormValue("roomCode")
 	if roomCode == "" {

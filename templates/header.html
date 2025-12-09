@@ -7,11 +7,6 @@
     <nav class="main-nav">
         <ul>
           <li><a href="/home" class="nav-link">Accueil</a></li>
-          {{if .Username}}
-          <li class="user-info">
-            <span class="username">{{.Username}}</span>
-          </li>
-          {{end}}
         </ul>
       </nav>
   </header>
@@ -22,6 +17,7 @@
       left: 0;
       right: 0;
       z-index: 1000;
+      background-color: transparent;
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       color: var(--text);
@@ -127,21 +123,6 @@
   width: 100%;
 }
 
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.username {
-  color: var(--primary);
-  font-weight: 600;
-  font-size: 0.95rem;
-}
-
-.logout-link {
-  font-size: 0.9rem;
-}
 
   </style>
-{{end}}
+{{end}} 
