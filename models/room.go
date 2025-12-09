@@ -20,3 +20,12 @@ type RoomParticipant struct {
 	Score    int
 	JoinedAt time.Time
 }
+
+type RoomParticipantWithUser struct {
+	ID       int
+	RoomID   int
+	UserID   int
+	Username string
+	Score    int
+	JoinedAt time.Time
+}

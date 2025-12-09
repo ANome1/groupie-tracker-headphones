@@ -127,6 +127,33 @@ func (rs *RoomService) GetRoomParticipants(roomID int) ([]models.RoomParticipant
 	return participants, nil
 }
 
+func (rs *RoomService) GetRoomParticipantsWithUsers(roomID int) ([]models.RoomParticipantWithUser, error) {
+	var participants []models.RoomParticipantWithUser
+
+	rows, err := rs.DB.DB.Query(
+		`SELECT rp.id, rp.room_id, rp.user_id, u.username, rp.score, rp.joined_at 
+		FROM room_participants rp
+		JOIN users u ON rp.user_id = u.id
+		WHERE rp.room_id = ?`,
+		roomID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var participant models.RoomParticipantWithUser
+		err := rows.Scan(&participant.ID, &participant.RoomID, &participant.UserID, &participant.Username, &participant.Score, &participant.JoinedAt)
+		if err != nil {
+			return nil, err
+		}
+		participants = append(participants, participant)
+	}
+
+	return participants, nil
+}
+
 func (rs *RoomService) LeaveRoom(roomID, userID int) error {
 	_, err := rs.DB.DB.Exec(
 		"DELETE FROM room_participants WHERE room_id = ? AND user_id = ?",

@@ -9,10 +9,25 @@
     <title>Lobby - Groupie Tracker</title>
     <link rel="stylesheet" href="/static/css/main.css">
     <style>
+        .lobby-container {
+            max-width: 1000px;
+            margin: 80px auto 60px;
+            padding: 50px;
+            background: linear-gradient(135deg, rgba(166, 142, 224, 0.12) 0%, rgba(101, 44, 239, 0.06) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(166, 142, 224, 0.3);
+            border-radius: 24px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
         .lobby-hero {
-            padding: 60px 20px 40px;
-            background-color: var(--background);
+            padding: 30px 20px;
+            background: linear-gradient(135deg, rgba(166, 142, 224, 0.08) 0%, rgba(101, 44, 239, 0.04) 100%);
+            border: 1px solid rgba(166, 142, 224, 0.2);
+            border-radius: 16px;
             text-align: center;
+            margin-bottom: 30px;
         }
 
         .lobby-hero h1 {
@@ -26,9 +41,9 @@
             display: inline-block;
             margin: 0 15px;
             padding: 10px 20px;
-            background: linear-gradient(135deg, rgba(166, 142, 224, 0.15) 0%, rgba(101, 44, 239, 0.08) 100%);
-            border: 1px solid rgba(166, 142, 224, 0.3);
-            border-radius: 12px;
+            background: rgba(166, 142, 224, 0.15);
+            border: 1px solid rgba(166, 142, 224, 0.25);
+            border-radius: 10px;
             color: var(--text);
             font-size: 1rem;
         }
@@ -39,23 +54,19 @@
             letter-spacing: 2px;
         }
 
-        .players-section {
-            max-width: 900px;
-            margin: 40px auto;
-            padding: 40px;
+        .players-card {
+            padding: 35px;
             background: linear-gradient(135deg, rgba(166, 142, 224, 0.08) 0%, rgba(101, 44, 239, 0.04) 100%);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(166, 142, 224, 0.2);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            margin-bottom: 30px;
         }
 
-        .players-section h2 {
+        .players-card h2 {
             font-size: 1.8rem;
             color: var(--primary);
             font-weight: 700;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             text-align: center;
         }
 
@@ -64,7 +75,6 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 15px;
-            margin-bottom: 30px;
         }
 
         .player-item {
@@ -93,9 +103,9 @@
             box-shadow: 0 4px 12px rgba(166, 142, 224, 0.2);
         }
 
-        .actions-section {
-            max-width: 600px;
-            margin: 0 auto 40px;
+        .actions-card {
+            padding: 30px;
+            border-radius: 16px;
             text-align: center;
         }
 
@@ -159,42 +169,40 @@
 <body>
     {{template "header" .}}
     
-    <section class="lobby-hero">
-        <h1>Salle: {{.Room.Name}}</h1>
-        <div>
-            <span class="lobby-info">Code: <strong>{{.Room.Code}}</strong></span>
-            <span class="lobby-info">Jeu: <strong>{{if eq .Room.GameType "blindtest"}}🎶 Blind Test{{else}}📝 Petit Bac{{end}}</strong></span>
+    <section class="lobby-container">
+        <div class="lobby-hero">
+            <h1>Salle : {{.Room.Name}}</h1>
+            <div>
+                <span class="lobby-info">Code: <strong>{{.Room.Code}}</strong></span>
+                <span class="lobby-info">Jeu: <strong>{{if eq .Room.GameType "blindtest"}}🎶 Blind Test{{else}}📝 Petit Bac{{end}}</strong></span>
+            </div>
+        </div>
+
+        <div class="players-card">
+            <h2>Joueurs connectés ({{len .Participants}}/{{.Room.MaxPlayers}})</h2>
+            <ul id="players-list" class="players-list">
+                {{range .Participants}}
+                <li class="player-item {{if eq .UserID $.Room.HostID}}host{{end}}">
+                    {{.Username}}
+                </li>
+                {{end}}
+            </ul>
+        </div>
+
+        <div class="actions-card">
+            {{if .IsHost}}
+            <button id="start-game" class="start-button">🚀 Démarrer la partie</button>
+            {{else}}
+            <p class="waiting-message">En attente que l'hôte démarre la partie...</p>
+            {{end}}
+            <br>
+            <form action="/room/leave" method="POST" style="display: inline;">
+                <input type="hidden" name="roomCode" value="{{.Room.Code}}">
+                <button type="submit" class="leave-button">Quitter la salle</button>
+            </form>
         </div>
     </section>
 
-    <section class="players-section">
-        <h2>Joueurs connectés ({{len .Participants}}/{{.Room.MaxPlayers}})</h2>
-        <ul id="players-list" class="players-list">
-            {{range .Participants}}
-            <li class="player-item {{if eq .UserID $.Room.HostID}}host{{end}}">
-                Joueur #{{.UserID}}
-            </li>
-            {{end}}
-        </ul>
-    </section>
-
-    <section class="actions-section">
-        {{if .IsHost}}
-        <button id="start-game" class="start-button">🚀 Démarrer la partie</button>
-        {{else}}
-        <p class="waiting-message">En attente que l'hôte démarre la partie...</p>
-        {{end}}
-        <br>
-        <form action="/room/leave" method="POST" style="display: inline;">
-            <input type="hidden" name="roomCode" value="{{.Room.Code}}">
-            <button type="submit" class="leave-button">Quitter la salle</button>
-        </form>
-    </section>
-
-    <!-- TODO @Nome: Afficher:
-         - Liste des joueurs connectés (mise à jour en temps réel)
-         - Bouton Démarrer (seulement pour l'hôte)
-    -->
 
     <!-- TODO @Quoc Huy & @ilian: WebSocket pour:
          - Mettre à jour la liste des joueurs en temps réel

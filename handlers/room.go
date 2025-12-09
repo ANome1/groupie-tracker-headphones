@@ -13,7 +13,7 @@ type RoomData struct {
 	User         *models.User
 	Error        string
 	Room         *models.Room
-	Participants []models.RoomParticipant
+	Participants []models.RoomParticipantWithUser
 	IsHost       bool
 }
 
@@ -61,6 +61,12 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 			tmpl, _ := template.ParseFiles("./templates/room/create.html", "./templates/header.html", "./templates/footer.html")
 			tmpl.Execute(w, RoomData{Error: "Erreur lors de la création: " + err.Error()})
 			return
+		}
+
+		// Ajouter l'hôte comme premier participant
+		err = RoomService.JoinRoom(room.ID, userID)
+		if err != nil {
+			log.Printf("Erreur lors de l'ajout de l'hôte: %v", err)
 		}
 
 		log.Printf("Salle créée: %s (code: %s, host: %d)", name, room.Code, userID)
@@ -137,10 +143,10 @@ func LobbyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	participants, err := RoomService.GetRoomParticipants(room.ID)
+	participants, err := RoomService.GetRoomParticipantsWithUsers(room.ID)
 	if err != nil {
 		log.Printf("Erreur lors de la récupération des participants: %v", err)
-		participants = []models.RoomParticipant{}
+		participants = []models.RoomParticipantWithUser{}
 	}
 
 	cookie, _ := r.Cookie("user_id")
