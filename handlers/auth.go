@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"groupie-tracker/models"
 	"groupie-tracker/utils"
 	"html/template"
 	"log"
@@ -9,10 +10,12 @@ import (
 )
 
 type RegisterData struct {
+	User  *models.User
 	Error string
 }
 
 type LoginData struct {
+	User  *models.User
 	Error string
 }
 
@@ -52,13 +55,18 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userID, _ := utils.GetUserIDFromCookie(r)
+	var user *models.User
+	if userID > 0 {
+		user, _ = AuthService.GetUserByID(userID)
+	}
 	tmpl, err := template.ParseFiles("./templates/auth/register.html", "./templates/header.html", "./templates/footer.html")
 	if err != nil {
 		log.Printf("Erreur: %v", err)
 		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
 		return
 	}
-	tmpl.Execute(w, RegisterData{Error: ""})
+	tmpl.Execute(w, RegisterData{User: user, Error: ""})
 }
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
@@ -93,13 +101,18 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userID, _ := utils.GetUserIDFromCookie(r)
+	var user *models.User
+	if userID > 0 {
+		user, _ = AuthService.GetUserByID(userID)
+	}
 	tmpl, err := template.ParseFiles("./templates/auth/login.html", "./templates/header.html", "./templates/footer.html")
 	if err != nil {
 		log.Printf("Erreur: %v", err)
 		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
 		return
 	}
-	tmpl.Execute(w, LoginData{Error: ""})
+	tmpl.Execute(w, LoginData{User: user, Error: ""})
 }
 
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {

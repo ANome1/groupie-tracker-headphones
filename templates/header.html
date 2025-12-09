@@ -7,6 +7,15 @@
     <nav class="main-nav">
         <ul>
           <li><a href="/home" class="nav-link">Accueil</a></li>
+          {{if .User}}
+          <li class="user-info">
+            <span class="username">👤 {{.User.Username}}</span>
+          </li>
+          <li><a href="/logout" class="nav-link logout">Déconnexion</a></li>
+          {{else}}
+          <li><a href="/login" class="nav-link">Connexion</a></li>
+          <li><a href="/register" class="nav-link">Inscription</a></li>
+          {{end}}
         </ul>
       </nav>
   </header>
@@ -123,6 +132,41 @@
   width: 100%;
 }
 
+.user-info {
+  display: flex;
+  align-items: center;
+}
+
+.username {
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, rgba(166, 142, 224, 0.15) 0%, rgba(101, 44, 239, 0.08) 100%);
+  border: 1px solid rgba(166, 142, 224, 0.3);
+  border-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+.username:hover {
+  background: linear-gradient(135deg, rgba(166, 142, 224, 0.25) 0%, rgba(101, 44, 239, 0.15) 100%);
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(166, 142, 224, 0.2);
+}
+
+.nav-link.logout {
+  color: #ff6b6b;
+  opacity: 0.9;
+}
+
+.nav-link.logout::after {
+  background-color: #ff6b6b;
+}
+
+.nav-link.logout:hover {
+  color: #ff6b6b;
+  opacity: 1;
+}
 
   </style>
 {{end}} 

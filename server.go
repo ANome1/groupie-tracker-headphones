@@ -4,7 +4,9 @@ import (
 	"groupie-tracker/config"
 	"groupie-tracker/database"
 	"groupie-tracker/handlers"
+	"groupie-tracker/models"
 	"groupie-tracker/services"
+	"groupie-tracker/utils"
 	"log"
 	"net/http"
 	"text/template"
@@ -19,24 +21,34 @@ func Landing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user := GetCurrentUser(r)
+	data := struct {
+		User *models.User
+	}{User: user}
+
 	tmpl, err := template.ParseFiles("./templates/landing.html", "./templates/header.html", "./templates/footer.html")
 	if err != nil {
 		log.Printf("Erreur: %v", err)
 		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
 		return
 	}
-	tmpl.Execute(w, nil)
+	tmpl.Execute(w, data)
 }
 
 // Home - Page de sélection de jeu
 func Home(w http.ResponseWriter, r *http.Request) {
+	user := GetCurrentUser(r)
+	data := struct {
+		User *models.User
+	}{User: user}
+
 	tmpl, err := template.ParseFiles("./templates/home.html", "./templates/header.html", "./templates/footer.html")
 	if err != nil {
 		log.Printf("Erreur: %v", err)
 		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
 		return
 	}
-	tmpl.Execute(w, nil)
+	tmpl.Execute(w, data)
 }
 
 // RegisterHandler - Inscription
@@ -106,6 +118,20 @@ func PetitBacHandler(w http.ResponseWriter, r *http.Request) {
 
 var authService *services.AuthService
 var roomService *services.RoomService
+
+func GetCurrentUser(r *http.Request) *models.User {
+	userID, err := utils.GetUserIDFromCookie(r)
+	if err != nil {
+		return nil
+	}
+
+	user, err := authService.GetUserByID(userID)
+	if err != nil {
+		return nil
+	}
+
+	return user
+}
 
 func main() {
 	// TODO @Nome: Initialiser la connexion SQLite

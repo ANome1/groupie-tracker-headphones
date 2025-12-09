@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"groupie-tracker/models"
+	"groupie-tracker/utils"
 	"html/template"
 	"log"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 )
 
 type RoomData struct {
+	User         *models.User
 	Error        string
 	Room         *models.Room
 	Participants []models.RoomParticipant
@@ -17,13 +19,18 @@ type RoomData struct {
 
 func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
+		userID, _ := utils.GetUserIDFromCookie(r)
+		var user *models.User
+		if userID > 0 {
+			user, _ = AuthService.GetUserByID(userID)
+		}
 		tmpl, err := template.ParseFiles("./templates/room/create.html", "./templates/header.html", "./templates/footer.html")
 		if err != nil {
 			log.Printf("Erreur: %v", err)
 			http.Error(w, "Erreur serveur", http.StatusInternalServerError)
 			return
 		}
-		tmpl.Execute(w, RoomData{Error: ""})
+		tmpl.Execute(w, RoomData{User: user, Error: ""})
 		return
 	}
 
@@ -69,7 +76,12 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Erreur serveur", http.StatusInternalServerError)
 			return
 		}
-		tmpl.Execute(w, RoomData{Error: ""})
+		userID, _ := utils.GetUserIDFromCookie(r)
+		var user *models.User
+		if userID > 0 {
+			user, _ = AuthService.GetUserByID(userID)
+		}
+		tmpl.Execute(w, RoomData{User: user, Error: ""})
 		return
 	}
 
@@ -139,7 +151,13 @@ func LobbyHandler(w http.ResponseWriter, r *http.Request) {
 		isHost = (room.HostID == userID)
 	}
 
+	currentUserID, _ := utils.GetUserIDFromCookie(r)
+	var user *models.User
+	if currentUserID > 0 {
+		user, _ = AuthService.GetUserByID(currentUserID)
+	}
 	data := RoomData{
+		User:         user,
 		Room:         room,
 		Participants: participants,
 		IsHost:       isHost,
