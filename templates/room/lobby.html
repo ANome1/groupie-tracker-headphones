@@ -8,26 +8,187 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lobby - Groupie Tracker</title>
     <link rel="stylesheet" href="/static/css/main.css">
-    <link rel="stylesheet" href="/static/css/auth.css">
+    <style>
+        .lobby-hero {
+            padding: 60px 20px 40px;
+            background-color: var(--background);
+            text-align: center;
+        }
+
+        .lobby-hero h1 {
+            font-size: 2.5rem;
+            color: var(--primary);
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+
+        .lobby-info {
+            display: inline-block;
+            margin: 0 15px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, rgba(166, 142, 224, 0.15) 0%, rgba(101, 44, 239, 0.08) 100%);
+            border: 1px solid rgba(166, 142, 224, 0.3);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 1rem;
+        }
+
+        .lobby-info strong {
+            color: var(--primary);
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .players-section {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 40px;
+            background: linear-gradient(135deg, rgba(166, 142, 224, 0.08) 0%, rgba(101, 44, 239, 0.04) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(166, 142, 224, 0.2);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .players-section h2 {
+            font-size: 1.8rem;
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .players-list {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .player-item {
+            padding: 15px 20px;
+            background: rgba(166, 142, 224, 0.1);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            color: var(--text);
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .player-item.host {
+            background: rgba(166, 142, 224, 0.2);
+            border-color: var(--accent);
+        }
+
+        .player-item.host::before {
+            content: "👑 ";
+        }
+
+        .player-item:hover {
+            background: rgba(166, 142, 224, 0.15);
+            border-color: var(--accent);
+            box-shadow: 0 4px 12px rgba(166, 142, 224, 0.2);
+        }
+
+        .actions-section {
+            max-width: 600px;
+            margin: 0 auto 40px;
+            text-align: center;
+        }
+
+        .start-button {
+            padding: 16px 50px;
+            background-color: var(--primary);
+            color: var(--background);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            font-family: var(--font-body);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 24px rgba(166, 142, 224, 0.3);
+        }
+
+        .start-button:hover {
+            background-color: var(--accent);
+            border-color: var(--accent);
+            color: var(--text);
+            box-shadow: 0 12px 32px rgba(101, 44, 239, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .start-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .leave-button {
+            padding: 12px 30px;
+            margin-top: 20px;
+            background-color: transparent;
+            color: var(--text);
+            border: 2px solid rgba(255, 68, 68, 0.5);
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            font-family: var(--font-body);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .leave-button:hover {
+            background-color: rgba(255, 68, 68, 0.15);
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+        }
+
+        .waiting-message {
+            text-align: center;
+            color: var(--text);
+            font-size: 0.95rem;
+            opacity: 0.8;
+            margin-top: 15px;
+        }
+    </style>
 </head>
 <body>
     {{template "header" .}}
     
-    <section class="hero">
-        <h1>Salle: <span id="room-name"></span></h1>
-        <p class="lobby-info">Code: <strong id="room-code"></strong></p>
-        <p class="lobby-info">Jeu: <span id="game-type"></span></p>
+    <section class="lobby-hero">
+        <h1>Salle: {{.Room.Name}}</h1>
+        <div>
+            <span class="lobby-info">Code: <strong>{{.Room.Code}}</strong></span>
+            <span class="lobby-info">Jeu: <strong>{{if eq .Room.GameType "blindtest"}}🎶 Blind Test{{else}}📝 Petit Bac{{end}}</strong></span>
+        </div>
     </section>
 
-    <section class="join">
-        <h2>Joueurs connectés</h2>
+    <section class="players-section">
+        <h2>Joueurs connectés ({{len .Participants}}/{{.Room.MaxPlayers}})</h2>
         <ul id="players-list" class="players-list">
-            <!-- Sera rempli par JavaScript -->
+            {{range .Participants}}
+            <li class="player-item {{if eq .UserID $.Room.HostID}}host{{end}}">
+                Joueur #{{.UserID}}
+            </li>
+            {{end}}
         </ul>
     </section>
 
-    <section class="join">
-        <button id="start-game" class="start-button">Démarrer la partie</button>
+    <section class="actions-section">
+        {{if .IsHost}}
+        <button id="start-game" class="start-button">🚀 Démarrer la partie</button>
+        {{else}}
+        <p class="waiting-message">En attente que l'hôte démarre la partie...</p>
+        {{end}}
+        <br>
+        <form action="/room/leave" method="POST" style="display: inline;">
+            <input type="hidden" name="roomCode" value="{{.Room.Code}}">
+            <button type="submit" class="leave-button">Quitter la salle</button>
+        </form>
     </section>
 
     <!-- TODO @Nome: Afficher:
