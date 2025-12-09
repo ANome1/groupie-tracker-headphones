@@ -5,8 +5,8 @@
 @font-face {
   font-family: 'Kindred Youth';
   src: url('/fonts/KindredYouth.otf') format('opentype');
-  font-weight: normal;
-  font-style: normal;
+  font-weight: 100;
+  font-style: thin;
   font-display: swap;
 }
 
@@ -54,14 +54,25 @@ body {
     --border-color: #000000;
     --border-light: #cccccc;
 
-    --font-display: 'Kindred Youth', serif; /* Pour les TITRES H1 */
-    --font-tech: 'Space Grotesk', sans-serif; /* Pour les sous-titres */
+    --font-display: 'Kindred Youth', serif; /* Pour les TITRES H1 uniquement */
+    --font-tech: 'Space Grotesk', sans-serif; /* Pour les sous-titres H2, H3 */
     --font-body: 'Host Grotesk', sans-serif; /* Pour le texte */
     --font-code: 'JetBrains Mono', monospace; /* Pour les tags */
 }
 
-h1, h2, h3, h4, h5, h6 {
+/* Kindred Youth uniquement pour les gros titres H1 */
+h1, h2 {
     font-family: var(--font-display);
+}
+
+/* Space Grotesk pour les sous-titres H2, H3 */
+h3 {
+    font-family: var(--font-tech);
+}
+
+/* Host Grotesk pour les titres plus petits H4, H5, H6 */
+h4, h5, h6 {
+    font-family: var(--font-body);
 }
 
 /* Footer */
