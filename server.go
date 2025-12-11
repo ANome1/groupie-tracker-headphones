@@ -91,14 +91,18 @@ func LeaveRoomHandler(w http.ResponseWriter, r *http.Request) {
 // TODO @Quoc Huy: Gérer la sélection de playlist (Rock/Rap/Pop)
 // TODO @Quoc Huy: Timer 37s, système de points (3/2/1)
 func BlindTestHandler(w http.ResponseWriter, r *http.Request) {
+	user := GetCurrentUser(r)
+	data := struct {
+		User *models.User
+	}{User: user}
+
 	tmpl, err := template.ParseFiles("./templates/games/blindtest.html", "./templates/header.html", "./templates/footer.html")
 	if err != nil {
 		log.Printf("Erreur: %v", err)
 		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
 		return
 	}
-	// TODO: Passer les données du jeu au template
-	tmpl.Execute(w, nil)
+	tmpl.Execute(w, data)
 }
 
 // PetitBacHandler - Jeu Petit Bac
@@ -106,14 +110,18 @@ func BlindTestHandler(w http.ResponseWriter, r *http.Request) {
 // TODO @ilian: Gérer les 9 manches, validation 2/3 joueurs
 // TODO @ilian: Système de points (unique=2, commun=1)
 func PetitBacHandler(w http.ResponseWriter, r *http.Request) {
+	user := GetCurrentUser(r)
+	data := struct {
+		User *models.User
+	}{User: user}
+
 	tmpl, err := template.ParseFiles("./templates/games/petitbac.html", "./templates/header.html", "./templates/footer.html")
 	if err != nil {
 		log.Printf("Erreur: %v", err)
 		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
 		return
 	}
-	// TODO: Passer les données du jeu au template
-	tmpl.Execute(w, nil)
+	tmpl.Execute(w, data)
 }
 
 var authService *services.AuthService
