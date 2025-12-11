@@ -1,1 +1,11 @@
-<!-- TODO: Scoreboard component -->
+{{define "scoreboard"}}
+<div class="scoreboard">
+    <h3>Scores</h3>
+    <ul id="scores-list">
+        {{range .Scores}}
+        <li>{{.Username}}: {{.Points}} points</li>
+        {{end}}
+    </ul>
+</div>
+
+{{end}}
