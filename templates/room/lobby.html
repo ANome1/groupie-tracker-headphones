@@ -54,6 +54,24 @@
             letter-spacing: 2px;
         }
 
+        .presetation-card {
+            padding: 25px 30px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .presetation-card p {
+            font-size: 1.1rem;
+            color: var(--text);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .presetation-card strong {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
         .players-card {
             padding: 35px;
             background: linear-gradient(135deg, rgba(166, 142, 224, 0.08) 0%, rgba(101, 44, 239, 0.04) 100%);
@@ -171,7 +189,13 @@
     
     <section class="lobby-container">
         <div class="lobby-hero">
-            <h1>Salle : {{.Room.Name}}</h1>
+            <div class="presetation-card">
+            {{if .Room.GameType}}
+            <p>Vous êtes dans la salle <strong>{{.Room.Name}}</strong> en attente du début de la partie de <strong>{{if eq .Room.GameType "blindtest"}}Blind Test{{else}}Petit Bac{{end}}</strong>.</p>
+            {{else}}
+            <p>Vous êtes dans la salle <strong>{{.Room.Name}}</strong> en attente du début de la partie.</p>
+            {{end}}
+        </div>
             <div>
                 <span class="lobby-info">Code: <strong>{{.Room.Code}}</strong></span>
                 <span class="lobby-info">Jeu: <strong>{{if eq .Room.GameType "blindtest"}}🎶 Blind Test{{else}}📝 Petit Bac{{end}}</strong></span>
