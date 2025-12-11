@@ -139,10 +139,7 @@
             </form>
         </div>
         
-        <div class="scoreboard">
-            <h3>Scores</h3>
-            <ul id="scores-list"></ul>
-        </div>
+        {{template "scoreboard" .}}
     </div>
     
     <script src="/static/js/websocket.js"></script>

@@ -96,7 +96,7 @@ func BlindTestHandler(w http.ResponseWriter, r *http.Request) {
 		User *models.User
 	}{User: user}
 
-	tmpl, err := template.ParseFiles("./templates/games/blindtest.html", "./templates/header.html", "./templates/footer.html")
+	tmpl, err := template.ParseFiles("./templates/games/blindtest.html", "./templates/header.html", "./templates/footer.html", "./templates/components/scoreboard.html")
 	if err != nil {
 		log.Printf("Erreur: %v", err)
 		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
@@ -115,7 +115,7 @@ func PetitBacHandler(w http.ResponseWriter, r *http.Request) {
 		User *models.User
 	}{User: user}
 
-	tmpl, err := template.ParseFiles("./templates/games/petitbac.html", "./templates/header.html", "./templates/footer.html")
+	tmpl, err := template.ParseFiles("./templates/games/petitbac.html", "./templates/header.html", "./templates/footer.html", "./templates/components/scoreboard.html")
 	if err != nil {
 		log.Printf("Erreur: %v", err)
 		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
