@@ -9,18 +9,6 @@
     <link rel="stylesheet" href="/static/css/main.css">
     <link rel="stylesheet" href="/static/css/game.css">
     <style>
-        .game-container {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 40px;
-            background: linear-gradient(135deg, rgba(166, 142, 224, 0.08) 0%, rgba(101, 44, 239, 0.04) 100%);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-            border: 1px solid rgba(166, 142, 224, 0.2);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-
         .letter-display {
             font-size: 8rem;
             font-weight: 800;
@@ -33,18 +21,7 @@
 
         .timer {
             font-size: 3rem;
-            font-weight: 800;
             color: var(--accent);
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .round-info {
-            text-align: center;
-            font-size: 1.3rem;
-            color: var(--text);
-            margin-bottom: 30px;
-            font-weight: 600;
         }
 
         #manage-categories {
@@ -111,37 +88,6 @@
             color: var(--text);
             transform: translateY(-2px);
             box-shadow: 0 12px 32px rgba(101, 44, 239, 0.4);
-        }
-
-        .scoreboard {
-            margin-top: 40px;
-            padding: 30px;
-            background: rgba(166, 142, 224, 0.05);
-            border: 1px solid rgba(166, 142, 224, 0.2);
-            border-radius: 16px;
-        }
-
-        .scoreboard h3 {
-            font-size: 1.8rem;
-            color: var(--primary);
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .scoreboard ul {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .scoreboard li {
-            padding: 12px 20px;
-            background: rgba(166, 142, 224, 0.1);
-            border: 1px solid var(--primary);
-            border-radius: 8px;
-            color: var(--text);
-            font-weight: 600;
         }
 
         #validation-phase {
