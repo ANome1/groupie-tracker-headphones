@@ -20,6 +20,7 @@ func PetitBacHandler(w http.ResponseWriter, r *http.Request) {
 		"templates/games/petitbac.html",
 		"templates/components/header.html",
 		"templates/components/footer.html",
+		"templates/components/scoreboard.html",
 	)
 	if err != nil {
 		http.Error(w, "Error loading template: "+err.Error(), http.StatusInternalServerError)

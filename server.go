@@ -98,8 +98,12 @@ func LeaveRoomHandler(w http.ResponseWriter, r *http.Request) {
 func BlindTestHandler(w http.ResponseWriter, r *http.Request) {
 	user := GetCurrentUser(r)
 	data := struct {
-		User *models.User
-	}{User: user}
+		User   *models.User
+		Scores []map[string]interface{}
+	}{
+		User:   user,
+		Scores: []map[string]interface{}{},
+	}
 
 	tmpl, err := template.ParseFiles("./templates/games/blindtest.html", "./templates/components/header.html", "./templates/components/footer.html", "./templates/components/scoreboard.html")
 	if err != nil {
@@ -117,8 +121,14 @@ func BlindTestHandler(w http.ResponseWriter, r *http.Request) {
 func PetitBacHandler(w http.ResponseWriter, r *http.Request) {
 	user := GetCurrentUser(r)
 	data := struct {
-		User *models.User
-	}{User: user}
+		User       *models.User
+		Scores     []map[string]interface{}
+		Categories []string
+	}{
+		User:       user,
+		Scores:     []map[string]interface{}{},
+		Categories: []string{"Prénom", "Ville", "Pays", "Animal", "Métier"},
+	}
 
 	tmpl, err := template.ParseFiles("./templates/games/petitbac.html", "./templates/components/header.html", "./templates/components/footer.html", "./templates/components/scoreboard.html")
 	if err != nil {
