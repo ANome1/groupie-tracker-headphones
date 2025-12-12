@@ -167,9 +167,14 @@
         
         <form id="answers-form">
             <div class="categories-grid" id="categories">
-                <!-- Catégories générées dynamiquement -->
+                {{range .Categories}}
+                <div class="category-item">
+                    <label for="cat-{{.}}">{{.}}</label>
+                    <input type="text" id="cat-{{.}}" name="{{.}}" autocomplete="off">
+                </div>
+                {{end}}
             </div>
-            <button type="submit">Valider mes réponses</button>
+            <button type="submit" id="submit-btn">Valider mes réponses</button>
         </form>
         
         <div id="validation-phase" style="display: none;">
