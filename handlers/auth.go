@@ -26,26 +26,26 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		password := r.FormValue("password")
 
 		if !utils.ValidateUsername(username) {
-			tmpl, _ := template.ParseFiles("./templates/auth/register.html", "./templates/header.html", "./templates/footer.html")
+			tmpl, _ := template.ParseFiles("./templates/auth/register.html", "./templates/components/header.html", "./templates/components/footer.html")
 			tmpl.Execute(w, RegisterData{Error: "Username invalide (3-20 caractères)"})
 			return
 		}
 
 		if !utils.ValidateEmail(email) {
-			tmpl, _ := template.ParseFiles("./templates/auth/register.html", "./templates/header.html", "./templates/footer.html")
+			tmpl, _ := template.ParseFiles("./templates/auth/register.html", "./templates/components/header.html", "./templates/components/footer.html")
 			tmpl.Execute(w, RegisterData{Error: "Email invalide"})
 			return
 		}
 
 		if !utils.ValidatePassword(password) {
-			tmpl, _ := template.ParseFiles("./templates/auth/register.html", "./templates/header.html", "./templates/footer.html")
+			tmpl, _ := template.ParseFiles("./templates/auth/register.html", "./templates/components/header.html", "./templates/components/footer.html")
 			tmpl.Execute(w, RegisterData{Error: "Mot de passe trop court (min 8 caractères)"})
 			return
 		}
 
 		userID, err := AuthService.CreateUser(username, email, password)
 		if err != nil {
-			tmpl, _ := template.ParseFiles("./templates/auth/register.html", "./templates/header.html", "./templates/footer.html")
+			tmpl, _ := template.ParseFiles("./templates/auth/register.html", "./templates/components/header.html", "./templates/components/footer.html")
 			tmpl.Execute(w, RegisterData{Error: "Erreur : " + err.Error()})
 			return
 		}
@@ -60,7 +60,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	if userID > 0 {
 		user, _ = AuthService.GetUserByID(userID)
 	}
-	tmpl, err := template.ParseFiles("./templates/auth/register.html", "./templates/header.html", "./templates/footer.html")
+	tmpl, err := template.ParseFiles("./templates/auth/register.html", "./templates/components/header.html", "./templates/components/footer.html")
 	if err != nil {
 		log.Printf("Erreur: %v", err)
 		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
@@ -75,14 +75,14 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		password := r.FormValue("password")
 
 		if username == "" || password == "" {
-			tmpl, _ := template.ParseFiles("./templates/auth/login.html", "./templates/header.html", "./templates/footer.html")
+			tmpl, _ := template.ParseFiles("./templates/auth/login.html", "./templates/components/header.html", "./templates/components/footer.html")
 			tmpl.Execute(w, LoginData{Error: "Nom d'utilisateur et mot de passe requis"})
 			return
 		}
 
 		user, err := AuthService.ValidateUserCredentials(username, password)
 		if err != nil {
-			tmpl, _ := template.ParseFiles("./templates/auth/login.html", "./templates/header.html", "./templates/footer.html")
+			tmpl, _ := template.ParseFiles("./templates/auth/login.html", "./templates/components/header.html", "./templates/components/footer.html")
 			tmpl.Execute(w, LoginData{Error: "Identifiants invalides"})
 			return
 		}
@@ -106,7 +106,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if userID > 0 {
 		user, _ = AuthService.GetUserByID(userID)
 	}
-	tmpl, err := template.ParseFiles("./templates/auth/login.html", "./templates/header.html", "./templates/footer.html")
+	tmpl, err := template.ParseFiles("./templates/auth/login.html", "./templates/components/header.html", "./templates/components/footer.html")
 	if err != nil {
 		log.Printf("Erreur: %v", err)
 		http.Error(w, "Erreur serveur", http.StatusInternalServerError)

@@ -31,7 +31,7 @@ func Landing(w http.ResponseWriter, r *http.Request) {
 		User *models.User
 	}{User: user}
 
-	tmpl, err := template.ParseFiles("./templates/landing.html", "./templates/header.html", "./templates/footer.html")
+	tmpl, err := template.ParseFiles("./templates/landing.html", "./templates/components/header.html", "./templates/components/footer.html")
 	if err != nil {
 		log.Printf("Erreur: %v", err)
 		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
@@ -47,7 +47,7 @@ func Home(w http.ResponseWriter, r *http.Request) {
 		User *models.User
 	}{User: user}
 
-	tmpl, err := template.ParseFiles("./templates/home.html", "./templates/header.html", "./templates/footer.html")
+	tmpl, err := template.ParseFiles("./templates/home.html", "./templates/components/header.html", "./templates/components/footer.html")
 	if err != nil {
 		log.Printf("Erreur: %v", err)
 		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
@@ -101,7 +101,7 @@ func BlindTestHandler(w http.ResponseWriter, r *http.Request) {
 		User *models.User
 	}{User: user}
 
-	tmpl, err := template.ParseFiles("./templates/games/blindtest.html", "./templates/header.html", "./templates/footer.html", "./templates/components/scoreboard.html")
+	tmpl, err := template.ParseFiles("./templates/games/blindtest.html", "./templates/components/header.html", "./templates/components/footer.html", "./templates/components/scoreboard.html")
 	if err != nil {
 		log.Printf("Erreur: %v", err)
 		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
@@ -120,7 +120,7 @@ func PetitBacHandler(w http.ResponseWriter, r *http.Request) {
 		User *models.User
 	}{User: user}
 
-	tmpl, err := template.ParseFiles("./templates/games/petitbac.html", "./templates/header.html", "./templates/footer.html", "./templates/components/scoreboard.html")
+	tmpl, err := template.ParseFiles("./templates/games/petitbac.html", "./templates/components/header.html", "./templates/components/footer.html", "./templates/components/scoreboard.html")
 	if err != nil {
 		log.Printf("Erreur: %v", err)
 		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
