@@ -142,48 +142,73 @@
         }
 
         .game-container {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 40px;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
             padding-bottom: 150px;
+        }
+
+        .game-content {
+            grid-column: 1;
+        }
+
+        .scoreboard-container {
+            grid-column: 2;
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+            padding: 20px;
+            background: rgba(166, 142, 224, 0.05);
+            border: 1px solid rgba(166, 142, 224, 0.2);
+            border-radius: 12px;
         }
     </style>
 </head>
 <body>
     {{template "header" .}}
     <div class="game-container">
-        <div class="letter-display" id="letter">A</div>
-        <div class="timer" id="timer">60</div>
-        <div class="round-info">Manche <span id="current-round">1</span>/<span id="total-rounds">9</span></div>
-        
-        <button id="manage-categories">Gérer les catégories</button>
-        
-        <form id="answers-form">
-            <div class="categories-grid" id="categories">
-                {{range .Categories}}
-                <div class="category-item">
-                    <label for="cat-{{.}}">{{.}}</label>
-                    <input type="text" id="cat-{{.}}" name="{{.}}" autocomplete="off">
+        <div class="game-content">
+            <div class="letter-display" id="letter">A</div>
+            <div class="timer" id="timer">60</div>
+            <div class="round-info">Manche <span id="current-round">1</span>/<span id="total-rounds">9</span></div>
+            
+            <button id="manage-categories">Gérer les catégories</button>
+            
+            <form id="answers-form">
+                <div class="categories-grid" id="categories">
+                    {{range .Categories}}
+                    <div class="category-item">
+                        <label for="cat-{{.}}">{{.}}</label>
+                        <input type="text" id="cat-{{.}}" name="{{.}}" autocomplete="off">
+                    </div>
+                    {{end}}
                 </div>
-                {{end}}
-            </div>
-            <button type="submit" id="submit-btn">Valider mes réponses</button>
-        </form>
-        
-        <div id="validation-phase" style="display: none;">
-            <h3>Validation collective</h3>
-            <div id="all-answers">
-                <!-- Réponses de tous les joueurs -->
-            </div>
-        </div>
-
-        <div id="categories-modal" style="display: none;">
-            <h3>Gestion des catégories</h3>
-            <ul id="categories-list"></ul>
-            <form id="add-category-form">
-                <input type="text" placeholder="Nouvelle catégorie">
-                <button type="submit">Ajouter</button>
+                <button type="submit" id="submit-btn">Valider mes réponses</button>
             </form>
+            
+            <div id="validation-phase" style="display: none;">
+                <h3>Validation collective</h3>
+                <div id="all-answers">
+                    <!-- Réponses de tous les joueurs -->
+                </div>
+            </div>
+
+            <div id="categories-modal" style="display: none;">
+                <h3>Gestion des catégories</h3>
+                <ul id="categories-list"></ul>
+                <form id="add-category-form">
+                    <input type="text" placeholder="Nouvelle catégorie">
+                    <button type="submit">Ajouter</button>
+                </form>
+            </div>
         </div>
         
-        {{template "scoreboard" .}}
+        <div class="scoreboard-container">
+            {{template "scoreboard" .}}
+        </div>
     </div>
     
     <script src="/static/js/websocket.js"></script>
