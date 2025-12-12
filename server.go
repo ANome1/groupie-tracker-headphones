@@ -22,8 +22,6 @@ func Landing(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := GetCurrentUser(r)
-
-	// Si l'utilisateur est déjà connecté, le rediriger vers /home
 	if user != nil {
 		http.Redirect(w, r, "/home", http.StatusSeeOther)
 		return
