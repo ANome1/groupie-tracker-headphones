@@ -38,17 +38,31 @@
     -->
     
     <div class="game-container">
-        <div class="letter-display" id="letter">A</div>
+        {{if .CurrentRound}}
+        <div class="letter-display" id="letter">{{printf "%c" .CurrentRound.Letter}}</div>
+        <div class="round-info">Manche <span id="current-round">{{len .Game.Rounds}}</span>/<span id="total-rounds">{{.Game.Config.NumRounds}}</span></div>
+        {{else}}
+        <div class="letter-display" id="letter">?</div>
+        <div class="round-info">En attente...</div>
+        {{end}}
+        
         <div class="timer" id="timer">60</div>
-        <div class="round-info">Manche <span id="current-round">1</span>/<span id="total-rounds">9</span></div>
         
         <button id="manage-categories">Gérer les catégories</button>
         
-        <form id="answers-form">
+        <form id="answers-form" onsubmit="return false;">
+            <input type="hidden" name="code" value="{{.Room.Code}}">
             <div class="categories-grid" id="categories">
-                <!-- Catégories générées dynamiquement -->
+                {{if .Game}}
+                    {{range .Game.Config.Categories}}
+                    <div class="category-input">
+                        <label>{{.}}</label>
+                        <input type="text" name="{{.}}" autocomplete="off">
+                    </div>
+                    {{end}}
+                {{end}}
             </div>
-            <button type="submit">Valider mes réponses</button>
+            <button type="button" class="submit-btn" onclick="submitAnswers()">Valider mes réponses</button>
         </form>
         
         <div id="validation-phase" style="display: none;">
@@ -76,5 +90,12 @@
     
     <script src="/static/js/websocket.js"></script>
     <script src="/static/js/petitbac.js"></script>
+    <script>
+        // Initialiser la connexion WebSocket
+        const roomCode = "{{.Room.Code}}";
+        const playerID = "{{.User.ID}}"; // Using User ID as player identifier
+        window.currentPlayerID = playerID;
+        connectWebSocket(roomCode, playerID);
+    </script>
 </body>
 </html>

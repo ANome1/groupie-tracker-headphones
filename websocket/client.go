@@ -107,8 +107,24 @@ func (c *Client) handleMessage(message []byte) {
 		}
 
 	case "SUBMIT_VOTE":
-		// TODO: Implement vote submission in service
-		// services.Manager.SubmitVote(...)
+		var vote models.Vote
+		if err := json.Unmarshal(msg.Data, &vote); err != nil {
+			log.Printf("Error unmarshalling vote: %v", err)
+			return
+		}
+		vote.VoterID = c.PlayerID
+
+		// Call service to record vote
+		services.Manager.SubmitVote(c.RoomID, vote)
+
+		// Calculate and broadcast scores (real-time update)
+		scores := services.Manager.CalculateScores(c.RoomID)
+		if scores != nil {
+			c.hub.BroadcastToRoom(c.RoomID, models.MessageOut{
+				Type: "SCORES_UPDATE",
+				Data: scores,
+			})
+		}
 	}
 }
 

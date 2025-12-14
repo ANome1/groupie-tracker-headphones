@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type RoomData struct {
@@ -111,8 +112,14 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Normalize code to uppercase and trim spaces
+		roomCode = strings.ToUpper(strings.TrimSpace(roomCode))
+
+		log.Printf("Tentative de connexion à la salle: '%s' par l'utilisateur %d", roomCode, userID)
+
 		room, err := RoomService.GetRoomByCode(roomCode)
 		if err != nil {
+			log.Printf("Erreur GetRoomByCode: %v", err)
 			tmpl, _ := template.ParseFiles("./templates/room/join.html", "./templates/header.html", "./templates/footer.html")
 			tmpl.Execute(w, RoomData{Error: "Salle non trouvée (code invalide)"})
 			return
@@ -120,6 +127,7 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 
 		err = RoomService.JoinRoom(room.ID, userID)
 		if err != nil {
+			log.Printf("Erreur JoinRoom: %v", err)
 			tmpl, _ := template.ParseFiles("./templates/room/join.html", "./templates/header.html", "./templates/footer.html")
 			tmpl.Execute(w, RoomData{Error: "Erreur lors de l'ajout: " + err.Error()})
 			return

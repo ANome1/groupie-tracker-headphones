@@ -1,1 +1,121 @@
-<!-- TODO: Join room page -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rejoindre une salle - Groupie Tracker</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <style>
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+            padding-top: 80px;
+        }
+        .auth-form {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid rgba(166, 142, 224, 0.2);
+            backdrop-filter: blur(10px);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .auth-form h2 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: 1px solid rgba(166, 142, 224, 0.3);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            font-size: 1rem;
+        }
+        .btn-primary {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn-primary:hover {
+            background: var(--accent);
+        }
+        .error-message {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+            padding: 0.8rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        .auth-links {
+            margin-top: 1rem;
+        }
+        .auth-links a {
+            color: var(--text);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .auth-links a:hover {
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    {{template "header" .}}
+
+    <div class="container">
+        <div class="auth-form">
+            <h2>Rejoindre une salle</h2>
+            
+            {{if .Error}}
+            <div class="error-message">
+                {{.Error}}
+            </div>
+            {{end}}
+
+            <form action="/room/join" method="POST">
+                <div class="form-group">
+                    <label for="roomCode">Code de la salle</label>
+                    <input type="text" id="roomCode" name="roomCode" placeholder="Ex: A1B2C3" maxlength="6" required>
+                </div>
+                
+                <button type="submit" class="btn-primary">Rejoindre</button>
+            </form>
+            
+            <div class="auth-links">
+                <a href="/home">Retour à l'accueil</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Pré-remplir le code si présent dans l'URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        if (code) {
+            document.getElementById('roomCode').value = code;
+        }
+    </script>
+
+    {{template "footer" .}}
+</body>
+</html>
