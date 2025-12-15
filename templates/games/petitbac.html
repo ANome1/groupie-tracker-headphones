@@ -10,32 +10,11 @@
     <link rel="stylesheet" href="/static/css/game.css">
 </head>
 <body>
-    {{template "header.html" .}}
+    {{template "header" .}}
     <!-- TODO @ilian: Créer l'interface avec:
-         
-         1. En haut:
-            - Grande lettre affichée au centre
-            - Timer visuel
-            - Numéro de la manche (ex: "Manche 3/9")
-            - Note: NbrsManche = 9 (constante dans models/petitbac.go)
-         
-         2. Grille de saisie:
-            - Une ligne par catégorie
-            - Champ de saisie pour chaque catégorie
-            - Catégories par défaut: Prénom, Ville, Pays, Animal, Métier, etc.
-            - Bouton pour gérer les catégories personnalisées
-         
-         3. Phase de validation:
-            - Afficher toutes les réponses de tous les joueurs
-            - Permettre de voter (valider/invalider)
-            - Système: 2/3 des joueurs doivent valider
-         
          4. Scoreboard:
             - scoreboardActualPointInGame pour suivi en temps réel
             - Points: 2 (unique), 1 (commun), 0 (invalidé/vide)
-         
-         5. Gestion des catégories (CRUD):
-            - Modal pour ajouter/modifier/supprimer des catégories
     -->
     
     <div class="game-container">
@@ -93,6 +72,6 @@
         window.currentPlayerID = playerID;
         connectWebSocket(roomCode, playerID);
     </script>
-    {{template "footer.html" .}}
+    {{template "footer" .}}
 </body>
 </html>
