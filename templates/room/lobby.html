@@ -228,20 +228,62 @@
         </div>
     </section>
 
-
-    <!-- TODO @Quoc Huy & @ilian: WebSocket pour:
-         - Mettre à jour la liste des joueurs en temps réel
-         - Recevoir l'événement "game_start"
-         - Rediriger vers la page de jeu appropriée
-    -->
-
     <script src="/static/js/websocket.js"></script>
     <script>
         const roomCode = "{{.Room.Code}}";
         const playerID = "{{.User.ID}}"; // Using User ID as player identifier
+        const isHost = {{.IsHost}};
+        const roomHostID = parseInt("{{.Room.HostID}}", 10) || 0;
+        const maxPlayers = parseInt("{{.Room.MaxPlayers}}", 10) || 10;
 
         // Connect to WebSocket
         connectWebSocket(roomCode, playerID);
+
+        // Handle player joined
+        window.handlePlayerJoined = function(data) {
+            console.log("Player joined:", data);
+            // Update the player count and list
+            const playersList = document.getElementById('players-list');
+            if (playersList && data.participants) {
+                // Clear and rebuild the list
+                playersList.innerHTML = '';
+                data.participants.forEach(p => {
+                    const hostClass = p.UserID === roomHostID ? ' host' : '';
+                    const li = document.createElement('li');
+                    li.className = 'player-item' + hostClass;
+                    li.textContent = p.Username;
+                    playersList.appendChild(li);
+                });
+            }
+            // Update the player count heading
+            const heading = document.querySelector('.players-card h2');
+            if (heading) {
+                heading.textContent = `Joueurs connectés (${data.total}/${maxPlayers})`;
+            }
+        };
+
+        // Handle player left
+        window.handlePlayerLeft = function(data) {
+            console.log("Player left:", data);
+            // Update the player count and list
+            const playersList = document.getElementById('players-list');
+            if (playersList && data.participants) {
+                // Clear and rebuild the list
+                playersList.innerHTML = '';
+                data.participants.forEach(p => {
+                    const hostClass = p.UserID === roomHostID ? ' host' : '';
+                    const li = document.createElement('li');
+                    li.className = 'player-item' + hostClass;
+                    li.textContent = p.Username;
+                    playersList.appendChild(li);
+                });
+            }
+            // Update the player count heading
+            const heading = document.querySelector('.players-card h2');
+            if (heading) {
+                heading.textContent = `Joueurs connectés (${data.total}/${maxPlayers})`;
+            }
+        };
 
         // Handle Start Game button
         const startButton = document.getElementById('start-game');

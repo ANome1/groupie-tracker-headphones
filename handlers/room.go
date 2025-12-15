@@ -3,12 +3,20 @@ package handlers
 import (
 	"groupie-tracker/models"
 	"groupie-tracker/utils"
+	"groupie-tracker/websocket"
 	"html/template"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
 )
+
+var globalHub *websocket.Hub
+
+// SetGlobalHub sets the websocket hub for broadcasting room events
+func SetGlobalHub(hub *websocket.Hub) {
+	globalHub = hub
+}
 
 type RoomData struct {
 	User         *models.User
@@ -134,6 +142,30 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		log.Printf("Utilisateur %d a rejoint la salle %s", userID, roomCode)
+
+		// Broadcast player joined event to all connected clients in the room
+		user, _ := AuthService.GetUserByID(userID)
+		userName := "Utilisateur"
+		if user != nil {
+			userName = user.Username
+		}
+
+		// Get updated participants
+		participants, _ := RoomService.GetRoomParticipantsWithUsers(room.ID)
+
+		// Broadcast via websocket if hub is available
+		if globalHub != nil {
+			globalHub.BroadcastToRoom(roomCode, models.MessageOut{
+				Type: "PLAYER_JOINED",
+				Data: map[string]interface{}{
+					"username":     userName,
+					"userID":       userID,
+					"participants": participants,
+					"total":        len(participants),
+				},
+			})
+		}
+
 		http.Redirect(w, r, "/room/lobby?code="+roomCode, http.StatusSeeOther)
 	}
 }
@@ -226,6 +258,29 @@ func LeaveRoomHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("Utilisateur %d a quitté la salle %s (ID: %d)", userID, roomCode, room.ID)
+
+	// Broadcast player left event to all connected clients in the room
+	user, _ := AuthService.GetUserByID(userID)
+	userName := "Utilisateur"
+	if user != nil {
+		userName = user.Username
+	}
+
+	// Get updated participants
+	participants, _ := RoomService.GetRoomParticipantsWithUsers(room.ID)
+
+	// Broadcast via websocket if hub is available
+	if globalHub != nil {
+		globalHub.BroadcastToRoom(roomCode, models.MessageOut{
+			Type: "PLAYER_LEFT",
+			Data: map[string]interface{}{
+				"username":     userName,
+				"userID":       userID,
+				"participants": participants,
+				"total":        len(participants),
+			},
+		})
+	}
 
 	http.Redirect(w, r, "/home", http.StatusSeeOther)
 }

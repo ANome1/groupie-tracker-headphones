@@ -40,6 +40,18 @@ function connectWebSocket(roomCode, playerID) {
                     window.handleGameOver(msg.Data);
                 }
                 break;
+            case "PLAYER_JOINED":
+                // Mise à jour de la liste des joueurs
+                if (window.handlePlayerJoined) {
+                    window.handlePlayerJoined(msg.Data);
+                }
+                break;
+            case "PLAYER_LEFT":
+                // Mise à jour de la liste des joueurs
+                if (window.handlePlayerLeft) {
+                    window.handlePlayerLeft(msg.Data);
+                }
+                break;
             default:
                 console.log("Unknown message type:", msg.Type);
         }

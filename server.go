@@ -266,8 +266,9 @@ func main() {
 	hub = websocket.NewHub()
 	go hub.Run()
 
-	// Initialiser les handlers avec les services
+	// Initialiser les handlers avec les services et le hub
 	handlers.Init(authService, roomService)
+	handlers.SetGlobalHub(hub)
 
 	// Routes
 	http.HandleFunc("/", Landing)
