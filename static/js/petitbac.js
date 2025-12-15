@@ -98,6 +98,13 @@ function submitAnswers() {
     const form = document.getElementById('answers-form');
     if (!form) return; // Sécurité si le formulaire est déjà caché
 
+    // Check if already submitted (inputs disabled)
+    const inputs = form.querySelectorAll('input');
+    if (inputs.length > 0 && inputs[0].disabled) {
+        console.log("Already submitted, ignoring.");
+        return;
+    }
+
     const formData = new FormData(form);
     const answers = {};
     
@@ -108,15 +115,15 @@ function submitAnswers() {
     // Envoyer via WebSocket
     // Note: sendMessage est défini dans websocket.js
     if (typeof sendMessage === 'function') {
+        console.log("Sending answers:", answers);
         sendMessage("SUBMIT_ANSWERS", {
-            answers: answers
+            Answers: answers
         });
     } else {
         console.error("sendMessage function not found");
     }
 
     // Désactiver le formulaire
-    const inputs = form.querySelectorAll('input');
     const button = form.querySelector('button');
     inputs.forEach(input => input.disabled = true);
     if (button) {
@@ -126,7 +133,29 @@ function submitAnswers() {
 }
 
 // Fonction appelée par websocket.js lors de la réception de VALIDATION_PHASE
-window.handleValidationPhase = function(roundData) {
+window.handleValidationPhase = function(data) {
+    console.log("Received VALIDATION_PHASE data:", data);
+
+    // Stop timer
+    if (timerInterval) clearInterval(timerInterval);
+    const timerElement = document.getElementById('timer');
+    if (timerElement) {
+        timerElement.classList.remove('warning');
+        timerElement.textContent = "Vote";
+        timerElement.style.fontSize = "1.5rem"; // Adjust font size for text
+    }
+
+    let roundData = data;
+    let playerNames = {};
+    let hostID = null;
+
+    if (data.Round) {
+        roundData = data.Round;
+        playerNames = data.PlayerNames || {};
+        hostID = data.HostID;
+        window.playerNames = playerNames; // Store for scoreboard
+    }
+
     document.getElementById('answers-form').style.display = 'none';
     const validationDiv = document.getElementById('validation-phase');
     validationDiv.style.display = 'block';
@@ -134,39 +163,115 @@ window.handleValidationPhase = function(roundData) {
     const container = document.getElementById('all-answers');
     container.innerHTML = ''; // Clear previous
 
+    // Show Host Button if applicable
+    const hostControls = document.getElementById('host-controls');
+    if (hostControls) hostControls.remove();
+
+    if (hostID && window.currentPlayerID === hostID) {
+        const controls = document.createElement('div');
+        controls.id = 'host-controls';
+        controls.style.marginBottom = '20px';
+        controls.innerHTML = `<button onclick="nextRound()" class="btn-primary" style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Manche Suivante</button>`;
+        validationDiv.insertBefore(controls, container);
+    }
+
+    if (!roundData.Responses) {
+        console.error("No responses found in round data");
+        container.innerHTML = '<p>Aucune réponse reçue.</p>';
+        return;
+    }
+
     // Afficher les réponses pour validation
     for (const [playerID, response] of Object.entries(roundData.Responses)) {
+        console.log("Processing response for player:", playerID, response);
+        const playerName = playerNames[playerID] || `Joueur ${playerID}`;
         const playerDiv = document.createElement('div');
         playerDiv.className = 'validation-card';
-        playerDiv.innerHTML = `<h4>Joueur ${playerID}</h4>`;
+        playerDiv.innerHTML = `<h4>${playerName}</h4>`;
         
         const list = document.createElement('ul');
-        for (const [category, answer] of Object.entries(response.Answers)) {
-            const li = document.createElement('li');
-            
-            let voteButtons = '';
-            // Ne pas afficher les boutons de vote pour ses propres réponses
-            if (window.currentPlayerID && window.currentPlayerID !== playerID) {
-                voteButtons = `
-                    <div class="vote-buttons">
-                        <button class="vote-btn invalid" onclick="vote('${playerID}', '${category}', false, this)" title="Invalider">❌</button>
-                        <button class="vote-btn valid" onclick="vote('${playerID}', '${category}', true, this)" title="Valider">✅</button>
-                    </div>
-                `;
-            }
+        if (response.Answers && Object.keys(response.Answers).length > 0) {
+            for (const [category, answer] of Object.entries(response.Answers)) {
+                // Skip hidden fields like 'code'
+                if (category === 'code') continue;
 
-            li.innerHTML = `
-                <div>
-                    <strong>${category}</strong>
-                    <span class="answer-text">${answer || '<em style="opacity:0.5">Pas de réponse</em>'}</span>
-                </div>
-                ${voteButtons}
-            `;
-            list.appendChild(li);
+                const li = document.createElement('li');
+                
+                let voteButtons = '';
+                // Allow voting for everyone except self
+                // Also ensure host can vote if they are playing
+                if (window.currentPlayerID && String(window.currentPlayerID) !== String(playerID)) {
+                    voteButtons = `
+                        <div class="vote-buttons">
+                            <button class="vote-btn invalid" onclick="vote('${playerID}', '${category}', false, this)" title="Invalider">❌</button>
+                            <button class="vote-btn valid" onclick="vote('${playerID}', '${category}', true, this)" title="Valider">✅</button>
+                        </div>
+                    `;
+                }
+
+                li.innerHTML = `
+                    <div>
+                        <strong>${category}</strong>
+                        <span class="answer-text">${answer || '<em style="opacity:0.5">Pas de réponse</em>'}</span>
+                    </div>
+                    ${voteButtons}
+                `;
+                list.appendChild(li);
+            }
+        } else {
+            list.innerHTML = '<li><em>Aucune réponse soumise</em></li>';
         }
         playerDiv.appendChild(list);
         container.appendChild(playerDiv);
     }
+};
+
+window.nextRound = function() {
+    if (typeof sendMessage === 'function') {
+        sendMessage("NEXT_ROUND", {});
+    }
+};
+
+window.handleNewRound = function(roundUpdate) {
+    // Reset UI
+    document.getElementById('validation-phase').style.display = 'none';
+    document.getElementById('answers-form').style.display = 'block';
+    
+    // Reset inputs
+    const form = document.getElementById('answers-form');
+    form.reset();
+    const inputs = form.querySelectorAll('input');
+    inputs.forEach(input => input.disabled = false);
+    const button = form.querySelector('button');
+    if (button) {
+        button.disabled = false;
+        button.textContent = "Valider mes réponses";
+    }
+
+    // Update Round Number
+    const roundElement = document.getElementById('current-round');
+    if (roundElement && roundUpdate.RoundNumber) {
+        roundElement.textContent = roundUpdate.RoundNumber;
+    }
+
+    // Update Letter and Timer
+    const letterElement = document.getElementById('letter');
+    if (letterElement) {
+        letterElement.innerText = roundUpdate.Letter;
+        animateLetter(roundUpdate.Letter);
+    }
+    
+    const timerElement = document.getElementById('timer');
+    if (timerElement) {
+        timerElement.style.fontSize = ""; // Reset font size
+    }
+    
+    startTimer(roundUpdate.Duration);
+};
+
+window.handleGameOver = function(scores) {
+    alert("Partie terminée !");
+    window.updateScores(scores);
 };
 
 window.vote = function(targetPlayerID, category, isValid, btnElement) {
@@ -193,8 +298,9 @@ window.updateScores = function(scores) {
     scoresList.innerHTML = '';
     // scores est une map: PlayerID -> Score
     for (const [playerID, score] of Object.entries(scores)) {
+        const playerName = (window.playerNames && window.playerNames[playerID]) || `Joueur ${playerID}`;
         const li = document.createElement('li');
-        li.textContent = `Joueur ${playerID}: ${score} pts`;
+        li.textContent = `${playerName}: ${score} pts`;
         scoresList.appendChild(li);
     }
 };

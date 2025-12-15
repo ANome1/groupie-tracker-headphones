@@ -84,24 +84,65 @@ func (c *Client) handleMessage(message []byte) {
 
 	switch msg.Type {
 	case "SUBMIT_ANSWERS":
+		log.Printf("Received SUBMIT_ANSWERS raw data: %s", string(msg.Data))
 		var payload models.AnswersPayload
 		if err := json.Unmarshal(msg.Data, &payload); err != nil {
 			log.Printf("Error unmarshalling payload: %v", err)
 			return
 		}
+		log.Printf("Parsed AnswersPayload: %+v", payload)
 
 		// Call service
 		services.Manager.SubmitAnswers(c.RoomID, c.PlayerID, payload.Answers)
 
 		// Check if we need to broadcast validation phase
 		game := services.Manager.GetGame(c.RoomID)
-		if game != nil && game.State == models.GameStateVoting {
-			// Get the current round to send responses
-			if len(game.Rounds) > 0 {
-				currentRound := game.Rounds[len(game.Rounds)-1]
+		if game != nil {
+			game.RLock()
+			if game.State == models.GameStateVoting {
+				// Get the current round to send responses
+				if len(game.Rounds) > 0 {
+					currentRound := game.Rounds[len(game.Rounds)-1]
+					log.Printf("Broadcasting VALIDATION_PHASE to room %s. Responses count: %d", c.RoomID, len(currentRound.Responses))
+
+					// Debug: Print responses
+					for pid, resp := range currentRound.Responses {
+						log.Printf("Player %s answers: %v", pid, resp.Answers)
+					}
+
+					if len(currentRound.Responses) == 0 {
+						log.Printf("WARNING: Broadcasting VALIDATION_PHASE with EMPTY responses!")
+					}
+
+					// Include player names and host ID
+					validationData := map[string]interface{}{
+						"Round":       currentRound,
+						"PlayerNames": game.PlayerNames,
+						"HostID":      game.HostID,
+					}
+
+					c.hub.BroadcastToRoom(c.RoomID, models.MessageOut{
+						Type: "VALIDATION_PHASE",
+						Data: validationData,
+					})
+				}
+			}
+			game.RUnlock()
+		}
+
+	case "NEXT_ROUND":
+		game := services.Manager.GetGame(c.RoomID)
+		if game != nil && game.HostID == c.PlayerID {
+			update, gameOver := services.Manager.NextRound(c.RoomID)
+			if gameOver {
 				c.hub.BroadcastToRoom(c.RoomID, models.MessageOut{
-					Type: "VALIDATION_PHASE",
-					Data: currentRound,
+					Type: "GAME_OVER",
+					Data: game.Scores,
+				})
+			} else if update != nil {
+				c.hub.BroadcastToRoom(c.RoomID, models.MessageOut{
+					Type: "NEW_ROUND",
+					Data: update,
 				})
 			}
 		}

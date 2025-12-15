@@ -192,14 +192,21 @@ func StartGameHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		playerNames := make([]string, len(participants))
+		players := make([]string, len(participants))
+		playerNames := make(map[string]string)
 		for i, p := range participants {
-			playerNames[i] = strconv.Itoa(p.UserID)
+			pid := strconv.Itoa(p.UserID)
+			players[i] = pid
+			if p.Username != "" {
+				playerNames[pid] = p.Username
+			} else {
+				playerNames[pid] = "Joueur " + pid
+			}
 		}
 
 		// Créer l'instance de jeu
 		// On utilise room.Code comme ID de jeu pour simplifier la correspondance
-		game := services.Manager.CreateGame(room.Code, playerNames)
+		game := services.Manager.CreateGame(room.Code, strconv.Itoa(room.HostID), players, playerNames)
 
 		// Démarrer le premier round immédiatement pour avoir une lettre
 		services.Manager.StartRound(game.ID)

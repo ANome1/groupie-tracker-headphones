@@ -10,7 +10,7 @@ import (
 
 // In-memory store for categories (thread-safe)
 var (
-	categories      = []string{"Pays", "Ville", "Animal", "Métier", "Objet", "Prénom"}
+	categories      = []string{"Chanteur", "Groupe", "Album", "Instrument", "Chanson", "Style de musique"}
 	categoriesMutex sync.RWMutex
 )
 

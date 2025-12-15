@@ -4,6 +4,7 @@ package services
 
 import (
 	"groupie-tracker/models"
+	"log"
 	"math/rand"
 	"sync"
 	"time"
@@ -19,18 +20,18 @@ var Manager = &PetitBacManager{
 }
 
 // CreateGame initializes a new game session
-func (m *PetitBacManager) CreateGame(roomID string, players []string) *models.PetitBacGame {
+func (m *PetitBacManager) CreateGame(roomID, hostID string, players []string, playerNames map[string]string) *models.PetitBacGame {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
 	gameID := roomID // Using roomID as gameID for simplicity
 	config := models.PetitBacConfig{
-		Categories:   []string{"Pays", "Ville", "Animal", "Métier", "Objet", "Prénom"},
+		Categories:   []string{"Artiste", "Groupe de musique", "Album", "Instrument", "Featuring"},
 		TimePerRound: 60,
 		NumRounds:    9,
 	}
 
-	game := models.NewPetitBacGame(gameID, roomID, players, config)
+	game := models.NewPetitBacGame(gameID, roomID, hostID, players, playerNames, config)
 	m.Games[gameID] = game
 	return game
 }
@@ -48,6 +49,9 @@ func (m *PetitBacManager) StartRound(gameID string) *models.RoundUpdate {
 	if game == nil {
 		return nil
 	}
+
+	game.Lock()
+	defer game.Unlock()
 
 	// Pick a random letter not used yet
 	letters := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -98,6 +102,9 @@ func (m *PetitBacManager) SubmitAnswers(gameID, playerID string, answers map[str
 		return
 	}
 
+	game.Lock()
+	defer game.Unlock()
+
 	currentRound := game.Rounds[len(game.Rounds)-1]
 	currentRound.Responses[playerID] = &models.PlayerResponse{
 		PlayerID:   playerID,
@@ -107,6 +114,7 @@ func (m *PetitBacManager) SubmitAnswers(gameID, playerID string, answers map[str
 	}
 
 	// Check if all players submitted to trigger validation phase early
+	log.Printf("SubmitAnswers: Player %s submitted. Total responses: %d/%d", playerID, len(currentRound.Responses), len(game.Players))
 	if len(currentRound.Responses) == len(game.Players) {
 		game.State = models.GameStateVoting
 		// Trigger validation phase (caller handles broadcast)
@@ -119,6 +127,9 @@ func (m *PetitBacManager) SubmitVote(gameID string, vote models.Vote) {
 	if game == nil || len(game.Rounds) == 0 {
 		return
 	}
+
+	game.Lock()
+	defer game.Unlock()
 
 	currentRound := game.Rounds[len(game.Rounds)-1]
 	currentRound.Votes = append(currentRound.Votes, vote)
@@ -135,15 +146,18 @@ func (m *PetitBacManager) CalculateScores(gameID string) map[string]int {
 		return nil
 	}
 
+	game.RLock()
+	defer game.RUnlock()
+
 	currentRound := game.Rounds[len(game.Rounds)-1]
 
-	// Initialize validity map (default true)
+	// Initialize validity map (default false - requires validation)
 	validity := make(map[string]map[string]bool)
 	for _, pID := range game.Players {
 		validity[pID] = make(map[string]bool)
 		if resp, ok := currentRound.Responses[pID]; ok {
 			for cat := range resp.Answers {
-				validity[pID][cat] = true
+				validity[pID][cat] = false
 			}
 		}
 	}
@@ -170,12 +184,12 @@ func (m *PetitBacManager) CalculateScores(gameID string) map[string]int {
 		}
 	}
 
-	// Apply majority rule: if invalid > valid, mark as invalid
+	// Apply majority rule: if valid > invalid, mark as valid
 	for pID, cats := range votes {
 		for cat, count := range cats {
-			if count.invalid > count.valid {
+			if count.valid > count.invalid {
 				if validity[pID] != nil {
-					validity[pID][cat] = false
+					validity[pID][cat] = true
 				}
 			}
 		}
@@ -207,6 +221,18 @@ func (m *PetitBacManager) CalculateScores(gameID string) map[string]int {
 		points := 0
 		if resp, ok := currentRound.Responses[pID]; ok {
 			for cat, ans := range resp.Answers {
+				// Check if category is valid
+				isValidCategory := false
+				for _, c := range game.Config.Categories {
+					if c == cat {
+						isValidCategory = true
+						break
+					}
+				}
+				if !isValidCategory {
+					continue
+				}
+
 				if ans == "" {
 					continue
 				}
@@ -214,16 +240,77 @@ func (m *PetitBacManager) CalculateScores(gameID string) map[string]int {
 					continue
 				}
 
-				count := answerCounts[cat][ans]
-				if count == 1 {
-					points += 2
-				} else {
-					points += 1
-				}
+				// Points accumulation: 2 points for validated answer
+				points += 2
 			}
 		}
 		projectedScores[pID] += points
 	}
 
 	return projectedScores
+}
+
+// NextRound finalizes the current round and starts the next one
+func (m *PetitBacManager) NextRound(gameID string) (*models.RoundUpdate, bool) {
+	// Calculate final scores for the current round
+	scores := m.CalculateScores(gameID)
+
+	game := m.GetGame(gameID)
+	if game == nil {
+		return nil, false
+	}
+
+	game.Lock()
+	defer game.Unlock()
+
+	// Update scores
+	if scores != nil {
+		game.Scores = scores
+	}
+
+	// Check if game is finished
+	if game.CurrentRound >= game.Config.NumRounds {
+		game.State = models.GameStateFinished
+		return nil, true // Game Over
+	}
+
+	// Start new round logic
+	letters := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	var letter rune
+	for {
+		letter = rune(letters[rand.Intn(len(letters))])
+		used := false
+		for _, l := range game.UsedLetters {
+			if l == letter {
+				used = true
+				break
+			}
+		}
+		if !used {
+			break
+		}
+		if len(game.UsedLetters) >= 26 {
+			break
+		}
+	}
+
+	game.UsedLetters = append(game.UsedLetters, letter)
+	game.CurrentRound++
+
+	round := &models.PetitBacRound{
+		RoundNumber: game.CurrentRound,
+		Letter:      letter,
+		StartTime:   time.Now(),
+		EndTime:     time.Now().Add(time.Duration(game.Config.TimePerRound) * time.Second),
+		Responses:   make(map[string]*models.PlayerResponse),
+	}
+
+	game.Rounds = append(game.Rounds, round)
+	game.State = models.GameStatePlaying
+
+	return &models.RoundUpdate{
+		Letter:      string(letter),
+		Duration:    game.Config.TimePerRound,
+		RoundNumber: game.CurrentRound,
+	}, false
 }

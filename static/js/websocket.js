@@ -30,6 +30,16 @@ function connectWebSocket(roomCode, playerID) {
                     window.updateScores(msg.Data);
                 }
                 break;
+            case "NEW_ROUND":
+                if (window.handleNewRound) {
+                    window.handleNewRound(msg.Data);
+                }
+                break;
+            case "GAME_OVER":
+                if (window.handleGameOver) {
+                    window.handleGameOver(msg.Data);
+                }
+                break;
             default:
                 console.log("Unknown message type:", msg.Type);
         }

@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"sync"
 	"time"
 )
 
@@ -26,15 +27,19 @@ const (
 
 // PetitBacGame represents the complete state of a Petit Bac game session.
 type PetitBacGame struct {
+	sync.RWMutex // Embed mutex for thread safety
+
 	ID           string
 	RoomID       string
+	HostID       string // ID of the host player
 	State        string
 	Config       PetitBacConfig
 	CurrentRound int
 	UsedLetters  []rune
 	Rounds       []*PetitBacRound
-	Scores       map[string]int // PlayerID -> Score
-	Players      []string       // List of PlayerIDs
+	Scores       map[string]int    // PlayerID -> Score
+	Players      []string          // List of PlayerIDs
+	PlayerNames  map[string]string // PlayerID -> Username
 	CreatedAt    time.Time
 }
 
@@ -47,28 +52,28 @@ type PetitBacConfig struct {
 
 // PetitBacRound stores data for a specific round.
 type PetitBacRound struct {
-	RoundNumber int
-	Letter      rune
-	StartTime   time.Time
-	EndTime     time.Time
-	Responses   map[string]*PlayerResponse // PlayerID -> Response
-	Votes       []Vote                     // List of all votes in this round
+	RoundNumber int                        `json:"RoundNumber"`
+	Letter      rune                       `json:"Letter"`
+	StartTime   time.Time                  `json:"StartTime"`
+	EndTime     time.Time                  `json:"EndTime"`
+	Responses   map[string]*PlayerResponse `json:"Responses"`
+	Votes       []Vote                     `json:"Votes"`
 }
 
 // PlayerResponse represents a player's answers for a round.
 type PlayerResponse struct {
-	PlayerID   string
-	Answers    map[string]string // Category -> Answer
-	Submitted  bool
-	SubmitTime time.Time
+	PlayerID   string            `json:"PlayerID"`
+	Answers    map[string]string `json:"Answers"`
+	Submitted  bool              `json:"Submitted"`
+	SubmitTime time.Time         `json:"SubmitTime"`
 }
 
 // Vote represents a validation vote from one player for another player's answer.
 type Vote struct {
-	VoterID      string
-	TargetPlayer string
-	Category     string
-	IsValid      bool
+	VoterID      string `json:"VoterID"`
+	TargetPlayer string `json:"TargetPlayer"`
+	Category     string `json:"Category"`
+	IsValid      bool   `json:"IsValid"`
 }
 
 // MessageOut is a helper for WebSocket responses.
@@ -79,25 +84,25 @@ type MessageOut struct {
 
 // RoundUpdate is a helper for sending round info.
 type RoundUpdate struct {
-	Letter      string
-	Duration    int
-	RoundNumber int
+	Letter      string `json:"Letter"`
+	Duration    int    `json:"Duration"`
+	RoundNumber int    `json:"RoundNumber"`
 }
 
 // MessageIn represents the standard format for messages received from the client.
 type MessageIn struct {
-	Type string          // Ex: "SUBMIT_ANSWERS", "SUBMIT_VOTE"
-	Data json.RawMessage // Le contenu brut qui sera décodé selon le Type
+	Type string          `json:"Type"`
+	Data json.RawMessage `json:"Data"`
 }
 
 // AnswersPayload is the data expected when Type is "SUBMIT_ANSWERS".
 type AnswersPayload struct {
-	PlayerID string
-	Answers  map[string]string
+	PlayerID string            `json:"PlayerID"`
+	Answers  map[string]string `json:"Answers"`
 }
 
 // NewPetitBacGame creates a new game instance with default or provided config.
-func NewPetitBacGame(id, roomID string, players []string, config PetitBacConfig) *PetitBacGame {
+func NewPetitBacGame(id, roomID, hostID string, players []string, playerNames map[string]string, config PetitBacConfig) *PetitBacGame {
 	if config.NumRounds == 0 {
 		config.NumRounds = DefaultRounds
 	}
@@ -106,7 +111,7 @@ func NewPetitBacGame(id, roomID string, players []string, config PetitBacConfig)
 	}
 	if len(config.Categories) == 0 {
 		// Default categories if none provided
-		config.Categories = []string{"Pays", "Ville", "Animal", "Métier", "Objet", "Prénom"}
+		config.Categories = []string{"Artiste", "Groupe de musique", "Album", "Instrument", "Featuring"}
 	}
 
 	// Initialize scores
@@ -118,6 +123,7 @@ func NewPetitBacGame(id, roomID string, players []string, config PetitBacConfig)
 	return &PetitBacGame{
 		ID:           id,
 		RoomID:       roomID,
+		HostID:       hostID,
 		State:        GameStateWaiting,
 		Config:       config,
 		CurrentRound: 0,
@@ -125,6 +131,7 @@ func NewPetitBacGame(id, roomID string, players []string, config PetitBacConfig)
 		Rounds:       make([]*PetitBacRound, 0),
 		Scores:       scores,
 		Players:      players,
+		PlayerNames:  playerNames,
 		CreatedAt:    time.Now(),
 	}
 }
