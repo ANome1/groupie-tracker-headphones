@@ -160,7 +160,7 @@ func PetitBacHandler(w http.ResponseWriter, r *http.Request) {
 		CurrentRound: currentRound,
 	}
 
-	tmpl, err := template.ParseFiles("./templates/games/petitbac.html", "./templates/header.html", "./templates/footer.html")
+	tmpl, err := template.ParseFiles("./templates/games/petitbac.html", "./templates/components/header.html", "./templates/components/footer.html")
 	if err != nil {
 		log.Printf("Erreur: %v", err)
 		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
@@ -206,12 +206,19 @@ func StartGameHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		players := make([]string, len(participants))
+		playerNames := make(map[string]string)
 		for i, p := range participants {
-			players[i] = strconv.Itoa(p.UserID)
+			pid := strconv.Itoa(p.UserID)
+			players[i] = pid
+			if p.Username != "" {
+				playerNames[pid] = p.Username
+			} else {
+				playerNames[pid] = "Joueur " + pid
+			}
 		}
 
 		// Créer l'instance de jeu
-		game := services.Manager.CreateGame(room.Code, players)
+		game := services.Manager.CreateGame(room.Code, strconv.Itoa(room.HostID), players, playerNames)
 
 		// Démarrer le premier round immédiatement pour avoir une lettre
 		services.Manager.StartRound(game.ID)

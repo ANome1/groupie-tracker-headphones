@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="/static/css/game.css">
 </head>
 <body>
+    {{template "header.html" .}}
     <!-- TODO @ilian: Créer l'interface avec:
          
          1. En haut:
@@ -48,7 +49,6 @@
         
         <div class="timer" id="timer">60</div>
         
-        <button id="manage-categories">Gérer les catégories</button>
         
         <form id="answers-form" onsubmit="return false;">
             <input type="hidden" name="code" value="{{.Room.Code}}">
@@ -70,6 +70,7 @@
             <div id="all-answers">
                 <!-- Réponses de tous les joueurs -->
             </div>
+            <div id="host-controls" style="margin-top: 20px; text-align: center;"></div>
         </div>
     </div>
     
@@ -92,5 +93,6 @@
         window.currentPlayerID = playerID;
         connectWebSocket(roomCode, playerID);
     </script>
+    {{template "footer.html" .}}
 </body>
 </html>

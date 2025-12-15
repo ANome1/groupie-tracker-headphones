@@ -19,8 +19,8 @@ func PetitBacHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse templates (adjust paths as necessary for your project structure)
 	tmpl, err := template.ParseFiles(
 		"templates/games/petitbac.html",
-		"templates/header.html",
-		"templates/footer.html",
+		"templates/components/header.html",
+		"templates/components/footer.html",
 	)
 	if err != nil {
 		http.Error(w, "Error loading template: "+err.Error(), http.StatusInternalServerError)
@@ -115,8 +115,6 @@ func DeleteCategoryHandler(w http.ResponseWriter, r *http.Request) {
 	categories = newCategories
 	w.WriteHeader(http.StatusOK)
 }
-<<<<<<< HEAD
-=======
 
 // SubmitAnswersHandler handles the submission of answers via HTTP
 func SubmitAnswersHandler(w http.ResponseWriter, r *http.Request) {
@@ -139,4 +137,3 @@ func SubmitAnswersHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 }
->>>>>>> logique_ilian

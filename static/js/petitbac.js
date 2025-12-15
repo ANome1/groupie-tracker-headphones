@@ -154,6 +154,7 @@ window.handleValidationPhase = function(data) {
         playerNames = data.PlayerNames || {};
         hostID = data.HostID;
         window.playerNames = playerNames; // Store for scoreboard
+        console.log("VALIDATION_PHASE - HostID:", hostID, "CurrentPlayerID:", window.currentPlayerID);
     }
 
     document.getElementById('answers-form').style.display = 'none';
@@ -165,14 +166,21 @@ window.handleValidationPhase = function(data) {
 
     // Show Host Button if applicable
     const hostControls = document.getElementById('host-controls');
-    if (hostControls) hostControls.remove();
-
-    if (hostID && window.currentPlayerID === hostID) {
-        const controls = document.createElement('div');
-        controls.id = 'host-controls';
-        controls.style.marginBottom = '20px';
-        controls.innerHTML = `<button onclick="nextRound()" class="btn-primary" style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Manche Suivante</button>`;
-        validationDiv.insertBefore(controls, container);
+    if (hostControls) {
+        hostControls.innerHTML = ''; // Clear previous
+        
+        // Always show button for host
+        if (hostID && (String(window.currentPlayerID) === String(hostID) || String(window.currentPlayerID).includes(hostID))) {
+            console.log("Showing NEXT_ROUND button for host");
+            const button = document.createElement('button');
+            button.onclick = () => nextRound();
+            button.className = 'btn-primary';
+            button.style.cssText = 'background-color: #4CAF50; color: white; padding: 12px 30px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold;';
+            button.textContent = '➡️ Manche Suivante';
+            hostControls.appendChild(button);
+        } else {
+            console.log("Host check failed - HostID:", hostID, "CurrentPlayerID:", window.currentPlayerID);
+        }
     }
 
     if (!roundData.Responses) {
