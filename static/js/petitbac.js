@@ -276,10 +276,11 @@ window.handleGameOver = function(scores) {
 
 window.vote = function(targetPlayerID, category, isValid, btnElement) {
     if (typeof sendMessage === 'function') {
+        console.log("Sending vote:", { TargetPlayer: targetPlayerID, Category: category, IsValid: isValid });
         sendMessage("SUBMIT_VOTE", {
-            targetPlayerID: targetPlayerID,
-            category: category,
-            isValid: isValid
+            TargetPlayer: targetPlayerID,
+            Category: category,
+            IsValid: isValid
         });
         
         // Feedback visuel
