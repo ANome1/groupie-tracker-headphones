@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type RoomData struct {
@@ -24,7 +25,7 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		if userID > 0 {
 			user, _ = AuthService.GetUserByID(userID)
 		}
-		tmpl, err := template.ParseFiles("./templates/room/create.html", "./templates/components/header.html", "./templates/components/footer.html")
+		tmpl, err := template.ParseFiles("./templates/room/create.html", "./templates/header.html", "./templates/footer.html")
 		if err != nil {
 			log.Printf("Erreur: %v", err)
 			http.Error(w, "Erreur serveur", http.StatusInternalServerError)
@@ -51,14 +52,14 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		gameType := r.FormValue("gameType") // "blindtest" ou "petitbac"
 
 		if name == "" {
-			tmpl, _ := template.ParseFiles("./templates/room/create.html", "./templates/components/header.html", "./templates/components/footer.html")
+			tmpl, _ := template.ParseFiles("./templates/room/create.html", "./templates/header.html", "./templates/footer.html")
 			tmpl.Execute(w, RoomData{Error: "Le nom de la salle est requis"})
 			return
 		}
 
 		room, err := RoomService.CreateRoom(name, gameType, userID)
 		if err != nil {
-			tmpl, _ := template.ParseFiles("./templates/room/create.html", "./templates/components/header.html", "./templates/components/footer.html")
+			tmpl, _ := template.ParseFiles("./templates/room/create.html", "./templates/header.html", "./templates/footer.html")
 			tmpl.Execute(w, RoomData{Error: "Erreur lors de la création: " + err.Error()})
 			return
 		}
@@ -76,7 +77,7 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 
 func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		tmpl, err := template.ParseFiles("./templates/room/join.html", "./templates/components/header.html", "./templates/components/footer.html")
+		tmpl, err := template.ParseFiles("./templates/room/join.html", "./templates/header.html", "./templates/footer.html")
 		if err != nil {
 			log.Printf("Erreur: %v", err)
 			http.Error(w, "Erreur serveur", http.StatusInternalServerError)
@@ -106,21 +107,28 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 
 		roomCode := r.FormValue("roomCode")
 		if roomCode == "" {
-			tmpl, _ := template.ParseFiles("./templates/room/join.html", "./templates/components/header.html", "./templates/components/footer.html")
+			tmpl, _ := template.ParseFiles("./templates/room/join.html", "./templates/header.html", "./templates/footer.html")
 			tmpl.Execute(w, RoomData{Error: "Le code de la salle est requis"})
 			return
 		}
 
+		// Normalize code to uppercase and trim spaces
+		roomCode = strings.ToUpper(strings.TrimSpace(roomCode))
+
+		log.Printf("Tentative de connexion à la salle: '%s' par l'utilisateur %d", roomCode, userID)
+
 		room, err := RoomService.GetRoomByCode(roomCode)
 		if err != nil {
-			tmpl, _ := template.ParseFiles("./templates/room/join.html", "./templates/components/header.html", "./templates/components/footer.html")
+			log.Printf("Erreur GetRoomByCode: %v", err)
+			tmpl, _ := template.ParseFiles("./templates/room/join.html", "./templates/header.html", "./templates/footer.html")
 			tmpl.Execute(w, RoomData{Error: "Salle non trouvée (code invalide)"})
 			return
 		}
 
 		err = RoomService.JoinRoom(room.ID, userID)
 		if err != nil {
-			tmpl, _ := template.ParseFiles("./templates/room/join.html", "./templates/components/header.html", "./templates/components/footer.html")
+			log.Printf("Erreur JoinRoom: %v", err)
+			tmpl, _ := template.ParseFiles("./templates/room/join.html", "./templates/header.html", "./templates/footer.html")
 			tmpl.Execute(w, RoomData{Error: "Erreur lors de l'ajout: " + err.Error()})
 			return
 		}
@@ -170,7 +178,7 @@ func LobbyHandler(w http.ResponseWriter, r *http.Request) {
 		Error:        "",
 	}
 
-	tmpl, err := template.ParseFiles("./templates/room/lobby.html", "./templates/components/header.html", "./templates/components/footer.html")
+	tmpl, err := template.ParseFiles("./templates/room/lobby.html", "./templates/header.html", "./templates/footer.html")
 	if err != nil {
 		log.Printf("Erreur: %v", err)
 		http.Error(w, "Erreur serveur", http.StatusInternalServerError)

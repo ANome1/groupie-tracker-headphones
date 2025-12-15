@@ -237,7 +237,36 @@
 
     <script src="/static/js/websocket.js"></script>
     <script>
-        // TODO @Quoc Huy & @ilian: Implémenter la connexion WebSocket et la gestion des événements
+        const roomCode = "{{.Room.Code}}";
+        const playerID = "{{.User.ID}}"; // Using User ID as player identifier
+
+        // Connect to WebSocket
+        connectWebSocket(roomCode, playerID);
+
+        // Handle Start Game button
+        const startButton = document.getElementById('start-game');
+        if (startButton) {
+            startButton.addEventListener('click', async () => {
+                try {
+                    const response = await fetch('/game/start', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `roomCode=${roomCode}`
+                    });
+                    
+                    if (!response.ok) {
+                        const text = await response.text();
+                        alert('Erreur: ' + text);
+                    }
+                    // Success is handled via WebSocket GAME_START event
+                } catch (error) {
+                    console.error('Error starting game:', error);
+                    alert('Erreur lors du démarrage de la partie');
+                }
+            });
+        }
     </script>
 
     {{template "footer" .}}

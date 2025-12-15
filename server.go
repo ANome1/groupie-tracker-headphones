@@ -7,8 +7,10 @@ import (
 	"groupie-tracker/models"
 	"groupie-tracker/services"
 	"groupie-tracker/utils"
+	"groupie-tracker/websocket"
 	"log"
 	"net/http"
+	"strconv"
 	"text/template"
 )
 
@@ -119,18 +121,46 @@ func BlindTestHandler(w http.ResponseWriter, r *http.Request) {
 // TODO @ilian: Gérer les 9 manches, validation 2/3 joueurs
 // TODO @ilian: Système de points (unique=2, commun=1)
 func PetitBacHandler(w http.ResponseWriter, r *http.Request) {
-	user := GetCurrentUser(r)
-	data := struct {
-		User       *models.User
-		Scores     []map[string]interface{}
-		Categories []string
-	}{
-		User:       user,
-		Scores:     []map[string]interface{}{},
-		Categories: []string{"Prénom", "Ville", "Pays", "Animal", "Métier"},
+	roomCode := r.URL.Query().Get("code")
+	if roomCode == "" {
+		http.Error(w, "Code de salle manquant", http.StatusBadRequest)
+		return
 	}
 
-	tmpl, err := template.ParseFiles("./templates/games/petitbac.html", "./templates/components/header.html", "./templates/components/footer.html", "./templates/components/scoreboard.html")
+	room, err := roomService.GetRoomByCode(roomCode)
+	if err != nil {
+		http.Error(w, "Salle non trouvée", http.StatusNotFound)
+		return
+	}
+
+	game := services.Manager.GetGame(roomCode)
+	if game == nil {
+		// Si le jeu n'existe pas encore (ex: refresh), on redirige vers le lobby ou on affiche une erreur
+		// Pour l'instant, on redirige vers le lobby
+		http.Redirect(w, r, "/room/lobby?code="+roomCode, http.StatusSeeOther)
+		return
+	}
+
+	user := GetCurrentUser(r)
+
+	var currentRound *models.PetitBacRound
+	if len(game.Rounds) > 0 {
+		currentRound = game.Rounds[len(game.Rounds)-1]
+	}
+
+	data := struct {
+		User         *models.User
+		Room         *models.Room
+		Game         *models.PetitBacGame
+		CurrentRound *models.PetitBacRound
+	}{
+		User:         user,
+		Room:         room,
+		Game:         game,
+		CurrentRound: currentRound,
+	}
+
+	tmpl, err := template.ParseFiles("./templates/games/petitbac.html", "./templates/header.html", "./templates/footer.html")
 	if err != nil {
 		log.Printf("Erreur: %v", err)
 		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
@@ -139,8 +169,67 @@ func PetitBacHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, data)
 }
 
+// StartGameHandler - Démarre la partie
+func StartGameHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
+		return
+	}
+
+	cookie, err := r.Cookie("user_id")
+	if err != nil {
+		http.Error(w, "Non authentifié", http.StatusUnauthorized)
+		return
+	}
+
+	userID, _ := strconv.Atoi(cookie.Value)
+	roomCode := r.FormValue("roomCode")
+
+	room, err := roomService.GetRoomByCode(roomCode)
+	if err != nil {
+		http.Error(w, "Salle non trouvée", http.StatusNotFound)
+		return
+	}
+
+	if room.HostID != userID {
+		http.Error(w, "Seul l'hôte peut démarrer la partie", http.StatusForbidden)
+		return
+	}
+
+	// Initialiser le jeu selon le type
+	if room.GameType == "petitbac" {
+		// Récupérer les participants
+		participants, err := roomService.GetRoomParticipantsWithUsers(room.ID)
+		if err != nil {
+			http.Error(w, "Erreur lors de la récupération des participants", http.StatusInternalServerError)
+			return
+		}
+
+		players := make([]string, len(participants))
+		for i, p := range participants {
+			players[i] = strconv.Itoa(p.UserID)
+		}
+
+		// Créer l'instance de jeu
+		game := services.Manager.CreateGame(room.Code, players)
+
+		// Démarrer le premier round immédiatement pour avoir une lettre
+		services.Manager.StartRound(game.ID)
+
+		// Diffuser le message de début de partie via WebSocket
+		hub.BroadcastToRoom(room.Code, models.MessageOut{
+			Type: "GAME_START",
+			Data: "/game/petitbac?code=" + room.Code,
+		})
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}
+
 var authService *services.AuthService
 var roomService *services.RoomService
+var hub *websocket.Hub
 
 func GetCurrentUser(r *http.Request) *models.User {
 	userID, err := utils.GetUserIDFromCookie(r)
@@ -166,6 +255,10 @@ func main() {
 	authService = &services.AuthService{DB: db}
 	roomService = &services.RoomService{DB: db}
 
+	// Initialiser le Hub WebSocket
+	hub = websocket.NewHub()
+	go hub.Run()
+
 	// Initialiser les handlers avec les services
 	handlers.Init(authService, roomService)
 
@@ -181,11 +274,12 @@ func main() {
 	http.HandleFunc("/room/leave", LeaveRoomHandler)
 	http.HandleFunc("/game/blindtest", BlindTestHandler)
 	http.HandleFunc("/game/petitbac", PetitBacHandler)
+	http.HandleFunc("/game/start", StartGameHandler)
 
-	// TODO @Quoc Huy & @ilian: Routes API pour les actions de jeu
-	// http.HandleFunc("/api/blindtest/submit-answer", SubmitBlindTestAnswerHandler)
-	// http.HandleFunc("/api/petitbac/submit-answers", SubmitPetitBacAnswersHandler)
-	// http.HandleFunc("/ws", WebSocketHandler)
+	// WebSocket
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		websocket.ServeWs(hub, w, r)
+	})
 
 	// Fichiers statiques
 	fs := http.FileServer(http.Dir("static/"))

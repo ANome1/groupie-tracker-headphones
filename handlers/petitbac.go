@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"groupie-tracker/services"
 	"html/template"
 	"net/http"
 	"sync"
@@ -18,9 +19,8 @@ func PetitBacHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse templates (adjust paths as necessary for your project structure)
 	tmpl, err := template.ParseFiles(
 		"templates/games/petitbac.html",
-		"templates/components/header.html",
-		"templates/components/footer.html",
-		"templates/components/scoreboard.html",
+		"templates/header.html",
+		"templates/footer.html",
 	)
 	if err != nil {
 		http.Error(w, "Error loading template: "+err.Error(), http.StatusInternalServerError)
@@ -115,3 +115,28 @@ func DeleteCategoryHandler(w http.ResponseWriter, r *http.Request) {
 	categories = newCategories
 	w.WriteHeader(http.StatusOK)
 }
+<<<<<<< HEAD
+=======
+
+// SubmitAnswersHandler handles the submission of answers via HTTP
+func SubmitAnswersHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		GameID   string
+		PlayerID string
+		Answers  map[string]string
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	services.Manager.SubmitAnswers(req.GameID, req.PlayerID, req.Answers)
+
+	w.WriteHeader(http.StatusOK)
+}
+>>>>>>> logique_ilian

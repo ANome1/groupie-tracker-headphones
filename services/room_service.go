@@ -92,7 +92,18 @@ func (rs *RoomService) GetRoomByID(id int) (*models.Room, error) {
 }
 
 func (rs *RoomService) JoinRoom(roomID, userID int) error {
-	_, err := rs.DB.DB.Exec(
+	// Check if user is already in the room
+	var exists int
+	err := rs.DB.DB.QueryRow("SELECT COUNT(*) FROM room_participants WHERE room_id = ? AND user_id = ?", roomID, userID).Scan(&exists)
+	if err != nil {
+		log.Printf("Error checking participation: %v", err)
+		return err
+	}
+	if exists > 0 {
+		return nil // Already joined, no error
+	}
+
+	_, err = rs.DB.DB.Exec(
 		"INSERT INTO room_participants (room_id, user_id) VALUES (?, ?)",
 		roomID, userID,
 	)

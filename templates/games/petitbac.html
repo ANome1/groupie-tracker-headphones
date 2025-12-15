@@ -8,211 +8,89 @@
     <title>Petit Bac - Groupie Tracker</title>
     <link rel="stylesheet" href="/static/css/main.css">
     <link rel="stylesheet" href="/static/css/game.css">
-    <link rel="icon" href="/static/assets/images/icons/favicon.ico" type="image/x-icon">
-    <style>
-        .letter-display {
-            font-size: 8rem;
-            font-weight: 800;
-            color: var(--primary);
-            text-align: center;
-            margin: 20px 0;
-            text-shadow: 0 0 30px rgba(166, 142, 224, 0.6);
-            font-family: var(--font-display);
-        }
-
-        .timer {
-            font-size: 3rem;
-            color: var(--accent);
-        }
-
-        #manage-categories {
-            display: block;
-            margin: 20px auto;
-            padding: 12px 30px;
-            background-color: transparent;
-            color: var(--primary);
-            border: 2px solid var(--primary);
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        #manage-categories:hover {
-            background-color: var(--primary);
-            color: var(--background);
-        }
-
-        .categories-grid {
-            display: grid;
-            gap: 20px;
-            margin: 30px 0;
-        }
-
-        .category-item {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .category-item label {
-            color: var(--text);
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
-
-        .categories-grid input {
-            padding: 14px 20px;
-            border: 2px solid var(--primary);
-            border-radius: 8px;
-            background-color: rgba(166, 142, 224, 0.1);
-            color: var(--text);
-            font-size: 1rem;
-            font-family: var(--font-body);
-            transition: all 0.3s ease;
-        }
-
-        .categories-grid input:focus {
-            outline: none;
-            border-color: var(--accent);
-            background-color: rgba(166, 142, 224, 0.15);
-            box-shadow: 0 0 12px rgba(166, 142, 224, 0.3);
-        }
-
-        #answers-form button[type="submit"] {
-            display: block;
-            margin: 30px auto;
-            padding: 16px 50px;
-            background-color: var(--primary);
-            color: var(--background);
-            border: 2px solid var(--primary);
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 1.1rem;
-            font-family: var(--font-body);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 24px rgba(166, 142, 224, 0.3);
-        }
-
-        #answers-form button[type="submit"]:hover {
-            background-color: var(--accent);
-            border-color: var(--accent);
-            color: var(--text);
-            transform: translateY(-2px);
-            box-shadow: 0 12px 32px rgba(101, 44, 239, 0.4);
-        }
-
-        #validation-phase {
-            margin: 30px 0;
-            padding: 30px;
-            background: rgba(166, 142, 224, 0.05);
-            border: 1px solid rgba(166, 142, 224, 0.2);
-            border-radius: 16px;
-        }
-
-        #validation-phase h3 {
-            font-size: 1.8rem;
-            color: var(--primary);
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        #categories-modal {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, rgba(166, 142, 224, 0.15) 0%, rgba(101, 44, 239, 0.08) 100%);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            padding: 40px;
-            border: 1px solid rgba(166, 142, 224, 0.3);
-            border-radius: 20px;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
-            min-width: 400px;
-        }
-
-        #categories-modal h3 {
-            font-size: 1.8rem;
-            color: var(--primary);
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .game-container {
-            display: grid;
-            grid-template-columns: 1fr 400px;
-            gap: 40px;
-            padding: 20px;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding-bottom: 150px;
-        }
-
-        .game-content {
-            grid-column: 1;
-        }
-
-        .scoreboard-container {
-            grid-column: 2;
-            position: sticky;
-            top: 100px;
-            height: fit-content;
-            padding: 20px;
-            background: rgba(166, 142, 224, 0.05);
-            border: 1px solid rgba(166, 142, 224, 0.2);
-            border-radius: 12px;
-        }
-    </style>
 </head>
 <body>
-    {{template "header" .}}
+    <!-- TODO @ilian: Créer l'interface avec:
+         
+         1. En haut:
+            - Grande lettre affichée au centre
+            - Timer visuel
+            - Numéro de la manche (ex: "Manche 3/9")
+            - Note: NbrsManche = 9 (constante dans models/petitbac.go)
+         
+         2. Grille de saisie:
+            - Une ligne par catégorie
+            - Champ de saisie pour chaque catégorie
+            - Catégories par défaut: Prénom, Ville, Pays, Animal, Métier, etc.
+            - Bouton pour gérer les catégories personnalisées
+         
+         3. Phase de validation:
+            - Afficher toutes les réponses de tous les joueurs
+            - Permettre de voter (valider/invalider)
+            - Système: 2/3 des joueurs doivent valider
+         
+         4. Scoreboard:
+            - scoreboardActualPointInGame pour suivi en temps réel
+            - Points: 2 (unique), 1 (commun), 0 (invalidé/vide)
+         
+         5. Gestion des catégories (CRUD):
+            - Modal pour ajouter/modifier/supprimer des catégories
+    -->
+    
     <div class="game-container">
-        <div class="game-content">
-            <div class="letter-display" id="letter">A</div>
-            <div class="timer" id="timer">60</div>
-            <div class="round-info">Manche <span id="current-round">1</span>/<span id="total-rounds">9</span></div>
-            
-            <button id="manage-categories">Gérer les catégories</button>
-            
-            <form id="answers-form">
-                <div class="categories-grid" id="categories">
-                    {{range .Categories}}
-                    <div class="category-item">
-                        <label for="cat-{{.}}">{{.}}</label>
-                        <input type="text" id="cat-{{.}}" name="{{.}}" autocomplete="off">
+        {{if .CurrentRound}}
+        <div class="letter-display" id="letter">{{printf "%c" .CurrentRound.Letter}}</div>
+        <div class="round-info">Manche <span id="current-round">{{len .Game.Rounds}}</span>/<span id="total-rounds">{{.Game.Config.NumRounds}}</span></div>
+        {{else}}
+        <div class="letter-display" id="letter">?</div>
+        <div class="round-info">En attente...</div>
+        {{end}}
+        
+        <div class="timer" id="timer">60</div>
+        
+        <button id="manage-categories">Gérer les catégories</button>
+        
+        <form id="answers-form" onsubmit="return false;">
+            <input type="hidden" name="code" value="{{.Room.Code}}">
+            <div class="categories-grid" id="categories">
+                {{if .Game}}
+                    {{range .Game.Config.Categories}}
+                    <div class="category-input">
+                        <label>{{.}}</label>
+                        <input type="text" name="{{.}}" autocomplete="off">
                     </div>
                     {{end}}
-                </div>
-                <button type="submit" id="submit-btn">Valider mes réponses</button>
-            </form>
-            
-            <div id="validation-phase" style="display: none;">
-                <h3>Validation collective</h3>
-                <div id="all-answers">
-                    <!-- Réponses de tous les joueurs -->
-                </div>
+                {{end}}
             </div>
-
-            <div id="categories-modal" style="display: none;">
-                <h3>Gestion des catégories</h3>
-                <ul id="categories-list"></ul>
-                <form id="add-category-form">
-                    <input type="text" placeholder="Nouvelle catégorie">
-                    <button type="submit">Ajouter</button>
-                </form>
-            </div>
-        </div>
+            <button type="button" class="submit-btn">Valider mes réponses</button>
+        </form>
         
-        <div class="scoreboard-container">
-            {{template "scoreboard" .}}
+        <div id="validation-phase" style="display: none;">
+            <h3>Validation collective</h3>
+            <div id="all-answers">
+                <!-- Réponses de tous les joueurs -->
+            </div>
         </div>
+    </div>
+    
+    <!-- Modal pour gérer les catégories -->
+    <div id="categories-modal" style="display: none;">
+        <h3>Gestion des catégories</h3>
+        <ul id="categories-list"></ul>
+        <form id="add-category-form">
+            <input type="text" placeholder="Nouvelle catégorie">
+            <button type="submit">Ajouter</button>
+        </form>
     </div>
     
     <script src="/static/js/websocket.js"></script>
     <script src="/static/js/petitbac.js"></script>
-    {{template "footer" .}}
+    <script>
+        // Initialiser la connexion WebSocket
+        const roomCode = "{{.Room.Code}}";
+        const playerID = "{{.User.ID}}"; // Using User ID as player identifier
+        window.currentPlayerID = playerID;
+        connectWebSocket(roomCode, playerID);
+    </script>
 </body>
 </html>
