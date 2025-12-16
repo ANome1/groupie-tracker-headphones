@@ -8,6 +8,9 @@ function connectWebSocket(roomCode, playerID) {
 
     socket.onopen = () => {
         console.log("Connected to WebSocket");
+        if (window.onWSReady) {
+            window.onWSReady();
+        }
     };
 
     socket.onmessage = (event) => {

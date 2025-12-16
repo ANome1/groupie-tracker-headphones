@@ -3,9 +3,21 @@
 let timerInterval = null;
 let currentRound = 0;
 let totalRounds = 5;
+let wsReady = false;
+let pendingPlaylistSelect = null;
 
 // Exposer la fonction pour websocket.js
 window.handleBlindTestMessage = handleBlindTestMessage;
+window.onWSReady = function() {
+    wsReady = true;
+    // Si une playlist doit être auto-sélectionnée, le faire maintenant
+    if (pendingPlaylistSelect) {
+        const { playlistId, playlistName } = pendingPlaylistSelect;
+        console.log('WebSocket ready, auto-selecting playlist:', playlistId, playlistName);
+        selectPlaylist(playlistId, playlistName);
+        pendingPlaylistSelect = null;
+    }
+};
 
 // Sélection de playlist
 document.addEventListener('DOMContentLoaded', () => {
@@ -14,8 +26,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (preSelectedPlaylist) {
         const playlistId = preSelectedPlaylist.getAttribute('data-pre-selected-playlist');
         const playlistName = preSelectedPlaylist.getAttribute('data-playlist-name') || 'Playlist';
-        console.log('Auto-selecting playlist:', playlistId, playlistName);
-        selectPlaylist(playlistId, playlistName);
+        console.log('Found pre-selected playlist:', playlistId, playlistName);
+        
+        // Si le WS est déjà prêt, auto-select maintenant
+        if (wsReady) {
+            console.log('WS ready, auto-selecting now');
+            selectPlaylist(playlistId, playlistName);
+        } else {
+            // Sinon, garder en mémoire pour plus tard
+            console.log('WS not ready, waiting...');
+            pendingPlaylistSelect = { playlistId, playlistName };
+        }
     } else {
         // Sinon, setup les boutons de sélection
         const playlistBtns = document.querySelectorAll('.playlist-btn');
