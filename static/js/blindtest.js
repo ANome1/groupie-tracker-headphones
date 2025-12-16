@@ -261,9 +261,14 @@ function showRoundResults(data) {
     document.getElementById('game-phase').style.display = 'none';
     document.getElementById('results-phase').style.display = 'block';
     
-    // Afficher le bouton pour l'hôte
-    if (data.is_host) {
+    // Afficher le bouton pour le host uniquement
+    console.log('Host ID:', data.host_id, 'Current User ID:', window.currentUserID, 'Type:', typeof data.host_id, typeof window.currentUserID);
+    if (parseInt(window.currentUserID) === parseInt(data.host_id)) {
+        console.log('Showing next round button for host');
         document.getElementById('next-round-btn').style.display = 'block';
+    } else {
+        console.log('Not host, hiding next round button');
+        document.getElementById('next-round-btn').style.display = 'none';
     }
 }
 

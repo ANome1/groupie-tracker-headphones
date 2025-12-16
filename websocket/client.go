@@ -90,7 +90,18 @@ func (c *Client) handleMessage(message []byte) {
 		case "select_playlist", "submit_answer", "next_round":
 			// Transmettre au BlindTestManager
 			broadcastFunc := func(roomCode string, data interface{}) {
-				c.hub.BroadcastToRoom(roomCode, data)
+				// Convertir la map en JSON et envoyer avec newline delimiter
+				jsonData, err := json.Marshal(data)
+				if err != nil {
+					log.Printf("Error marshalling blind test message: %v", err)
+					return
+				}
+				// Ajouter une newline pour délimiter les messages
+				jsonData = append(jsonData, '\n')
+				c.hub.broadcast <- BroadcastMessage{
+					RoomID:  roomCode,
+					Message: jsonData,
+				}
 			}
 			services.BlindTestMgr.HandleMessage(c.RoomID, c.PlayerID, message, broadcastFunc)
 			return

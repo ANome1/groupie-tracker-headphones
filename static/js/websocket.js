@@ -14,65 +14,74 @@ function connectWebSocket(roomCode, playerID) {
     };
 
     socket.onmessage = (event) => {
-        const msg = JSON.parse(event.data);
-        console.log("Received message:", msg);
+        // Parse messages line by line (in case multiple messages arrive together)
+        const lines = event.data.split('\n').filter(line => line.trim().length > 0);
+        
+        for (const line of lines) {
+            try {
+                const msg = JSON.parse(line);
+                console.log("Received message:", msg);
 
-        // Vérifier si c'est un message Blind Test (format minuscule)
-        if (msg.type) {
-            switch (msg.type) {
-                case "round_start":
-                case "round_end":
-                case "scoreboard_update":
-                case "game_end":
-                case "error":
-                    if (window.handleBlindTestMessage) {
-                        window.handleBlindTestMessage(msg);
+                // Vérifier si c'est un message Blind Test (format minuscule)
+                if (msg.type) {
+                    switch (msg.type) {
+                        case "round_start":
+                        case "round_end":
+                        case "scoreboard_update":
+                        case "game_end":
+                        case "error":
+                            if (window.handleBlindTestMessage) {
+                                window.handleBlindTestMessage(msg);
+                            }
+                            continue;
                     }
-                    return;
-            }
-        }
+                }
 
-        // Messages Petit Bac (format majuscule Type)
-        switch (msg.Type) {
-            case "GAME_START":
-                // Redirection vers la page de jeu
-                window.location.href = msg.Data;
-                break;
-            case "VALIDATION_PHASE":
-                // Géré dans la page de jeu
-                if (window.handleValidationPhase) {
-                    window.handleValidationPhase(msg.Data);
+                // Messages Petit Bac (format majuscule Type)
+                switch (msg.Type) {
+                    case "GAME_START":
+                        // Redirection vers la page de jeu
+                        window.location.href = msg.Data;
+                        break;
+                    case "VALIDATION_PHASE":
+                        // Géré dans la page de jeu
+                        if (window.handleValidationPhase) {
+                            window.handleValidationPhase(msg.Data);
+                        }
+                        break;
+                    case "SCORES_UPDATE":
+                        if (window.updateScores) {
+                            window.updateScores(msg.Data);
+                        }
+                        break;
+                    case "NEW_ROUND":
+                        if (window.handleNewRound) {
+                            window.handleNewRound(msg.Data);
+                        }
+                        break;
+                    case "GAME_OVER":
+                        if (window.handleGameOver) {
+                            window.handleGameOver(msg.Data);
+                        }
+                        break;
+                    case "PLAYER_JOINED":
+                        // Mise à jour de la liste des joueurs
+                        if (window.handlePlayerJoined) {
+                            window.handlePlayerJoined(msg.Data);
+                        }
+                        break;
+                    case "PLAYER_LEFT":
+                        // Mise à jour de la liste des joueurs
+                        if (window.handlePlayerLeft) {
+                            window.handlePlayerLeft(msg.Data);
+                        }
+                        break;
+                    default:
+                        console.log("Unknown message type:", msg.Type);
                 }
-                break;
-            case "SCORES_UPDATE":
-                if (window.updateScores) {
-                    window.updateScores(msg.Data);
-                }
-                break;
-            case "NEW_ROUND":
-                if (window.handleNewRound) {
-                    window.handleNewRound(msg.Data);
-                }
-                break;
-            case "GAME_OVER":
-                if (window.handleGameOver) {
-                    window.handleGameOver(msg.Data);
-                }
-                break;
-            case "PLAYER_JOINED":
-                // Mise à jour de la liste des joueurs
-                if (window.handlePlayerJoined) {
-                    window.handlePlayerJoined(msg.Data);
-                }
-                break;
-            case "PLAYER_LEFT":
-                // Mise à jour de la liste des joueurs
-                if (window.handlePlayerLeft) {
-                    window.handlePlayerLeft(msg.Data);
-                }
-                break;
-            default:
-                console.log("Unknown message type:", msg.Type);
+            } catch (e) {
+                console.error("Error parsing message:", e, "Line:", line);
+            }
         }
     };
 

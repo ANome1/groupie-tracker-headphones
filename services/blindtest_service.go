@@ -214,6 +214,7 @@ func (m *BlindTestManager) endRound(game *models.BlindTestGame, broadcastFunc fu
 		"correct_artist": game.CurrentRound.ArtistName,
 		"cover_image":    game.CurrentRound.CoverImage,
 		"scores":         game.GetScoreboard(),
+		"host_id":        game.HostID,
 	})
 
 	// Mettre à jour le scoreboard

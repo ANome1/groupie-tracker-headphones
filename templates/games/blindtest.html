@@ -306,7 +306,9 @@
         // Initialisation WebSocket
         const roomCode = "{{.RoomCode}}";
         const userPseudo = "{{.User.Username}}";
+        const userID = {{.User.ID}};
         window.currentUser = userPseudo;
+        window.currentUserID = userID;
         connectWS(roomCode, userPseudo);
     </script>
     
