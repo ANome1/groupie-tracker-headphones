@@ -7,14 +7,14 @@ import (
 	"sync"
 )
 
-// Playlists prédéfinies Deezer (ID de playlists publiques)
+// Genres Deezer disponibles
 var (
-	deezerPlaylists = map[string]string{
-		"🎸 Rock": "1116188121",
-		"🎤 Pop":  "1266970711",
-		"🎧 Rap":  "1282483245",
+	deezerGenres = map[string]string{
+		"🎸 Rock": "152", // Rock genre ID
+		"🎤 Pop":  "132", // Pop genre ID
+		"🎧 Rap":  "116", // Rap/Hip-Hop genre ID
 	}
-	playlistsMutex sync.RWMutex
+	genresMutex sync.RWMutex
 )
 
 // BlindTestHandler renders the blind test game page
@@ -49,11 +49,11 @@ func BlindTestHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	playlistsMutex.RLock()
-	defer playlistsMutex.RUnlock()
+	genresMutex.RLock()
+	defer genresMutex.RUnlock()
 
 	data := map[string]interface{}{
-		"Playlists": deezerPlaylists,
+		"Playlists": deezerGenres,
 		"RoomCode":  roomCode,
 		"User":      user,
 	}

@@ -93,7 +93,7 @@ func (m *BlindTestManager) startNewRound(game *models.BlindTestGame, broadcastFu
 	game.ResetRound()
 
 	// Récupérer un track aléatoire depuis Deezer
-	track, err := GetRandomTrackFromDeezerPlaylist(game.Config.PlaylistID)
+	track, err := GetRandomTrackFromDeezerGenre(game.Config.PlaylistID)
 	if err != nil {
 		log.Printf("Erreur récupération track: %v", err)
 		broadcastFunc(game.RoomCode, map[string]interface{}{
@@ -102,6 +102,8 @@ func (m *BlindTestManager) startNewRound(game *models.BlindTestGame, broadcastFu
 		})
 		return
 	}
+
+	log.Printf("Track récupéré: ID=%d, Title=%s, Artist=%s, Preview=%s", track.ID, track.Title, track.Artist.Name, track.Preview)
 
 	// Créer la manche
 	game.CurrentRound = &models.BlindTestRound{
@@ -116,13 +118,15 @@ func (m *BlindTestManager) startNewRound(game *models.BlindTestGame, broadcastFu
 	}
 
 	// Broadcast aux clients
-	broadcastFunc(game.RoomCode, map[string]interface{}{
+	msg := map[string]interface{}{
 		"type":         "round_start",
 		"round_number": game.RoundNumber,
 		"total_rounds": game.Config.NumRounds,
 		"preview_url":  track.Preview,
 		"duration":     game.Config.TimePerRound,
-	})
+	}
+	log.Printf("Broadcasting round_start message: %+v", msg)
+	broadcastFunc(game.RoomCode, msg)
 
 	// Timer automatique pour finir la manche
 	go func() {

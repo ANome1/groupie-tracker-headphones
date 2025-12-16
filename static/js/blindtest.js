@@ -4,6 +4,9 @@ let timerInterval = null;
 let currentRound = 0;
 let totalRounds = 5;
 
+// Exposer la fonction pour websocket.js
+window.handleBlindTestMessage = handleBlindTestMessage;
+
 // Sélection de playlist
 document.addEventListener('DOMContentLoaded', () => {
     const playlistBtns = document.querySelectorAll('.playlist-btn');
@@ -77,14 +80,24 @@ function submitAnswer() {
 
 // Démarrer une nouvelle manche (message reçu du serveur)
 function startRound(data) {
+    console.log('Starting round with data:', data);
     currentRound = data.round_number;
     document.getElementById('current-round').textContent = currentRound;
     document.getElementById('total-rounds').textContent = data.total_rounds || totalRounds;
     
     // Afficher le lecteur audio
     const audioPlayer = document.getElementById('track-audio');
-    audioPlayer.src = data.preview_url;
-    audioPlayer.play();
+    if (data.preview_url) {
+        console.log('Setting audio source:', data.preview_url);
+        audioPlayer.src = data.preview_url;
+        audioPlayer.play().then(() => {
+            console.log('Audio started playing');
+        }).catch(err => {
+            console.error('Audio play error:', err);
+        });
+    } else {
+        console.error('No preview_url in data');
+    }
     
     // Réinitialiser le formulaire
     document.getElementById('answer-form').style.display = 'block';

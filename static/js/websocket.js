@@ -14,6 +14,22 @@ function connectWebSocket(roomCode, playerID) {
         const msg = JSON.parse(event.data);
         console.log("Received message:", msg);
 
+        // Vérifier si c'est un message Blind Test (format minuscule)
+        if (msg.type) {
+            switch (msg.type) {
+                case "round_start":
+                case "round_end":
+                case "scoreboard_update":
+                case "game_end":
+                case "error":
+                    if (window.handleBlindTestMessage) {
+                        window.handleBlindTestMessage(msg);
+                    }
+                    return;
+            }
+        }
+
+        // Messages Petit Bac (format majuscule Type)
         switch (msg.Type) {
             case "GAME_START":
                 // Redirection vers la page de jeu
@@ -50,15 +66,6 @@ function connectWebSocket(roomCode, playerID) {
                 // Mise à jour de la liste des joueurs
                 if (window.handlePlayerLeft) {
                     window.handlePlayerLeft(msg.Data);
-                }
-                break;
-            // Messages Blind Test
-            case "round_start":
-            case "round_end":
-            case "scoreboard_update":
-            case "game_end":
-                if (window.handleBlindTestMessage) {
-                    window.handleBlindTestMessage(msg);
                 }
                 break;
             default:
