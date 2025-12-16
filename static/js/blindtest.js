@@ -99,10 +99,12 @@ function startRound(data) {
         console.error('No preview_url in data');
     }
     
-    // Afficher la cover
+    // Afficher la cover avec flou initial
     const coverDiv = document.getElementById('track-cover');
     const coverImg = document.getElementById('cover-image');
     if (data.cover_image) {
+        console.log('Adding blur to cover image');
+        coverImg.style.filter = 'blur(20px)';
         coverImg.src = data.cover_image;
         coverDiv.style.display = 'block';
     } else {
@@ -133,6 +135,15 @@ function startTimer(duration) {
     timerInterval = setInterval(() => {
         timeLeft--;
         timerEl.textContent = timeLeft;
+        
+        // Enlever le flou à 10 secondes
+        if (timeLeft === 10) {
+            const coverImg = document.getElementById('cover-image');
+            if (coverImg) {
+                console.log('Removing blur from cover image');
+                coverImg.style.filter = 'none';
+            }
+        }
         
         if (timeLeft <= 0) {
             clearInterval(timerInterval);

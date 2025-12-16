@@ -120,8 +120,12 @@
             border: 3px solid var(--primary);
             box-shadow: 0 8px 32px rgba(166, 142, 224, 0.4),
                         0 0 20px rgba(166, 142, 224, 0.3);
-            transition: all 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.5s ease;
             animation: coverReveal 0.5s ease-out;
+        }
+
+        .track-cover img.blurred {
+            filter: blur(20px) !important;
         }
 
         .track-cover img:hover {
