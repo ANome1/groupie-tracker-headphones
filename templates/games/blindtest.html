@@ -1,150 +1,98 @@
-<!-- RESPONSABLE: @Quoc Huy -->
-<!-- Interface de jeu Blind Test -->
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <title>Blind Test - Groupie Tracker</title>
     <link rel="stylesheet" href="/static/css/main.css">
-    <link rel="icon" href="/static/assets/images/icons/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="/static/css/game.css">
-    <style>
-        #playlist-selection {
-            text-align: center;
-            padding: 60px 20px;
-        }
-
-        #playlist-selection h2 {
-            font-size: 2.5rem;
-            color: var(--primary);
-            margin-bottom: 40px;
-            font-weight: 700;
-        }
-
-        #playlist-selection button {
-            padding: 16px 50px;
-            margin: 0 15px;
-            background-color: var(--primary);
-            color: var(--background);
-            border: 2px solid var(--primary);
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 1.1rem;
-            font-family: var(--font-body);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 24px rgba(166, 142, 224, 0.3);
-        }
-
-        #playlist-selection button:hover {
-            background-color: var(--accent);
-            border-color: var(--accent);
-            color: var(--text);
-            transform: translateY(-2px);
-            box-shadow: 0 12px 32px rgba(101, 44, 239, 0.4);
-        }
-
-        #answer-form {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin: 30px 0;
-        }
-
-        #answer-form input {
-            padding: 14px 20px;
-            min-width: 300px;
-            border: 2px solid var(--primary);
-            border-radius: 8px;
-            background-color: rgba(166, 142, 224, 0.1);
-            color: var(--text);
-            font-size: 1rem;
-            font-family: var(--font-body);
-            transition: all 0.3s ease;
-        }
-
-        #answer-form input:focus {
-            outline: none;
-            border-color: var(--accent);
-            background-color: rgba(166, 142, 224, 0.15);
-            box-shadow: 0 0 12px rgba(166, 142, 224, 0.3);
-        }
-
-        #answer-form button {
-            padding: 14px 40px;
-            background-color: var(--primary);
-            color: var(--background);
-            border: 2px solid var(--primary);
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 1rem;
-            font-family: var(--font-body);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 24px rgba(166, 142, 224, 0.3);
-        }
-
-        #answer-form button:hover {
-            background-color: var(--accent);
-            border-color: var(--accent);
-            color: var(--text);
-            box-shadow: 0 12px 32px rgba(101, 44, 239, 0.4);
-        }
-    </style>
 </head>
 <body>
     {{template "header" .}}
-    <!-- TODO @Quoc Huy: Créer l'interface avec:
-         
-         1. Sélection de playlist (au début):
-            - "Choisis une des playlist !"
-            - Boutons: Rock, Rap, Pop
-         
-         2. Zone de jeu:
-            - Lecteur audio (lecture automatique de l'extrait)
-            - Timer visuel (37 secondes)
-            - Numéro du round (ex: "Round 3/10")
-            
-         3. Zone de réponse:
-            - Champ de saisie pour "Artiste - Titre"
-            - Bouton Valider
-            
-         4. Scoreboard:
-            - Liste des joueurs avec leurs scores
-            - Mise à jour en temps réel
-            
-         Système de points:
-         - Réponse en < 10s: 3 points
-         - Réponse en < 20s: 2 points
-         - Réponse en < 37s: 1 point
-    -->
     
     <div class="game-container">
-        <div id="playlist-selection" style="display: block;">
-            <h2>Choisis une des playlist !</h2>
-            <button onclick="selectPlaylist('Rock')">Rock</button>
-            <button onclick="selectPlaylist('Rap')">Rap</button>
-            <button onclick="selectPlaylist('Pop')">Pop</button>
+        <!-- Sélection de playlist (phase d'attente) -->
+        <div id="playlist-selection" class="playlist-section">
+            <h2>Sélection de la playlist</h2>
+            <div class="playlists-grid">
+                {{range $name, $id := .Playlists}}
+                <button class="playlist-btn" data-playlist-id="{{$id}}" data-playlist-name="{{$name}}">
+                    {{$name}}
+                </button>
+                {{end}}
+            </div>
         </div>
         
-        <div id="game-area" style="display: none;">
-            <div class="timer" id="timer">37</div>
-            <div class="round-info">Round <span id="current-round">1</span>/<span id="total-rounds">10</span></div>
+        <!-- Phase de jeu -->
+        <div id="game-phase" style="display: none;">
+            <div class="round-info">
+                Manche <span id="current-round">1</span>/<span id="total-rounds">5</span>
+            </div>
             
-            <audio id="audio-player" autoplay></audio>
+            <div class="timer" id="timer">30</div>
             
-            <form id="answer-form">
-                <input type="text" id="answer-input" placeholder="Artiste - Titre">
-                <button type="submit">Valider</button>
+            <!-- Lecteur audio -->
+            <div class="audio-player">
+                <audio id="track-audio" controls></audio>
+                <div id="track-cover" class="track-cover" style="display: none;">
+                    <img id="cover-image" src="" alt="Album Cover">
+                </div>
+            </div>
+            
+            <!-- Formulaire de réponse -->
+            <form id="answer-form" onsubmit="return false;">
+                <div class="answer-input">
+                    <label>Titre de la chanson :</label>
+                    <input type="text" id="track-answer" name="track" autocomplete="off" placeholder="Entrez le titre...">
+                </div>
+                <div class="answer-input">
+                    <label>Artiste :</label>
+                    <input type="text" id="artist-answer" name="artist" autocomplete="off" placeholder="Entrez l'artiste...">
+                </div>
+                <button type="button" id="submit-answer-btn" class="submit-btn">Valider ma réponse</button>
             </form>
+            
+            <!-- Réponse déjà envoyée -->
+            <div id="answer-sent" style="display: none;">
+                <p class="info-message">✓ Réponse envoyée ! En attente des autres joueurs...</p>
+            </div>
         </div>
         
-        {{template "scoreboard" .}}
+        <!-- Phase de résultats -->
+        <div id="results-phase" style="display: none;">
+            <h3>Résultat de la manche</h3>
+            <div id="correct-answer" class="correct-answer">
+                <p><strong>Titre:</strong> <span id="correct-track"></span></p>
+                <p><strong>Artiste:</strong> <span id="correct-artist"></span></p>
+            </div>
+            <div id="round-scores" class="round-scores"></div>
+            <button id="next-round-btn" class="submit-btn" style="display: none;">Manche suivante</button>
+        </div>
+        
+        <!-- Scoreboard -->
+        <div class="scoreboard">
+            <h3>Scores</h3>
+            <div id="scoreboard-content">
+                <!-- Mis à jour en temps réel via WebSocket -->
+            </div>
+        </div>
+        
+        <!-- Phase finale -->
+        <div id="final-results" style="display: none;">
+            <h2>Partie terminée !</h2>
+            <div id="final-scoreboard"></div>
+            <button id="new-game-btn" class="submit-btn">Nouvelle partie</button>
+        </div>
     </div>
     
     <script src="/static/js/websocket.js"></script>
     <script src="/static/js/blindtest.js"></script>
+    <script>
+        // Initialisation WebSocket
+        const roomCode = "{{.RoomCode}}";
+        const userPseudo = "{{.User.Username}}";
+        window.currentUser = userPseudo;
+        connectWS(roomCode, userPseudo);
+    </script>
     
     {{template "footer" .}}
 </body>

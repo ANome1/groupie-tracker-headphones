@@ -98,22 +98,7 @@ func LeaveRoomHandler(w http.ResponseWriter, r *http.Request) {
 // TODO @Quoc Huy: Gérer la sélection de playlist (Rock/Rap/Pop)
 // TODO @Quoc Huy: Timer 37s, système de points (3/2/1)
 func BlindTestHandler(w http.ResponseWriter, r *http.Request) {
-	user := GetCurrentUser(r)
-	data := struct {
-		User   *models.User
-		Scores []map[string]interface{}
-	}{
-		User:   user,
-		Scores: []map[string]interface{}{},
-	}
-
-	tmpl, err := template.ParseFiles("./templates/games/blindtest.html", "./templates/components/header.html", "./templates/components/footer.html", "./templates/components/scoreboard.html")
-	if err != nil {
-		log.Printf("Erreur: %v", err)
-		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
-		return
-	}
-	tmpl.Execute(w, data)
+	handlers.BlindTestHandler(w, r)
 }
 
 // PetitBacHandler - Jeu Petit Bac

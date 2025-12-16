@@ -52,6 +52,15 @@ function connectWebSocket(roomCode, playerID) {
                     window.handlePlayerLeft(msg.Data);
                 }
                 break;
+            // Messages Blind Test
+            case "round_start":
+            case "round_end":
+            case "scoreboard_update":
+            case "game_end":
+                if (window.handleBlindTestMessage) {
+                    window.handleBlindTestMessage(msg);
+                }
+                break;
             default:
                 console.log("Unknown message type:", msg.Type);
         }
@@ -66,16 +75,26 @@ function connectWebSocket(roomCode, playerID) {
     };
 }
 
+// Fonction compatible avec le nouveau format pour blind test
+function connectWS(roomCode, userPseudo) {
+    connectWebSocket(roomCode, userPseudo);
+}
+
 function sendMessage(type, payload) {
     if (socket && socket.readyState === WebSocket.OPEN) {
-        // Le serveur attend { Type: string, Data: json.RawMessage }
-        // json.RawMessage attend un []byte qui est un JSON valide.
-        // Si on envoie un objet JS dans Data, JSON.stringify le convertira en JSON string.
-        // Go unmarshalera ce JSON string en []byte.
         socket.send(JSON.stringify({
             Type: type,
-            Data: payload // Sera sérialisé comme un objet JSON imbriqué
+            Data: payload
         }));
+    } else {
+        console.error("WebSocket is not open");
+    }
+}
+
+// Fonction pour envoyer des messages depuis blindtest.js
+function sendWebSocketMessage(message) {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify(message));
     } else {
         console.error("WebSocket is not open");
     }
