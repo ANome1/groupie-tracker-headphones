@@ -150,8 +150,9 @@ function startRound(data) {
     document.getElementById('track-answer').value = '';
     document.getElementById('artist-answer').value = '';
     
-    // Cacher les résultats
+    // Cacher les résultats et afficher la phase de jeu
     document.getElementById('results-phase').style.display = 'none';
+    document.getElementById('game-phase').style.display = 'block';
     
     // Démarrer le timer
     startTimer(data.duration || 30);
@@ -275,6 +276,13 @@ function showRoundResults(data) {
 // Mettre à jour le scoreboard
 function updateScoreboard(scores) {
     const scoreboardEl = document.getElementById('scoreboard-content');
+    
+    // Si l'élément n'existe pas, ne rien faire (c'est normal pour le blind test)
+    if (!scoreboardEl) {
+        console.log('Scoreboard element not found, skipping update');
+        return;
+    }
+    
     scoreboardEl.innerHTML = '';
     
     // Trier par score décroissant
