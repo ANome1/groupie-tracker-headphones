@@ -213,6 +213,21 @@ func StartGameHandler(w http.ResponseWriter, r *http.Request) {
 			Type: "GAME_START",
 			Data: "/game/petitbac?code=" + room.Code,
 		})
+	} else if room.GameType == "blindtest" {
+		// Créer une partie de blind test avec config par défaut
+		config := models.BlindTestConfig{
+			PlaylistID:   "",
+			TimePerRound: 30,
+			NumRounds:    5,
+		}
+		services.BlindTestMgr.CreateGame(room.Code, room.HostID, config)
+
+		// Diffuser le message de début de partie via WebSocket
+		hub.BroadcastToRoom(room.Code, models.MessageOut{
+			Type: "GAME_START",
+			Data: "/game/blindtest?code=" + room.Code,
+		})
+		log.Printf("Blind test démarré pour room %s", room.Code)
 	}
 
 	w.Header().Set("Content-Type", "application/json")

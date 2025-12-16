@@ -19,6 +19,9 @@ var Manager = &PetitBacManager{
 	Games: make(map[string]*models.PetitBacGame),
 }
 
+// Global BlindTest manager instance
+var BlindTestMgr = NewBlindTestManager()
+
 // CreateGame initializes a new game session
 func (m *PetitBacManager) CreateGame(roomID, hostID string, players []string, playerNames map[string]string) *models.PetitBacGame {
 	m.mutex.Lock()

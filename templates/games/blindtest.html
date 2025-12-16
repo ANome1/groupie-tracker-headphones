@@ -5,6 +5,91 @@
     <title>Blind Test - Groupie Tracker</title>
     <link rel="stylesheet" href="/static/css/main.css">
     <link rel="stylesheet" href="/static/css/game.css">
+    <style>
+        /* Styles spécifiques au Blind Test */
+        #playlist-selection h2 {
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+        }
+
+        #game-phase {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .audio-player {
+            margin: 2rem 0;
+        }
+
+        .audio-player audio {
+            width: 100%;
+            max-width: 600px;
+            filter: sepia(20%) saturate(70%) hue-rotate(200deg);
+        }
+
+        .track-cover {
+            margin: 1.5rem 0;
+        }
+
+        .track-cover img {
+            max-width: 250px;
+            width: 100%;
+        }
+
+        #answer-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .answer-input {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .answer-input input {
+            width: 100%;
+        }
+
+        #results-phase h3 {
+            font-family: var(--font-tech);
+            font-size: 2rem;
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        #final-results h2 {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Scoreboard inline */
+        .scoreboard {
+            position: fixed;
+            top: 120px;
+            right: 2rem;
+            width: 280px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 1200px) {
+            .scoreboard {
+                position: static;
+                width: 100%;
+                max-width: 500px;
+                margin: 2rem auto;
+            }
+        }
+    </style>
 </head>
 <body>
     {{template "header" .}}
@@ -68,13 +153,6 @@
             <button id="next-round-btn" class="submit-btn" style="display: none;">Manche suivante</button>
         </div>
         
-        <!-- Scoreboard -->
-        <div class="scoreboard">
-            <h3>Scores</h3>
-            <div id="scoreboard-content">
-                <!-- Mis à jour en temps réel via WebSocket -->
-            </div>
-        </div>
         
         <!-- Phase finale -->
         <div id="final-results" style="display: none;">

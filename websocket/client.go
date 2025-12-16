@@ -76,9 +76,31 @@ func (c *Client) ReadPump() {
 }
 
 func (c *Client) handleMessage(message []byte) {
+	// Tenter de parser comme un message générique pour déterminer le type
+	var genericMsg map[string]interface{}
+	if err := json.Unmarshal(message, &genericMsg); err != nil {
+		log.Printf("Error unmarshalling message: %v", err)
+		return
+	}
+
+	// Vérifier si c'est un message blind test (type en minuscule)
+	if msgType, ok := genericMsg["type"].(string); ok {
+		// Messages blind test
+		switch msgType {
+		case "select_playlist", "submit_answer", "next_round":
+			// Transmettre au BlindTestManager
+			broadcastFunc := func(roomCode string, data interface{}) {
+				c.hub.BroadcastToRoom(roomCode, data)
+			}
+			services.BlindTestMgr.HandleMessage(c.RoomID, c.PlayerID, message, broadcastFunc)
+			return
+		}
+	}
+
+	// Sinon, parser comme MessageIn (format Petit Bac)
 	var msg models.MessageIn
 	if err := json.Unmarshal(message, &msg); err != nil {
-		log.Printf("Error unmarshalling message: %v", err)
+		log.Printf("Error unmarshalling MessageIn: %v", err)
 		return
 	}
 
