@@ -5,6 +5,7 @@ let currentRound = 0;
 let totalRounds = 5;
 let wsReady = false;
 let pendingPlaylistSelect = null;
+let currentRoundData = null;
 
 // Exposer la fonction pour websocket.js
 window.handleBlindTestMessage = handleBlindTestMessage;
@@ -112,6 +113,7 @@ function submitAnswer() {
 // Démarrer une nouvelle manche (message reçu du serveur)
 function startRound(data) {
     console.log('Starting round with data:', data);
+    currentRoundData = data; // Stocker pour utilisation dans le timer
     currentRound = data.round_number;
     document.getElementById('current-round').textContent = currentRound;
     document.getElementById('total-rounds').textContent = data.total_rounds || totalRounds;
@@ -178,12 +180,60 @@ function startTimer(duration) {
         
         if (timeLeft <= 0) {
             clearInterval(timerInterval);
-            // Auto-submit si pas encore répondu
-            if (document.getElementById('answer-form').style.display !== 'none') {
-                submitAnswer();
+            
+            // Vérifier si une réponse a été soumise
+            const answerForm = document.getElementById('answer-form');
+            if (answerForm.style.display !== 'none') {
+                // Pas de réponse soumise, révéler le titre et le son
+                console.log('Time expired, revealing answer...');
+                revealAnswer();
             }
         }
     }, 1000);
+}
+
+// Révéler la réponse quand le timer expire (pas de réponse soumise)
+function revealAnswer() {
+    if (!currentRoundData) return;
+    
+    console.log('Revealing answer...');
+    
+    // Enlever le blur de la cover
+    const coverImg = document.getElementById('cover-image');
+    if (coverImg) {
+        coverImg.style.filter = 'none';
+    }
+    
+    // Afficher le titre et l'artiste sous la cover
+    const trackNameDisplay = document.createElement('div');
+    trackNameDisplay.id = 'revealed-track-info';
+    trackNameDisplay.style.cssText = `
+        text-align: center;
+        margin-top: 1rem;
+        padding: 1rem;
+        background: rgba(166, 142, 224, 0.1);
+        border-radius: 8px;
+        border: 1px solid var(--primary);
+    `;
+    trackNameDisplay.innerHTML = `
+        <p style="margin: 0.5rem 0;"><strong>Titre:</strong> ${currentRoundData.track_name || 'N/A'}</p>
+        <p style="margin: 0.5rem 0;"><strong>Artiste:</strong> ${currentRoundData.artist_name || 'N/A'}</p>
+    `;
+    
+    const trackCover = document.getElementById('track-cover');
+    if (trackCover && !document.getElementById('revealed-track-info')) {
+        trackCover.parentNode.insertBefore(trackNameDisplay, trackCover.nextSibling);
+    }
+    
+    // Cacher le formulaire
+    document.getElementById('answer-form').style.display = 'none';
+    
+    // Afficher un message d'attente
+    const answerSent = document.getElementById('answer-sent');
+    if (answerSent) {
+        answerSent.style.display = 'block';
+        answerSent.querySelector('p').textContent = '⏰ Temps écoulé! La réponse a été révélée. En attente des autres joueurs...';
+    }
 }
 
 // Afficher les résultats de la manche

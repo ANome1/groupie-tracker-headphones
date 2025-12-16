@@ -125,6 +125,8 @@ func (m *BlindTestManager) startNewRound(game *models.BlindTestGame, broadcastFu
 		"preview_url":  track.Preview,
 		"cover_image":  track.Album.CoverMedium,
 		"duration":     game.Config.TimePerRound,
+		"track_name":   track.Title,
+		"artist_name":  track.Artist.Name,
 	}
 	log.Printf("Broadcasting round_start message: %+v", msg)
 	broadcastFunc(game.RoomCode, msg)
