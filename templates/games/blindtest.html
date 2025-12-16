@@ -8,34 +8,137 @@
     <link rel="icon" href="/static/assets/images/icons/favicon.ico" type="image/x-icon">
     <style>
         /* Styles spécifiques au Blind Test */
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            padding: 2rem;
+        }
+
+        #playlist-selection {
+            text-align: center;
+            width: 100%;
+            max-width: 900px;
+        }
+
         #playlist-selection h2 {
             font-size: 2.5rem;
             margin-bottom: 3rem;
+        }
+
+        .playlists-grid {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
         #game-phase {
             width: 100%;
             max-width: 800px;
             margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #game-phase .round-info {
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        .timer-wrapper {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        #game-phase .timer {
+            margin: 0;
         }
 
         .audio-player {
-            margin: 2rem 0;
+            margin: 0;
+            text-align: center;
+            width: 100%;
         }
 
         .audio-player audio {
             width: 100%;
             max-width: 600px;
-            filter: sepia(20%) saturate(70%) hue-rotate(200deg);
+            height: 54px;
+            border-radius: 50px;
+            background: linear-gradient(135deg, rgba(166, 142, 224, 0.1) 0%, rgba(101, 44, 239, 0.1) 100%);
+            border: 2px solid var(--primary);
+            box-shadow: 0 8px 24px rgba(166, 142, 224, 0.3),
+                        inset 0 2px 8px rgba(166, 142, 224, 0.2);
+            padding: 0.5rem;
+        }
+
+        .audio-player audio::-webkit-media-controls-panel {
+            background: linear-gradient(135deg, rgba(166, 142, 224, 0.2) 0%, rgba(101, 44, 239, 0.15) 100%);
+            border-radius: 50px;
+        }
+
+        .audio-player audio::-webkit-media-controls-play-button,
+        .audio-player audio::-webkit-media-controls-pause-button {
+            background-color: var(--primary);
+            border-radius: 50%;
+            filter: drop-shadow(0 0 8px rgba(166, 142, 224, 0.6));
+        }
+
+        .audio-player audio::-webkit-media-controls-current-time-display,
+        .audio-player audio::-webkit-media-controls-time-remaining-display {
+            color: var(--text);
+            text-shadow: 0 0 5px rgba(166, 142, 224, 0.5);
+        }
+
+        .audio-player audio::-webkit-media-controls-timeline {
+            background: rgba(166, 142, 224, 0.2);
+            border-radius: 10px;
+        }
+
+        .audio-player audio::-webkit-media-controls-volume-slider {
+            background: rgba(166, 142, 224, 0.2);
+            border-radius: 10px;
         }
 
         .track-cover {
-            margin: 1.5rem 0;
+            margin: 2rem 0;
+            text-align: center;
         }
 
         .track-cover img {
-            max-width: 250px;
+            max-width: 300px;
             width: 100%;
+            border-radius: 12px;
+            border: 3px solid var(--primary);
+            box-shadow: 0 8px 32px rgba(166, 142, 224, 0.4),
+                        0 0 20px rgba(166, 142, 224, 0.3);
+            transition: all 0.3s ease;
+            animation: coverReveal 0.5s ease-out;
+        }
+
+        .track-cover img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 40px rgba(166, 142, 224, 0.5),
+                        0 0 30px rgba(166, 142, 224, 0.4);
+        }
+
+        @keyframes coverReveal {
+            from {
+                opacity: 0;
+                transform: scale(0.8) rotateY(90deg);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) rotateY(0deg);
+            }
         }
 
         #answer-form {
@@ -43,16 +146,33 @@
             flex-direction: column;
             align-items: center;
             gap: 1rem;
-            margin: 2rem 0;
-        }
-
-        .answer-input {
+            margin: 2rem auto;
             width: 100%;
             max-width: 500px;
         }
 
+        .answer-input {
+            width: 100%;
+        }
+
+        .answer-input label {
+            text-align: left;
+        }
+
         .answer-input input {
             width: 100%;
+        }
+
+        #submit-answer-btn {
+            width: 100%;
+            max-width: 300px;
+        }
+
+        #results-phase {
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            margin: 0 auto;
         }
 
         #results-phase h3 {
@@ -61,6 +181,13 @@
             color: var(--primary);
             text-align: center;
             margin-bottom: 1.5rem;
+        }
+
+        #final-results {
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            margin: 0 auto;
         }
 
         #final-results h2 {
@@ -114,11 +241,13 @@
                 Manche <span id="current-round">1</span>/<span id="total-rounds">5</span>
             </div>
             
-            <div class="timer" id="timer">30</div>
+            <div class="timer-wrapper">
+                <div class="timer" id="timer">30</div>
+            </div>
             
             <!-- Lecteur audio -->
             <div class="audio-player">
-                <audio id="track-audio" controls></audio>
+                <audio id="track-audio" controls style="display: none;"></audio>
                 <div id="track-cover" class="track-cover" style="display: none;">
                     <img id="cover-image" src="" alt="Album Cover">
                 </div>

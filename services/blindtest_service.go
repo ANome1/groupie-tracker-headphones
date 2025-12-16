@@ -123,6 +123,7 @@ func (m *BlindTestManager) startNewRound(game *models.BlindTestGame, broadcastFu
 		"round_number": game.RoundNumber,
 		"total_rounds": game.Config.NumRounds,
 		"preview_url":  track.Preview,
+		"cover_image":  track.Album.CoverMedium,
 		"duration":     game.Config.TimePerRound,
 	}
 	log.Printf("Broadcasting round_start message: %+v", msg)

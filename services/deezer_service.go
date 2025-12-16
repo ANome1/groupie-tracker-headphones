@@ -98,11 +98,19 @@ func fetchTracksFromGenre(genreID string) ([]DeezerTrack, error) {
 		return nil, fmt.Errorf("failed to parse JSON: %v", err)
 	}
 
-	if len(response.Data) == 0 {
-		return nil, fmt.Errorf("genre has no tracks")
+	// Filter tracks to keep only those with valid preview URLs
+	var validTracks []DeezerTrack
+	for _, track := range response.Data {
+		if track.Preview != "" {
+			validTracks = append(validTracks, track)
+		}
 	}
 
-	return response.Data, nil
+	if len(validTracks) == 0 {
+		return nil, fmt.Errorf("genre has no tracks with preview URLs")
+	}
+
+	return validTracks, nil
 }
 
 // ClearCache clears the genre cache

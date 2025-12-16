@@ -99,6 +99,16 @@ function startRound(data) {
         console.error('No preview_url in data');
     }
     
+    // Afficher la cover
+    const coverDiv = document.getElementById('track-cover');
+    const coverImg = document.getElementById('cover-image');
+    if (data.cover_image) {
+        coverImg.src = data.cover_image;
+        coverDiv.style.display = 'block';
+    } else {
+        coverDiv.style.display = 'none';
+    }
+    
     // Réinitialiser le formulaire
     document.getElementById('answer-form').style.display = 'block';
     document.getElementById('answer-sent').style.display = 'none';
