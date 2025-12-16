@@ -9,14 +9,24 @@ window.handleBlindTestMessage = handleBlindTestMessage;
 
 // Sélection de playlist
 document.addEventListener('DOMContentLoaded', () => {
-    const playlistBtns = document.querySelectorAll('.playlist-btn');
-    playlistBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const playlistId = btn.getAttribute('data-playlist-id');
-            const playlistName = btn.getAttribute('data-playlist-name');
-            selectPlaylist(playlistId, playlistName);
+    // Vérifier si une playlist a été pré-sélectionnée par le host
+    const preSelectedPlaylist = document.querySelector('[data-pre-selected-playlist]');
+    if (preSelectedPlaylist) {
+        const playlistId = preSelectedPlaylist.getAttribute('data-pre-selected-playlist');
+        const playlistName = preSelectedPlaylist.getAttribute('data-playlist-name') || 'Playlist';
+        console.log('Auto-selecting playlist:', playlistId, playlistName);
+        selectPlaylist(playlistId, playlistName);
+    } else {
+        // Sinon, setup les boutons de sélection
+        const playlistBtns = document.querySelectorAll('.playlist-btn');
+        playlistBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const playlistId = btn.getAttribute('data-playlist-id');
+                const playlistName = btn.getAttribute('data-playlist-name');
+                selectPlaylist(playlistId, playlistName);
+            });
         });
-    });
+    }
 
     // Bouton soumission réponse
     const submitBtn = document.getElementById('submit-answer-btn');

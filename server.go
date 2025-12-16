@@ -214,9 +214,15 @@ func StartGameHandler(w http.ResponseWriter, r *http.Request) {
 			Data: "/game/petitbac?code=" + room.Code,
 		})
 	} else if room.GameType == "blindtest" {
-		// Créer une partie de blind test avec config par défaut
+		// Récupérer la playlist choisie par le host
+		playlistID := r.FormValue("playlistId")
+		if playlistID == "" {
+			playlistID = "152" // Default à Rock
+		}
+
+		// Créer une partie de blind test avec la playlist choisie
 		config := models.BlindTestConfig{
-			PlaylistID:   "",
+			PlaylistID:   playlistID,
 			TimePerRound: 30,
 			NumRounds:    5,
 		}
@@ -227,7 +233,7 @@ func StartGameHandler(w http.ResponseWriter, r *http.Request) {
 			Type: "GAME_START",
 			Data: "/game/blindtest?code=" + room.Code,
 		})
-		log.Printf("Blind test démarré pour room %s", room.Code)
+		log.Printf("Blind test démarré pour room %s avec playlist %s", room.Code, playlistID)
 	}
 
 	w.Header().Set("Content-Type", "application/json")

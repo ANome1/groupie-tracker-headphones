@@ -227,6 +227,10 @@
     {{template "header" .}}
     
     <div class="game-container">
+        {{if .PreSelectedPlaylist}}
+        <div data-pre-selected-playlist="{{.PreSelectedPlaylist}}" data-playlist-name="Playlist" style="display: none;"></div>
+        {{end}}
+        
         <!-- Sélection de playlist (phase d'attente) -->
         <div id="playlist-selection" class="playlist-section">
             <h2>Sélection de la playlist</h2>

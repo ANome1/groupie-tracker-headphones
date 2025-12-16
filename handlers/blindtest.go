@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"groupie-tracker/services"
 	"groupie-tracker/utils"
 	"html/template"
 	"net/http"
@@ -56,6 +57,13 @@ func BlindTestHandler(w http.ResponseWriter, r *http.Request) {
 		"Playlists": deezerGenres,
 		"RoomCode":  roomCode,
 		"User":      user,
+	}
+
+	// Vérifier si une playlist a déjà été choisie par le host
+	game := services.BlindTestMgr.GetGame(roomCode)
+	if game != nil && game.Config.PlaylistID != "" {
+		// Une playlist a été définie, la pré-sélectionner
+		data["PreSelectedPlaylist"] = game.Config.PlaylistID
 	}
 
 	tmpl.Execute(w, data)

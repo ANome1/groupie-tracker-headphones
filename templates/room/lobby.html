@@ -216,9 +216,16 @@
 
         <div class="actions-card">
             {{if .IsHost}}
+            <!-- Sélection de playlist pour le host -->
+            <div style="margin-bottom: 30px; padding: 20px; background: rgba(166, 142, 224, 0.1); border: 1px solid rgba(166, 142, 224, 0.3); border-radius: 12px;">
+                <p style="color: var(--text); margin-bottom: 15px; font-weight: 600;">Choisir la playlist:</p>
+                <div id="playlist-options" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                    <!-- Les playlists seront ajoutées par JavaScript -->
+                </div>
+            </div>
             <button id="start-game" class="start-button">🚀 Démarrer la partie</button>
             {{else}}
-            <p class="waiting-message">En attente que l'hôte démarre la partie...</p>
+            <p class="waiting-message">En attente que l'hôte choisisse une playlist et démarre la partie...</p>
             {{end}}
             <br>
             <form action="/room/leave" method="POST" style="display: inline;">
@@ -235,6 +242,52 @@
         const isHost = {{.IsHost}};
         const roomHostID = parseInt("{{.Room.HostID}}", 10) || 0;
         const maxPlayers = parseInt("{{.Room.MaxPlayers}}", 10) || 10;
+        let selectedPlaylist = null;
+
+        // Playlists disponibles pour le Blind Test
+        const playlists = {
+            '152': '🎸 Rock',
+            '132': '🎤 Pop',
+            '116': '🎧 Rap'
+        };
+
+        // Initialiser les boutons de playlist pour le host
+        if (isHost && "{{.Room.GameType}}" === "blindtest") {
+            const playlistOptions = document.getElementById('playlist-options');
+            Object.entries(playlists).forEach(([id, name]) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.textContent = name;
+                btn.style.cssText = `
+                    padding: 10px 20px;
+                    background: rgba(166, 142, 224, 0.1);
+                    border: 2px solid rgba(166, 142, 224, 0.3);
+                    border-radius: 8px;
+                    color: var(--text);
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                `;
+                btn.addEventListener('click', () => {
+                    // Déselectionner tous les autres
+                    playlistOptions.querySelectorAll('button').forEach(b => {
+                        b.style.background = 'rgba(166, 142, 224, 0.1)';
+                        b.style.borderColor = 'rgba(166, 142, 224, 0.3)';
+                    });
+                    // Selectionner celui-ci
+                    selectedPlaylist = id;
+                    btn.style.background = 'var(--primary)';
+                    btn.style.borderColor = 'var(--primary)';
+                    btn.style.color = 'var(--background)';
+                });
+                playlistOptions.appendChild(btn);
+            });
+            // Sélectionner Rock par défaut
+            selectedPlaylist = '152';
+            playlistOptions.querySelectorAll('button')[0].style.background = 'var(--primary)';
+            playlistOptions.querySelectorAll('button')[0].style.borderColor = 'var(--primary)';
+            playlistOptions.querySelectorAll('button')[0].style.color = 'var(--background)';
+        }
 
         // Connect to WebSocket
         connectWebSocket(roomCode, playerID);
@@ -289,13 +342,23 @@
         const startButton = document.getElementById('start-game');
         if (startButton) {
             startButton.addEventListener('click', async () => {
+                if (isHost && "{{.Room.GameType}}" === "blindtest" && !selectedPlaylist) {
+                    alert('Veuillez sélectionner une playlist');
+                    return;
+                }
                 try {
+                    const body = new URLSearchParams();
+                    body.append('roomCode', roomCode);
+                    if (selectedPlaylist) {
+                        body.append('playlistId', selectedPlaylist);
+                    }
+                    
                     const response = await fetch('/game/start', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
                         },
-                        body: `roomCode=${roomCode}`
+                        body: body.toString()
                     });
                     
                     if (!response.ok) {
