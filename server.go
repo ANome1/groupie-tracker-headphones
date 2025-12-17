@@ -248,15 +248,17 @@ func StartGameHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		services.BlindTestMgr.CreateGame(room.Code, room.HostID, config)
 
-		// Démarrer la première manche immédiatement
-		game := services.BlindTestMgr.GetGame(room.Code)
-		if game != nil {
-			// Utiliser une goroutine pour ne pas bloquer la réponse HTTP
-			// et laisser le temps aux clients de se connecter au WebSocket
-			go func() {
-				time.Sleep(3 * time.Second) // Petit délai pour la connexion WS
-				services.BlindTestMgr.StartGameRound(game, hub.BroadcastToRoom)
-			}()
+		// Démarrer la première manche immédiatement SEULEMENT si une playlist a été sélectionnée
+		if playlistID != "" {
+			game := services.BlindTestMgr.GetGame(room.Code)
+			if game != nil {
+				// Utiliser une goroutine pour ne pas bloquer la réponse HTTP
+				// et laisser le temps aux clients de se connecter au WebSocket
+				go func() {
+					time.Sleep(3 * time.Second) // Petit délai pour la connexion WS
+					services.BlindTestMgr.StartGameRound(game, hub.BroadcastToRoom)
+				}()
+			}
 		}
 
 		// Diffuser le message de début de partie via WebSocket

@@ -61,7 +61,7 @@ func (m *BlindTestManager) HandleMessage(roomCode, username string, message []by
 	}
 
 	switch msgType {
-case "join_game":
+	case "join_game":
 		m.handleJoinGame(game, sendToClientFunc)
 	case "select_playlist":
 		m.handleSelectPlaylist(game, msg, broadcastFunc)
@@ -382,25 +382,34 @@ func (m *BlindTestManager) RemoveGame(roomCode string) {
 
 // handleJoinGame envoie l'état actuel du jeu au client qui vient de rejoindre
 func (m *BlindTestManager) handleJoinGame(game *models.BlindTestGame, sendToClientFunc func(interface{})) {
-if game.Status == "playing" && game.CurrentRound != nil {
-// Calculer le temps restant
-elapsed := time.Since(game.CurrentRound.StartTime).Seconds()
-remaining := float64(game.Config.TimePerRound) - elapsed
-if remaining < 0 {
-remaining = 0
-}
+	if game == nil {
+		log.Printf("Jeu non trouvé pour handleJoinGame")
+		return
+	}
 
-msg := map[string]interface{}{
-"type":         "round_start",
-"round_number": game.RoundNumber,
-"total_rounds": game.Config.NumRounds,
-"preview_url":  game.CurrentRound.PreviewURL,
-"cover_image":  game.CurrentRound.CoverImage,
-"duration":     game.Config.TimePerRound,
-"remaining_time": remaining,
-"track_name":   game.CurrentRound.TrackName,
-"artist_name":  game.CurrentRound.ArtistName,
-}
-sendToClientFunc(msg)
-}
+	// Si une manche est en cours, envoyer l'état actuel au client
+	if game.Status == "playing" && game.CurrentRound != nil {
+		// Calculer le temps restant
+		elapsed := time.Since(game.CurrentRound.StartTime).Seconds()
+		remaining := float64(game.Config.TimePerRound) - elapsed
+		if remaining < 0 {
+			remaining = 0
+		}
+
+		msg := map[string]interface{}{
+			"type":           "round_start",
+			"round_number":   game.RoundNumber,
+			"total_rounds":   game.Config.NumRounds,
+			"preview_url":    game.CurrentRound.PreviewURL,
+			"cover_image":    game.CurrentRound.CoverImage,
+			"duration":       game.Config.TimePerRound,
+			"remaining_time": remaining,
+			"track_name":     game.CurrentRound.TrackName,
+			"artist_name":    game.CurrentRound.ArtistName,
+		}
+		sendToClientFunc(msg)
+	} else if game.Status == "waiting_for_playlist" {
+		// Le jeu attend qu'on sélectionne une playlist
+		log.Printf("Jeu en attente de playlist pour room %s", game.RoomCode)
+	}
 }

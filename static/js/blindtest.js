@@ -25,6 +25,24 @@ window.onWSReady = function() {
 
 // Sélection de playlist
 document.addEventListener('DOMContentLoaded', () => {
+    // Attacher les event listeners aux boutons de playlist
+    const playlistButtons = document.querySelectorAll('.playlist-btn');
+    playlistButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            if (!playlistSelected) {
+                const playlistId = this.getAttribute('data-playlist-id');
+                const playlistName = this.getAttribute('data-playlist-name');
+                selectPlaylist(playlistId, playlistName);
+                playlistSelected = true;
+                // Ajouter une classe pour l'effet visuel
+                this.style.opacity = '0.6';
+                playlistButtons.forEach(b => {
+                    if (b !== this) b.style.pointerEvents = 'none';
+                });
+            }
+        });
+    });
+
     // Bouton soumission réponse
     const submitBtn = document.getElementById('submit-answer-btn');
     if (submitBtn) {
@@ -50,10 +68,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Envoyer la sélection de playlist au serveur (Legacy - not used anymore)
+// Envoyer la sélection de playlist au serveur
 function selectPlaylist(playlistId, playlistName) {
-    console.log("Legacy selectPlaylist called - ignoring");
-}
+    console.log("Playlist sélectionnée:", playlistId, playlistName);
+    
+    // Envoyer au serveur via WebSocket
+    sendWebSocketMessage({
+        type: 'select_playlist',
+        playlist_id: playlistId,
+        playlist_name: playlistName
+    });
     
     // Cacher la sélection
     document.getElementById('playlist-selection').style.display = 'none';
@@ -87,8 +111,9 @@ function startRound(data) {
     console.log('Starting round with data:', data);
     currentRoundData = data; // Stocker pour utilisation dans le timer
     currentRound = data.round_number;
+    totalRounds = data.total_rounds || totalRounds;
     document.getElementById('current-round').textContent = currentRound;
-    document.getElementById('total-rounds').textContent = data.total_rounds || totalRounds;
+    document.getElementById('total-rounds').textContent = totalRounds;
     
     // Afficher le lecteur audio
     const audioPlayer = document.getElementById('track-audio');
@@ -142,8 +167,10 @@ function startRound(data) {
     document.getElementById('results-phase').style.display = 'none';
     document.getElementById('game-phase').style.display = 'block';
     
-    // Démarrer le timer
-    startTimer(data.duration || 30);
+    // Démarrer le timer avec le temps restant si disponible, sinon utiliser la durée complète
+    const timerDuration = data.remaining_time !== undefined ? Math.ceil(data.remaining_time) : (data.duration || 30);
+    console.log('Starting timer with duration:', timerDuration, 'seconds');
+    startTimer(timerDuration);
 }
 
 // Timer visuel
@@ -152,17 +179,20 @@ function startTimer(duration) {
     const timerEl = document.getElementById('timer');
     timerEl.textContent = timeLeft;
     
+    // Calculer le temps de révélation: duration / 3
+    const revealTime = Math.ceil(duration / 3);
+    
     if (timerInterval) clearInterval(timerInterval);
     
     timerInterval = setInterval(() => {
         timeLeft--;
         timerEl.textContent = timeLeft;
         
-        // Enlever le flou à 10 secondes
-        if (timeLeft === 10) {
+        // Enlever le flou au temps de révélation (duration / 3)
+        if (timeLeft === revealTime) {
             const coverImg = document.getElementById('cover-image');
             if (coverImg) {
-                console.log('Removing blur from cover image');
+                console.log(`Removing blur from cover image at ${revealTime}s (duration: ${duration}s)`);
                 coverImg.style.filter = 'none';
             }
         }

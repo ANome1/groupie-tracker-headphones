@@ -70,6 +70,8 @@ func (h *Hub) BroadcastToRoom(roomID string, v interface{}) {
 		log.Printf("Error marshalling broadcast message: %v", err)
 		return
 	}
+	// Add newline delimiter for message parsing
+	data = append(data, '\n')
 	h.broadcast <- BroadcastMessage{
 		RoomID:  roomID,
 		Message: data,
