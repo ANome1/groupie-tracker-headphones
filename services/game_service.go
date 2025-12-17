@@ -23,15 +23,15 @@ var Manager = &PetitBacManager{
 var BlindTestMgr = NewBlindTestManager()
 
 // CreateGame initializes a new game session
-func (m *PetitBacManager) CreateGame(roomID, hostID string, players []string, playerNames map[string]string) *models.PetitBacGame {
+func (m *PetitBacManager) CreateGame(roomID, hostID string, players []string, playerNames map[string]string, config models.PetitBacConfig) *models.PetitBacGame {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
 	gameID := roomID // Using roomID as gameID for simplicity
-	config := models.PetitBacConfig{
-		Categories:   []string{"Artiste", "Groupe de musique", "Album", "Instrument", "Featuring"},
-		TimePerRound: 60,
-		NumRounds:    9,
+
+	// Ensure default categories if none provided
+	if len(config.Categories) == 0 {
+		config.Categories = []string{"Artiste", "Groupe de musique", "Album", "Instrument", "Featuring"}
 	}
 
 	game := models.NewPetitBacGame(gameID, roomID, hostID, players, playerNames, config)
@@ -44,6 +44,17 @@ func (m *PetitBacManager) GetGame(gameID string) *models.PetitBacGame {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 	return m.Games[gameID]
+}
+
+// UpdateGameConfig updates the game configuration
+func (m *PetitBacManager) UpdateGameConfig(gameID string, config models.PetitBacConfig) {
+	game := m.GetGame(gameID)
+	if game == nil {
+		return
+	}
+	game.Lock()
+	defer game.Unlock()
+	game.Config = config
 }
 
 // StartRound initiates a new round

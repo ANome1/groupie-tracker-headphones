@@ -9,6 +9,12 @@
     <link rel="stylesheet" href="/static/css/main.css">
     <link rel="stylesheet" href="/static/css/game.css">
     <link rel="icon" href="/static/assets/images/icons/favicon.ico" type="image/x-icon">
+    <script>
+        window.gameConfig = {
+            timePerRound: {{if .Game.Config.TimePerRound}}{{.Game.Config.TimePerRound}}{{else}}60{{end}},
+            numRounds: {{if .Game.Config.NumRounds}}{{.Game.Config.NumRounds}}{{else}}5{{end}}
+        };
+    </script>
 </head>
 <body>
     {{template "header" .}}
@@ -25,6 +31,35 @@
         {{else}}
         <div class="letter-display" id="letter">?</div>
         <div class="round-info">En attente...</div>
+        
+        {{if and .Room (eq .User.ID .Room.HostID)}}
+        <div class="game-config" style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 15px; margin: 20px auto; max-width: 600px; text-align: left;">
+            <h3>Configuration de la partie</h3>
+            
+            <div class="config-group" style="margin-bottom: 15px;">
+                <label>Catégories (5 max)</label>
+                <div id="categories-list-config" style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+                    <!-- Categories will be injected here via JS -->
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="new-category-input" placeholder="Nouvelle catégorie" style="flex: 1; padding: 8px; border-radius: 5px; border: none;">
+                    <button type="button" id="add-category-btn" class="submit-btn" style="padding: 8px 15px; width: auto;">Ajouter</button>
+                </div>
+            </div>
+
+            <div class="config-group" style="margin-bottom: 15px;">
+                <label for="config-num-rounds">Nombre de manches</label>
+                <input type="number" id="config-num-rounds" value="5" min="1" max="20" style="padding: 8px; border-radius: 5px; border: none; width: 80px;">
+            </div>
+            
+            <div class="config-group" style="margin-bottom: 15px;">
+                <label for="config-time-round">Temps par manche (sec)</label>
+                <input type="number" id="config-time-round" value="60" min="10" max="180" style="padding: 8px; border-radius: 5px; border: none; width: 80px;">
+            </div>
+
+            <button type="button" id="start-game-btn" class="submit-btn" style="width: 100%; margin-top: 10px;">Lancer la partie</button>
+        </div>
+        {{end}}
         {{end}}
         
         <div class="timer" id="timer">60</div>

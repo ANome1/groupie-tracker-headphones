@@ -87,7 +87,7 @@ func (c *Client) handleMessage(message []byte) {
 	if msgType, ok := genericMsg["type"].(string); ok {
 		// Messages blind test
 		switch msgType {
-		case "select_playlist", "submit_answer", "next_round":
+		case "join_game", "select_playlist", "submit_answer", "next_round":
 			// Tenter d'extraire le username du message pour les submit_answer
 			var userMsg map[string]interface{}
 			json.Unmarshal(message, &userMsg)
@@ -114,7 +114,16 @@ func (c *Client) handleMessage(message []byte) {
 					Message: jsonData,
 				}
 			}
-			services.BlindTestMgr.HandleMessage(c.RoomID, username, message, broadcastFunc)
+
+			sendToClient := func(v interface{}) {
+				data, err := json.Marshal(v)
+				if err == nil {
+					data = append(data, '\n')
+					c.send <- data
+				}
+			}
+
+			services.BlindTestMgr.HandleMessage(c.RoomID, username, message, broadcastFunc, sendToClient)
 			return
 		}
 	}
@@ -127,6 +136,25 @@ func (c *Client) handleMessage(message []byte) {
 	}
 
 	switch msg.Type {
+	case "START_GAME":
+		// Parse config from payload
+		var configPayload struct {
+			Config models.PetitBacConfig `json:"config"`
+		}
+		if err := json.Unmarshal(msg.Data, &configPayload); err == nil {
+			// Update game config
+			services.Manager.UpdateGameConfig(c.RoomID, configPayload.Config)
+		}
+
+		// Start the first round
+		roundUpdate := services.Manager.StartRound(c.RoomID)
+		if roundUpdate != nil {
+			c.hub.BroadcastToRoom(c.RoomID, models.MessageOut{
+				Type: "ROUND_START",
+				Data: roundUpdate,
+			})
+		}
+
 	case "SUBMIT_ANSWERS":
 		log.Printf("Received SUBMIT_ANSWERS raw data: %s", string(msg.Data))
 		var payload models.AnswersPayload

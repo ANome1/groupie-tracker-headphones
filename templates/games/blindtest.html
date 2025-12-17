@@ -28,6 +28,34 @@
             margin-bottom: 3rem;
         }
 
+        .game-config {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            display: inline-block;
+            text-align: left;
+        }
+
+        .config-group {
+            margin-bottom: 15px;
+        }
+
+        .config-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-secondary);
+        }
+
+        .config-group input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--primary);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            width: 100px;
+        }
+
         .playlists-grid {
             display: flex;
             gap: 2rem;
@@ -353,14 +381,9 @@
         
         <!-- Sélection de playlist (phase d'attente) -->
         <div id="playlist-selection" class="playlist-section">
-            <h2>Sélection de la playlist</h2>
-            <div class="playlists-grid">
-                {{range .Playlists}}
-                <button class="playlist-btn" data-playlist-id="{{.ID}}" data-playlist-name="{{.Name}}">
-                    {{.Name}}
-                </button>
-                {{end}}
-            </div>
+            <h2>Démarrage de la partie...</h2>
+            <div class="loader" style="margin: 20px auto;"></div>
+            <p>Connexion au serveur...</p>
         </div>
         
         <!-- Phase de jeu -->
