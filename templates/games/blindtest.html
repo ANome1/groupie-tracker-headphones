@@ -189,18 +189,138 @@
 
         #final-results {
             width: 100%;
-            max-width: 800px;
+            max-width: 900px;
             text-align: center;
             margin: 0 auto;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(168,85,247,0.1) 100%);
+            border-radius: 20px;
+            animation: slideUp 0.8s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         #final-results h2 {
+            font-size: 2.5em;
+            margin-bottom: 40px;
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             animation: pulse 2s ease-in-out infinite;
         }
 
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.7; }
+        }
+
+        .final-rank {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            margin: 15px 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.6s ease-out backwards;
+        }
+
+        .final-rank:nth-child(2) { animation-delay: 0.1s; }
+        .final-rank:nth-child(3) { animation-delay: 0.2s; }
+        .final-rank:nth-child(4) { animation-delay: 0.3s; }
+        .final-rank:nth-child(5) { animation-delay: 0.4s; }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .final-rank:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .final-rank.first {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            box-shadow: 0 8px 30px rgba(251, 191, 36, 0.3);
+            padding: 25px;
+            transform: scale(1.05);
+        }
+
+        .final-rank.second {
+            background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+        }
+
+        .final-rank.third {
+            background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
+        }
+
+        .rank-medal {
+            font-size: 2.5em;
+            margin-right: 20px;
+            display: inline-block;
+            animation: bounce 0.6s ease-out;
+        }
+
+        @keyframes bounce {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .rank-info {
+            flex: 1;
+            text-align: left;
+        }
+
+        .rank-number {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #6b7280;
+            margin-right: 15px;
+        }
+
+        .rank-username {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #1f2937;
+        }
+
+        .final-rank.first .rank-username {
+            color: #000;
+        }
+
+        .rank-points {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #6366f1;
+        }
+
+        .final-rank.first .rank-points {
+            color: #000;
+            font-size: 1.5em;
+        }
+
+        #final-scoreboard {
+            margin-top: 20px;
         }
 
         /* Scoreboard inline */
@@ -306,7 +426,7 @@
         // Initialisation WebSocket
         const roomCode = "{{.RoomCode}}";
         const userPseudo = "{{.User.Username}}";
-        const userID = {{.User.ID}};
+        const userID = "{{.User.ID}}";
         window.currentUser = userPseudo;
         window.currentUserID = userID;
         connectWS(roomCode, userPseudo);

@@ -14,14 +14,16 @@ type BlindTestConfig struct {
 
 // BlindTestRound représente une manche en cours
 type BlindTestRound struct {
-	RoundNumber int
-	TrackID     int
-	TrackName   string
-	ArtistName  string
-	PreviewURL  string
-	CoverImage  string
-	Duration    int
-	StartTime   time.Time
+	RoundNumber           int
+	TrackID               int
+	TrackName             string
+	ArtistName            string
+	PreviewURL            string
+	CoverImage            string
+	Duration              int
+	StartTime             time.Time
+	CorrectAnswersCount   int
+	CorrectAnswersPlayers []string
 }
 
 // BlindTestGame représente une session de jeu
@@ -65,8 +67,8 @@ func (g *BlindTestGame) AddPlayer(username string) {
 	}
 }
 
-// RecordAnswer enregistre qu'un joueur a répondu
-func (g *BlindTestGame) RecordAnswer(username string, isCorrect bool, timeBonus int) {
+// RecordAnswer enregistre qu'un joueur a répondu correctement
+func (g *BlindTestGame) RecordAnswer(username string, isCorrect bool, rank int) {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 
@@ -76,9 +78,16 @@ func (g *BlindTestGame) RecordAnswer(username string, isCorrect bool, timeBonus 
 
 	g.AnsweredPlayers[username] = true
 
-	if isCorrect {
-		// Base score + time bonus
-		g.Scores[username] += 100 + timeBonus
+	if isCorrect && g.CurrentRound != nil {
+		// Points décroissants selon la position: 1er=100, 2e=80, 3e=60, 4e=40, 5e=20
+		pointsByRank := []int{100, 80, 60, 40, 20}
+		points := 0
+		if rank-1 < len(pointsByRank) {
+			points = pointsByRank[rank-1]
+		}
+		g.Scores[username] += points
+		g.CurrentRound.CorrectAnswersCount++
+		g.CurrentRound.CorrectAnswersPlayers = append(g.CurrentRound.CorrectAnswersPlayers, username)
 	}
 }
 

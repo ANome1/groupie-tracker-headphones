@@ -249,13 +249,24 @@ function showRoundResults(data) {
     document.getElementById('correct-track').textContent = data.correct_track;
     document.getElementById('correct-artist').textContent = data.correct_artist;
     
-    // Afficher les scores de la manche
+    // Afficher les scores de la manche avec rangs
     const roundScoresEl = document.getElementById('round-scores');
     roundScoresEl.innerHTML = '<h4>Scores de cette manche:</h4>';
-    if (data.round_scores) {
-        for (const [username, score] of Object.entries(data.round_scores)) {
-            roundScoresEl.innerHTML += `<p>${username}: +${score} points</p>`;
-        }
+    
+    if (data.round_scores && Object.keys(data.round_scores).length > 0) {
+        const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
+        const sortedEntries = Object.entries(data.round_scores)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5);
+        
+        sortedEntries.forEach((entry, index) => {
+            const username = entry[0];
+            const points = entry[1];
+            const medal = medals[index] || '';
+            roundScoresEl.innerHTML += `<p>${medal} <strong>${username}</strong>: +${points} points</p>`;
+        });
+    } else {
+        roundScoresEl.innerHTML += '<p>Aucun joueur n\'a trouvé la bonne réponse.</p>';
     }
     
     // Afficher la section résultats
@@ -304,17 +315,32 @@ function showFinalResults(data) {
     document.getElementById('final-results').style.display = 'block';
     
     const finalScoreboardEl = document.getElementById('final-scoreboard');
-    finalScoreboardEl.innerHTML = '<h3>Classement final</h3>';
+    finalScoreboardEl.innerHTML = '<h2>🎵 Partie terminée! 🎵</h2><h3 style="margin-top: 30px; font-size: 1.8em; color: white;">Classement final</h3>';
     
     const sortedScores = Object.entries(data.scores).sort((a, b) => b[1] - a[1]);
+    const medals = ['🥇', '🥈', '🥉'];
+    
     sortedScores.forEach(([username, score], index) => {
         const rank = index + 1;
-        let medal = '';
-        if (rank === 1) medal = '🥇';
-        else if (rank === 2) medal = '🥈';
-        else if (rank === 3) medal = '🥉';
+        const medal = medals[index] || '⭐';
+        let rankClass = '';
+        if (rank === 1) rankClass = 'first';
+        else if (rank === 2) rankClass = 'second';
+        else if (rank === 3) rankClass = 'third';
         
-        finalScoreboardEl.innerHTML += `<p>${medal} ${rank}. ${username}: ${score} points</p>`;
+        const rankDiv = document.createElement('div');
+        rankDiv.className = `final-rank ${rankClass}`;
+        rankDiv.innerHTML = `
+            <span class="rank-medal">${medal}</span>
+            <div class="rank-info">
+                <div>
+                    <span class="rank-number">#${rank}</span>
+                    <span class="rank-username">${username}</span>
+                </div>
+            </div>
+            <div class="rank-points">${score} pts</div>
+        `;
+        finalScoreboardEl.appendChild(rankDiv);
     });
 }
 

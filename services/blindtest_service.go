@@ -107,14 +107,16 @@ func (m *BlindTestManager) startNewRound(game *models.BlindTestGame, broadcastFu
 
 	// Créer la manche
 	game.CurrentRound = &models.BlindTestRound{
-		RoundNumber: game.RoundNumber,
-		TrackID:     track.ID,
-		TrackName:   track.Title,
-		ArtistName:  track.Artist.Name,
-		PreviewURL:  track.Preview,
-		CoverImage:  track.Album.CoverMedium,
-		Duration:    game.Config.TimePerRound,
-		StartTime:   time.Now(),
+		RoundNumber:           game.RoundNumber,
+		TrackID:               track.ID,
+		TrackName:             track.Title,
+		ArtistName:            track.Artist.Name,
+		PreviewURL:            track.Preview,
+		CoverImage:            track.Album.CoverMedium,
+		Duration:              game.Config.TimePerRound,
+		StartTime:             time.Now(),
+		CorrectAnswersCount:   0,
+		CorrectAnswersPlayers: []string{},
 	}
 
 	// Broadcast aux clients
@@ -135,6 +137,7 @@ func (m *BlindTestManager) startNewRound(game *models.BlindTestGame, broadcastFu
 	go func() {
 		time.Sleep(time.Duration(game.Config.TimePerRound) * time.Second)
 		m.endRound(game, broadcastFunc)
+		m.checkGameEnd(game, broadcastFunc)
 	}()
 }
 
@@ -152,31 +155,33 @@ func (m *BlindTestManager) handleSubmitAnswer(game *models.BlindTestGame, userna
 	trackAnswer, _ := msg["track"].(string)
 	artistAnswer, _ := msg["artist"].(string)
 
-	// Calcul du temps écoulé
-	elapsed := time.Since(game.CurrentRound.StartTime).Seconds()
-
 	// Vérifier si la réponse est correcte
 	isCorrect := m.checkAnswer(trackAnswer, artistAnswer, game.CurrentRound)
 
-	// Calcul du bonus de temps (max 50 points)
-	timeBonus := 0
-	if isCorrect {
-		remainingTime := float64(game.Config.TimePerRound) - elapsed
-		timeBonus = int(remainingTime * 50 / float64(game.Config.TimePerRound))
-	}
+	// Calculer le rang (position parmi les réponses correctes)
+	rank := game.CurrentRound.CorrectAnswersCount + 1
 
-	// Enregistrer la réponse
-	game.RecordAnswer(username, isCorrect, timeBonus)
+	// Enregistrer la réponse avec le rang
+	game.RecordAnswer(username, isCorrect, rank)
 
-	log.Printf("Joueur %s a répondu: correct=%v, bonus=%d", username, isCorrect, timeBonus)
+	log.Printf("Joueur %s a répondu: correct=%v, rang=%d", username, isCorrect, rank)
 }
 
 // checkAnswer vérifie si la réponse est correcte
 func (m *BlindTestManager) checkAnswer(trackAnswer, artistAnswer string, round *models.BlindTestRound) bool {
+	trackAnswer = strings.ToLower(strings.TrimSpace(trackAnswer))
+	artistAnswer = strings.ToLower(strings.TrimSpace(artistAnswer))
+
+	// Vérifier s'il y a au moins une réponse
+	if trackAnswer == "" && artistAnswer == "" {
+		return false
+	}
+
 	trackMatch := m.fuzzyMatch(trackAnswer, round.TrackName)
 	artistMatch := m.fuzzyMatch(artistAnswer, round.ArtistName)
 
 	// Au moins l'un des deux doit être correct
+	// (Accepter soit le titre, soit l'artiste)
 	return trackMatch || artistMatch
 }
 
@@ -194,8 +199,91 @@ func (m *BlindTestManager) fuzzyMatch(answer, correct string) bool {
 		return true
 	}
 
-	// Match partiel (au moins 70% de similarité)
-	return strings.Contains(correct, answer) || strings.Contains(answer, correct)
+	// Minimum length check: réponse doit être au moins 3 caractères
+	if len(answer) < 3 {
+		return false
+	}
+
+	// Match sur mots complets (pour éviter "on" matching "Song")
+	words := strings.Fields(correct)
+	for _, word := range words {
+		// Match exact sur un mot
+		if word == answer {
+			return true
+		}
+		// Match partiel si la réponse est au moins 60% du mot
+		similarity := levenshteinSimilarity(answer, word)
+		if similarity >= 0.6 && len(answer) >= 3 {
+			return true
+		}
+	}
+
+	// Match si la réponse contient au moins 60% de la réponse correcte
+	if len(correct) >= 3 {
+		similarity := levenshteinSimilarity(answer, correct)
+		if similarity >= 0.6 {
+			return true
+		}
+	}
+
+	return false
+}
+
+// levenshteinSimilarity calcule la similitude entre deux chaînes (0 à 1)
+func levenshteinSimilarity(s1, s2 string) float64 {
+	dist := levenshteinDistance(s1, s2)
+	maxLen := len(s1)
+	if len(s2) > maxLen {
+		maxLen = len(s2)
+	}
+	if maxLen == 0 {
+		return 1.0
+	}
+	return 1.0 - float64(dist)/float64(maxLen)
+}
+
+// levenshteinDistance calcule la distance d'édition entre deux chaînes
+func levenshteinDistance(s1, s2 string) int {
+	if len(s1) < len(s2) {
+		return levenshteinDistance(s2, s1)
+	}
+
+	if len(s2) == 0 {
+		return len(s1)
+	}
+
+	prev := make([]int, len(s2)+1)
+	for i := 0; i <= len(s2); i++ {
+		prev[i] = i
+	}
+
+	for i := 1; i <= len(s1); i++ {
+		curr := make([]int, len(s2)+1)
+		curr[0] = i
+
+		for j := 1; j <= len(s2); j++ {
+			cost := 0
+			if s1[i-1] != s2[j-1] {
+				cost = 1
+			}
+
+			curr[j] = min(
+				curr[j-1]+1, // insertion
+				min(prev[j]+1, // deletion
+					prev[j-1]+cost)) // substitution
+		}
+		prev = curr
+	}
+
+	return prev[len(s2)]
+}
+
+// min retourne le minimum de deux entiers
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 // endRound termine la manche et envoie les résultats
@@ -204,17 +292,22 @@ func (m *BlindTestManager) endRound(game *models.BlindTestGame, broadcastFunc fu
 		return
 	}
 
+	// Calculer les points de cette manche
+	roundScores := m.calculateRoundScores(game)
+
 	// Ajouter à l'historique
 	game.RoundHistory = append(game.RoundHistory, *game.CurrentRound)
 
-	// Broadcast les résultats
+	// Broadcast les résultats avec les points de la manche
 	broadcastFunc(game.RoomCode, map[string]interface{}{
-		"type":           "round_end",
-		"correct_track":  game.CurrentRound.TrackName,
-		"correct_artist": game.CurrentRound.ArtistName,
-		"cover_image":    game.CurrentRound.CoverImage,
-		"scores":         game.GetScoreboard(),
-		"host_id":        game.HostID,
+		"type":            "round_end",
+		"correct_track":   game.CurrentRound.TrackName,
+		"correct_artist":  game.CurrentRound.ArtistName,
+		"cover_image":     game.CurrentRound.CoverImage,
+		"scores":          game.GetScoreboard(),
+		"round_scores":    roundScores,
+		"correct_players": game.CurrentRound.CorrectAnswersPlayers,
+		"host_id":         game.HostID,
 	})
 
 	// Mettre à jour le scoreboard
@@ -222,8 +315,31 @@ func (m *BlindTestManager) endRound(game *models.BlindTestGame, broadcastFunc fu
 		"type":   "scoreboard_update",
 		"scores": game.GetScoreboard(),
 	})
+}
 
-	// Vérifier si c'est la fin du jeu
+// calculateRoundScores retourne les points gagnés par chaque joueur cette manche
+func (m *BlindTestManager) calculateRoundScores(game *models.BlindTestGame) map[string]int {
+	roundScores := make(map[string]int)
+
+	if game.CurrentRound == nil {
+		return roundScores
+	}
+
+	pointsByRank := []int{100, 80, 60, 40, 20}
+
+	for idx, username := range game.CurrentRound.CorrectAnswersPlayers {
+		points := 0
+		if idx < len(pointsByRank) {
+			points = pointsByRank[idx]
+		}
+		roundScores[username] = points
+	}
+
+	return roundScores
+}
+
+// Vérifier si c'est la fin du jeu après les résultats
+func (m *BlindTestManager) checkGameEnd(game *models.BlindTestGame, broadcastFunc func(string, interface{})) {
 	if game.RoundNumber >= game.Config.NumRounds {
 		game.Status = "finished"
 		broadcastFunc(game.RoomCode, map[string]interface{}{
