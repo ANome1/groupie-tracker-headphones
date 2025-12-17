@@ -115,6 +115,9 @@ function startRound(data) {
     document.getElementById('current-round').textContent = currentRound;
     document.getElementById('total-rounds').textContent = totalRounds;
     
+    // Cacher la sélection de playlist (au cas où c'est un client qui rejoint)
+    document.getElementById('playlist-selection').style.display = 'none';
+    
     // Afficher le lecteur audio
     const audioPlayer = document.getElementById('track-audio');
     if (data.preview_url) {
