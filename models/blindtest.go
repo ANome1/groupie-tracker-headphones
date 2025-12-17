@@ -37,8 +37,9 @@ type BlindTestGame struct {
 	RoundHistory []BlindTestRound
 	RoundNumber  int
 
-	Scores          map[string]int  // username -> score
-	AnsweredPlayers map[string]bool // username -> has answered this round
+	Scores          map[string]int    // username -> score
+	AnsweredPlayers map[string]bool   // username -> has answered this round
+	PlayerNames     map[string]string // playerID -> username
 
 	mutex sync.RWMutex
 }
@@ -52,6 +53,7 @@ func NewBlindTestGame(roomCode string, hostID int, config BlindTestConfig) *Blin
 		Config:          config,
 		Scores:          make(map[string]int),
 		AnsweredPlayers: make(map[string]bool),
+		PlayerNames:     make(map[string]string),
 		RoundNumber:     0,
 		RoundHistory:    []BlindTestRound{},
 	}

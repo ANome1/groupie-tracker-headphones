@@ -88,6 +88,17 @@ func (c *Client) handleMessage(message []byte) {
 		// Messages blind test
 		switch msgType {
 		case "select_playlist", "submit_answer", "next_round":
+			// Tenter d'extraire le username du message pour les submit_answer
+			var userMsg map[string]interface{}
+			json.Unmarshal(message, &userMsg)
+
+			username := c.PlayerID // Par défaut, utiliser l'ID
+			if msgType == "submit_answer" {
+				if user, ok := userMsg["username"].(string); ok {
+					username = user // Utiliser le pseudo si disponible
+				}
+			}
+
 			// Transmettre au BlindTestManager
 			broadcastFunc := func(roomCode string, data interface{}) {
 				// Convertir la map en JSON et envoyer avec newline delimiter
@@ -103,7 +114,7 @@ func (c *Client) handleMessage(message []byte) {
 					Message: jsonData,
 				}
 			}
-			services.BlindTestMgr.HandleMessage(c.RoomID, c.PlayerID, message, broadcastFunc)
+			services.BlindTestMgr.HandleMessage(c.RoomID, username, message, broadcastFunc)
 			return
 		}
 	}

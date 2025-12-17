@@ -12,11 +12,20 @@ import (
 
 const DeezerAPIURL = "https://api.deezer.com"
 
-// Cache for genres to avoid hitting API every round
+// Cache for playlists/genres to avoid hitting API every round
 var (
-	genreCache = make(map[string][]DeezerTrack)
-	cacheMutex sync.RWMutex
+	playlistCache = make(map[string][]DeezerTrack)
+	cacheMutex    sync.RWMutex
 )
+
+// Popular Deezer playlists instead of genres for better results
+var PlaylistMappings = map[string]string{
+	"116": "1677006641",  // Rap US
+	"132": "53362031",    // Pop
+	"152": "752286631",   // Rock
+	"162": "3272614282",  // Rap Français
+	"172": "14401046561", // Indie
+}
 
 // DeezerTrack represents a track from Deezer API
 type DeezerTrack struct {
@@ -36,11 +45,18 @@ type DeezerPlaylistResponse struct {
 	Total int           `json:"total"`
 }
 
-// GetRandomTrackFromDeezerGenre fetches a random track from a Deezer genre
+// GetRandomTrackFromDeezerGenre fetches a random track from a Deezer playlist
 func GetRandomTrackFromDeezerGenre(genreID string) (*DeezerTrack, error) {
+	// Get playlist ID from mapping
+	playlistID, ok := PlaylistMappings[genreID]
+	if !ok {
+		// Fallback to using genreID as-is if not in mapping
+		playlistID = genreID
+	}
+
 	// Check cache first
 	cacheMutex.RLock()
-	tracks, found := genreCache[genreID]
+	tracks, found := playlistCache[playlistID]
 	cacheMutex.RUnlock()
 
 	if found && len(tracks) > 0 {
@@ -52,16 +68,18 @@ func GetRandomTrackFromDeezerGenre(genreID string) (*DeezerTrack, error) {
 	// Not in cache, fetch from API
 	var lastErr error
 	for i := 0; i < 3; i++ {
-		tracks, err := fetchTracksFromGenre(genreID)
+		tracks, err := fetchTracksFromPlaylist(playlistID)
 		if err == nil {
 			// Update cache
 			cacheMutex.Lock()
-			genreCache[genreID] = tracks
+			playlistCache[playlistID] = tracks
 			cacheMutex.Unlock()
 
-			rand.Seed(time.Now().UnixNano())
-			randomIndex := rand.Intn(len(tracks))
-			return &tracks[randomIndex], nil
+			if len(tracks) > 0 {
+				rand.Seed(time.Now().UnixNano())
+				randomIndex := rand.Intn(len(tracks))
+				return &tracks[randomIndex], nil
+			}
 		}
 		lastErr = err
 		time.Sleep(500 * time.Millisecond)
@@ -70,52 +88,60 @@ func GetRandomTrackFromDeezerGenre(genreID string) (*DeezerTrack, error) {
 	return nil, fmt.Errorf("failed to fetch tracks after retries: %v", lastErr)
 }
 
-func fetchTracksFromGenre(genreID string) ([]DeezerTrack, error) {
-	// Use Deezer radio endpoint for genre (always works)
-	url := fmt.Sprintf("%s/radio/%s/tracks?limit=100", DeezerAPIURL, genreID)
+func fetchTracksFromPlaylist(playlistID string) ([]DeezerTrack, error) {
+	// Use Deezer playlist endpoint for better results
+	url := fmt.Sprintf("%s/playlist/%s/tracks?limit=100", DeezerAPIURL, playlistID)
 
 	client := &http.Client{
 		Timeout: 30 * time.Second,
 	}
 
-	resp, err := client.Get(url)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch genre tracks: %v", err)
-	}
-	defer resp.Body.Close()
+	var allTracks []DeezerTrack
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API returned status %d", resp.StatusCode)
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response: %v", err)
-	}
-
-	var response DeezerPlaylistResponse
-	if err := json.Unmarshal(body, &response); err != nil {
-		return nil, fmt.Errorf("failed to parse JSON: %v", err)
-	}
-
-	// Filter tracks to keep only those with valid preview URLs
-	var validTracks []DeezerTrack
-	for _, track := range response.Data {
-		if track.Preview != "" {
-			validTracks = append(validTracks, track)
+	// Fetch all pages of the playlist
+	for url != "" {
+		resp, err := client.Get(url)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch playlist tracks: %v", err)
 		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return nil, fmt.Errorf("API returned status %d", resp.StatusCode)
+		}
+
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read response: %v", err)
+		}
+
+		var response DeezerPlaylistResponse
+		if err := json.Unmarshal(body, &response); err != nil {
+			return nil, fmt.Errorf("failed to parse JSON: %v", err)
+		}
+
+		// Add tracks from this page
+		for _, track := range response.Data {
+			if track.Preview != "" {
+				allTracks = append(allTracks, track)
+			}
+		}
+
+		// Check if there are more pages (usually in a 'next' field for paginated responses)
+		// For now, just get the first 100
+		url = ""
 	}
 
-	if len(validTracks) == 0 {
-		return nil, fmt.Errorf("genre has no tracks with preview URLs")
+	if len(allTracks) == 0 {
+		return nil, fmt.Errorf("playlist has no tracks with preview URLs")
 	}
 
-	return validTracks, nil
+	return allTracks, nil
 }
 
-// ClearCache clears the genre cache
+// ClearCache clears the playlist cache
 func ClearDeezerCache() {
 	cacheMutex.Lock()
 	defer cacheMutex.Unlock()
-	genreCache = make(map[string][]DeezerTrack)
+	playlistCache = make(map[string][]DeezerTrack)
 }

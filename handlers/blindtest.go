@@ -8,12 +8,20 @@ import (
 	"sync"
 )
 
-// Genres Deezer disponibles
+// Playlist structure to maintain order
+type PlaylistOption struct {
+	Name string
+	ID   string
+}
+
+// Genres Deezer disponibles (ordered list)
 var (
-	deezerGenres = map[string]string{
-		"🎸 Rock": "152", // Rock genre ID
-		"🎤 Pop":  "132", // Pop genre ID
-		"🎧 Rap":  "116", // Rap/Hip-Hop genre ID
+	deezerGenres = []PlaylistOption{
+		{"🎸 Rock", "152"},    // Rock
+		{"🎤 Pop", "132"},     // Pop
+		{"🎧 Rap US", "116"},  // Rap US
+		{"🇫🇷 Rap FR", "162"}, // Rap Français
+		{"🎵 Indie", "172"},   // Indie
 	}
 	genresMutex sync.RWMutex
 )

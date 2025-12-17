@@ -355,9 +355,9 @@
         <div id="playlist-selection" class="playlist-section">
             <h2>Sélection de la playlist</h2>
             <div class="playlists-grid">
-                {{range $name, $id := .Playlists}}
-                <button class="playlist-btn" data-playlist-id="{{$id}}" data-playlist-name="{{$name}}">
-                    {{$name}}
+                {{range .Playlists}}
+                <button class="playlist-btn" data-playlist-id="{{.ID}}" data-playlist-name="{{.Name}}">
+                    {{.Name}}
                 </button>
                 {{end}}
             </div>

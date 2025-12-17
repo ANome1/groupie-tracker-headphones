@@ -238,7 +238,7 @@
     <script>
         const roomCode = "{{.Room.Code}}";
         const playerID = "{{.User.ID}}"; // Using User ID as player identifier
-        const isHost = {{.IsHost}};
+        const isHost = "{{.IsHost}}" === "true";
         const roomHostID = parseInt("{{.Room.HostID}}", 10) || 0;
         const maxPlayers = parseInt("{{.Room.MaxPlayers}}", 10) || 10;
         let selectedPlaylist = null;
@@ -247,7 +247,9 @@
         const playlists = {
             '152': '🎸 Rock',
             '132': '🎤 Pop',
-            '116': '🎧 Rap'
+            '116': '🎧 Rap US',
+            '162': '🇫🇷 Rap FR',
+            '172': '🎵 Indie'
         };
 
         // Initialiser les boutons de playlist pour le host
