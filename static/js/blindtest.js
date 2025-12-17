@@ -66,11 +66,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Bouton nouvelle partie
+    // Bouton nouvelle partie - Rediriger vers le lobby
     const newGameBtn = document.getElementById('new-game-btn');
     if (newGameBtn) {
         newGameBtn.addEventListener('click', () => {
-            location.reload();
+            window.location.href = `/room/lobby?code=${window.roomCode}`;
         });
     }
 });
