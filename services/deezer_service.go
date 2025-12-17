@@ -12,19 +12,17 @@ import (
 
 const DeezerAPIURL = "https://api.deezer.com"
 
-// Cache for playlists/genres to avoid hitting API every round
 var (
 	playlistCache = make(map[string][]DeezerTrack)
 	cacheMutex    sync.RWMutex
 )
 
-// Popular Deezer playlists instead of genres for better results
 var PlaylistMappings = map[string]string{
-	"116": "1677006641", // Rap US
-	"132": "53362031",   // Pop
-	"152": "1419215845", // Rock
-	"162": "3272614282", // Rap Français
-	"172": "668126235",  // Indie
+	"116": "1677006641",
+	"132": "53362031",
+	"152": "1419215845",
+	"162": "3272614282",
+	"172": "668126235",
 }
 
 // DeezerTrack represents a track from Deezer API
@@ -47,14 +45,11 @@ type DeezerPlaylistResponse struct {
 
 // GetRandomTrackFromDeezerGenre fetches a random track from a Deezer playlist
 func GetRandomTrackFromDeezerGenre(genreID string) (*DeezerTrack, error) {
-	// Get playlist ID from mapping
 	playlistID, ok := PlaylistMappings[genreID]
 	if !ok {
-		// Fallback to using genreID as-is if not in mapping
 		playlistID = genreID
 	}
 
-	// Check cache first
 	cacheMutex.RLock()
 	tracks, found := playlistCache[playlistID]
 	cacheMutex.RUnlock()
@@ -65,12 +60,10 @@ func GetRandomTrackFromDeezerGenre(genreID string) (*DeezerTrack, error) {
 		return &tracks[randomIndex], nil
 	}
 
-	// Not in cache, fetch from API
 	var lastErr error
 	for i := 0; i < 3; i++ {
 		tracks, err := fetchTracksFromPlaylist(playlistID)
 		if err == nil {
-			// Update cache
 			cacheMutex.Lock()
 			playlistCache[playlistID] = tracks
 			cacheMutex.Unlock()
@@ -89,7 +82,6 @@ func GetRandomTrackFromDeezerGenre(genreID string) (*DeezerTrack, error) {
 }
 
 func fetchTracksFromPlaylist(playlistID string) ([]DeezerTrack, error) {
-	// Use Deezer playlist endpoint for better results
 	url := fmt.Sprintf("%s/playlist/%s/tracks?limit=100", DeezerAPIURL, playlistID)
 
 	client := &http.Client{
@@ -137,11 +129,4 @@ func fetchTracksFromPlaylist(playlistID string) ([]DeezerTrack, error) {
 	}
 
 	return allTracks, nil
-}
-
-// ClearCache clears the playlist cache
-func ClearDeezerCache() {
-	cacheMutex.Lock()
-	defer cacheMutex.Unlock()
-	playlistCache = make(map[string][]DeezerTrack)
 }

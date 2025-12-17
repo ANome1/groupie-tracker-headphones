@@ -5,14 +5,12 @@ import (
 	"time"
 )
 
-// BlindTestConfig configuration pour le blind test
 type BlindTestConfig struct {
 	PlaylistID   string
 	TimePerRound int
 	NumRounds    int
 }
 
-// BlindTestRound représente une manche en cours
 type BlindTestRound struct {
 	RoundNumber           int
 	TrackID               int
@@ -26,27 +24,24 @@ type BlindTestRound struct {
 	CorrectAnswersPlayers []string
 }
 
-// BlindTestGame représente une session de jeu
 type BlindTestGame struct {
 	RoomCode string
 	HostID   int
-	Status   string // "waiting", "playing", "round_end", "finished"
+	Status   string
 
 	Config       BlindTestConfig
 	CurrentRound *BlindTestRound
 	RoundHistory []BlindTestRound
 	RoundNumber  int
 
-	Scores          map[string]int    // username -> score
-	AnsweredPlayers map[string]bool   // username -> has answered this round
-	PlayerNames     map[string]string // playerID -> username
-
-	Timer *time.Timer // Timer pour la fin de la manche
+	Scores          map[string]int
+	AnsweredPlayers map[string]bool
+	PlayerNames     map[string]string
+	Timer           *time.Timer
 
 	mutex sync.RWMutex
 }
 
-// NewBlindTestGame crée une nouvelle partie
 func NewBlindTestGame(roomCode string, hostID int, config BlindTestConfig) *BlindTestGame {
 	return &BlindTestGame{
 		RoomCode:        roomCode,
@@ -61,7 +56,7 @@ func NewBlindTestGame(roomCode string, hostID int, config BlindTestConfig) *Blin
 	}
 }
 
-// AddPlayer ajoute un joueur au jeu
+// AddPlayer registers a player in the game
 func (g *BlindTestGame) AddPlayer(username string) {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
@@ -71,26 +66,23 @@ func (g *BlindTestGame) AddPlayer(username string) {
 	}
 }
 
-// RecordAnswer enregistre qu'un joueur a répondu correctement
-// pointMultiplier permet de multiplier les points (ex: 2 si titre + artiste trouvés)
+// Enregistre la réponse avec le rang et le multiplicateur (2x si titre+artiste)
 func (g *BlindTestGame) RecordAnswer(username string, isCorrect bool, rank int, pointMultiplier int) {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 
 	if g.AnsweredPlayers[username] {
-		return // Already answered
+		return
 	}
 
 	g.AnsweredPlayers[username] = true
 
 	if isCorrect && g.CurrentRound != nil {
-		// Points décroissants selon la position: 1er=100, 2e=80, 3e=60, 4e=40, 5e=20
 		pointsByRank := []int{100, 80, 60, 40, 20}
 		points := 0
 		if rank-1 < len(pointsByRank) {
 			points = pointsByRank[rank-1]
 		}
-		// Appliquer le multiplicateur (ex: 2x si titre + artiste trouvés)
 		if pointMultiplier < 1 {
 			pointMultiplier = 1
 		}
@@ -102,7 +94,7 @@ func (g *BlindTestGame) RecordAnswer(username string, isCorrect bool, rank int, 
 	}
 }
 
-// ResetRound prépare pour la prochaine manche
+// ResetRound prepares for the next round
 func (g *BlindTestGame) ResetRound() {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
@@ -110,7 +102,7 @@ func (g *BlindTestGame) ResetRound() {
 	g.AnsweredPlayers = make(map[string]bool)
 }
 
-// GetScoreboard retourne le classement actuel
+// GetScoreboard returns current scores
 func (g *BlindTestGame) GetScoreboard() map[string]int {
 	g.mutex.RLock()
 	defer g.mutex.RUnlock()

@@ -1,5 +1,3 @@
--- RESPONSABLE: @Nome
-
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,
@@ -41,10 +39,6 @@ CREATE TABLE IF NOT EXISTS game_sessions (
     ended_at DATETIME,
     FOREIGN KEY (room_id) REFERENCES rooms(id)
 );
-
--- TODO @ilian: Table pour les catégories personnalisées du Petit Bac
-
-
 
 CREATE INDEX IF NOT EXISTS idx_rooms_code ON rooms(code);
 CREATE INDEX IF NOT EXISTS idx_room_participants ON room_participants(room_id, user_id);

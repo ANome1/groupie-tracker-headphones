@@ -1,5 +1,3 @@
-// blindtest.js - Client-side UI logic for Blind Test (WebSocket communication ONLY)
-
 let timerInterval = null;
 let currentRound = 0;
 let totalRounds = 5;
@@ -7,25 +5,18 @@ let wsReady = false;
 let pendingPlaylistSelect = null;
 let currentRoundData = null;
 
-// Exposer la fonction pour websocket.js
 window.handleBlindTestMessage = handleBlindTestMessage;
 
-let playlistSelected = false; // Track if playlist has been selected
+let playlistSelected = false;
 
 window.onWSReady = function() {
     wsReady = true;
-    console.log('WebSocket ready');
-    // Send join_game to get current state
     if (typeof sendWebSocketMessage === 'function') {
-        sendWebSocketMessage({
-            type: 'join_game'
-        });
+        sendWebSocketMessage({ type: 'join_game' });
     }
 };
 
-// Sélection de playlist
 document.addEventListener('DOMContentLoaded', () => {
-    // Attacher les event listeners aux boutons de playlist
     const playlistButtons = document.querySelectorAll('.playlist-btn');
     playlistButtons.forEach(btn => {
         btn.addEventListener('click', function(e) {
@@ -34,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const playlistName = this.getAttribute('data-playlist-name');
                 selectPlaylist(playlistId, playlistName);
                 playlistSelected = true;
-                // Ajouter une classe pour l'effet visuel
                 this.style.opacity = '0.6';
                 playlistButtons.forEach(b => {
                     if (b !== this) b.style.pointerEvents = 'none';
@@ -43,23 +33,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Bouton soumission réponse
     const submitBtn = document.getElementById('submit-answer-btn');
     if (submitBtn) {
         submitBtn.addEventListener('click', submitAnswer);
     }
 
-    // Bouton manche suivante
     const nextRoundBtn = document.getElementById('next-round-btn');
     if (nextRoundBtn) {
         nextRoundBtn.addEventListener('click', () => {
-            sendWebSocketMessage({
-                type: 'next_round'
-            });
+            sendWebSocketMessage({ type: 'next_round' });
         });
     }
 
-    // Bouton nouvelle partie - Rediriger vers le lobby
     const newGameBtn = document.getElementById('new-game-btn');
     if (newGameBtn) {
         newGameBtn.addEventListener('click', () => {
@@ -68,23 +53,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Envoyer la sélection de playlist au serveur
+// Envoi de la sélection de playlist au serveur
 function selectPlaylist(playlistId, playlistName) {
-    console.log("Playlist sélectionnée:", playlistId, playlistName);
-    
-    // Envoyer au serveur via WebSocket
     sendWebSocketMessage({
         type: 'select_playlist',
         playlist_id: playlistId,
         playlist_name: playlistName
     });
     
-    // Cacher la sélection
     document.getElementById('playlist-selection').style.display = 'none';
     document.getElementById('game-phase').style.display = 'block';
 }
 
-// Soumettre la réponse du joueur
+// Soumission de la réponse du joueur
 function submitAnswer() {
     const trackAnswer = document.getElementById('track-answer').value.trim();
     const artistAnswer = document.getElementById('artist-answer').value.trim();
@@ -118,25 +99,15 @@ function startRound(data) {
     // Cacher la sélection de playlist (au cas où c'est un client qui rejoint)
     document.getElementById('playlist-selection').style.display = 'none';
     
-    // Afficher le lecteur audio
     const audioPlayer = document.getElementById('track-audio');
     if (data.preview_url) {
-        // Utiliser le proxy audio pour éviter les problèmes CORS
         const proxyUrl = `/audio/proxy?url=${encodeURIComponent(data.preview_url)}`;
-        console.log('Setting audio source via proxy:', proxyUrl);
-        
-        // Reset audio player
         audioPlayer.pause();
         audioPlayer.currentTime = 0;
-        
-        // Set source and wait for it to be loadable
         audioPlayer.src = proxyUrl;
         
-        // Wait for canplay event before playing
         const playAudio = () => {
-            audioPlayer.play().then(() => {
-                console.log('Audio started playing');
-            }).catch(err => {
+            audioPlayer.play().catch(err => {
                 console.error('Audio play error:', err);
             });
             audioPlayer.removeEventListener('canplay', playAudio);
@@ -144,15 +115,11 @@ function startRound(data) {
         
         audioPlayer.addEventListener('canplay', playAudio, { once: true });
         audioPlayer.load();
-    } else {
-        console.error('No preview_url in data');
     }
     
-    // Afficher la cover avec flou initial
     const coverDiv = document.getElementById('track-cover');
     const coverImg = document.getElementById('cover-image');
     if (data.cover_image) {
-        console.log('Adding blur to cover image');
         coverImg.style.filter = 'blur(20px)';
         coverImg.src = data.cover_image;
         coverDiv.style.display = 'block';
@@ -160,29 +127,24 @@ function startRound(data) {
         coverDiv.style.display = 'none';
     }
     
-    // Réinitialiser le formulaire
     document.getElementById('answer-form').style.display = 'block';
     document.getElementById('answer-sent').style.display = 'none';
     document.getElementById('track-answer').value = '';
     document.getElementById('artist-answer').value = '';
     
-    // Cacher les résultats et afficher la phase de jeu
     document.getElementById('results-phase').style.display = 'none';
     document.getElementById('game-phase').style.display = 'block';
     
-    // Démarrer le timer avec le temps restant si disponible, sinon utiliser la durée complète
     const timerDuration = data.remaining_time !== undefined ? Math.ceil(data.remaining_time) : (data.duration || 30);
-    console.log('Starting timer with duration:', timerDuration, 'seconds');
     startTimer(timerDuration);
 }
 
-// Timer visuel
+// Synchronisation client WebSocket: Timer avec révélation progressive du blur
 function startTimer(duration) {
     let timeLeft = duration;
     const timerEl = document.getElementById('timer');
     timerEl.textContent = timeLeft;
     
-    // Calculer le temps de révélation: duration / 3
     const revealTime = Math.ceil(duration / 3);
     
     if (timerInterval) clearInterval(timerInterval);
@@ -191,42 +153,32 @@ function startTimer(duration) {
         timeLeft--;
         timerEl.textContent = timeLeft;
         
-        // Enlever le flou au temps de révélation (duration / 3)
         if (timeLeft === revealTime) {
             const coverImg = document.getElementById('cover-image');
             if (coverImg) {
-                console.log(`Removing blur from cover image at ${revealTime}s (duration: ${duration}s)`);
                 coverImg.style.filter = 'none';
             }
         }
         
         if (timeLeft <= 0) {
             clearInterval(timerInterval);
-            
-            // Vérifier si une réponse a été soumise
             const answerForm = document.getElementById('answer-form');
             if (answerForm.style.display !== 'none') {
-                // Pas de réponse soumise, révéler le titre et le son
-                console.log('Time expired, revealing answer...');
                 revealAnswer();
             }
         }
     }, 1000);
 }
 
-// Révéler la réponse quand le timer expire (pas de réponse soumise)
+// Révélation de la réponse: affiche le titre et l'artiste quand le timer expire
 function revealAnswer() {
     if (!currentRoundData) return;
-    
-    console.log('Revealing answer...');
-    
-    // Enlever le blur de la cover
+        
     const coverImg = document.getElementById('cover-image');
     if (coverImg) {
         coverImg.style.filter = 'none';
     }
     
-    // Afficher le titre et l'artiste sous la cover
     const trackNameDisplay = document.createElement('div');
     trackNameDisplay.id = 'revealed-track-info';
     trackNameDisplay.style.cssText = `
@@ -247,10 +199,8 @@ function revealAnswer() {
         trackCover.parentNode.insertBefore(trackNameDisplay, trackCover.nextSibling);
     }
     
-    // Cacher le formulaire
     document.getElementById('answer-form').style.display = 'none';
     
-    // Afficher un message d'attente
     const answerSent = document.getElementById('answer-sent');
     if (answerSent) {
         answerSent.style.display = 'block';
@@ -258,19 +208,16 @@ function revealAnswer() {
     }
 }
 
-// Afficher les résultats de la manche
+// Affichage des résultats: scores de la manche et classement actualisé
 function showRoundResults(data) {
     clearInterval(timerInterval);
     
-    // Arrêter l'audio
     const audioPlayer = document.getElementById('track-audio');
     audioPlayer.pause();
     
-    // Afficher la bonne réponse
     document.getElementById('correct-track').textContent = data.correct_track;
     document.getElementById('correct-artist').textContent = data.correct_artist;
     
-    // Afficher les scores de la manche avec rangs
     const roundScoresEl = document.getElementById('round-scores');
     roundScoresEl.innerHTML = '<h4>Scores de cette manche:</h4>';
     
@@ -290,34 +237,26 @@ function showRoundResults(data) {
         roundScoresEl.innerHTML += '<p>Aucun joueur n\'a trouvé la bonne réponse.</p>';
     }
     
-    // Afficher la section résultats
     document.getElementById('game-phase').style.display = 'none';
     document.getElementById('results-phase').style.display = 'block';
     
-    // Afficher le bouton pour le host uniquement
-    console.log('Host ID:', data.host_id, 'Current User ID:', window.currentUserID, 'Type:', typeof data.host_id, typeof window.currentUserID);
     if (parseInt(window.currentUserID) === parseInt(data.host_id)) {
-        console.log('Showing next round button for host');
         document.getElementById('next-round-btn').style.display = 'block';
     } else {
-        console.log('Not host, hiding next round button');
         document.getElementById('next-round-btn').style.display = 'none';
     }
 }
 
-// Mettre à jour le scoreboard
+// Mise à jour du scoreboard en direct
 function updateScoreboard(scores) {
     const scoreboardEl = document.getElementById('scoreboard-content');
     
-    // Si l'élément n'existe pas, ne rien faire (c'est normal pour le blind test)
     if (!scoreboardEl) {
-        console.log('Scoreboard element not found, skipping update');
         return;
     }
     
     scoreboardEl.innerHTML = '';
     
-    // Trier par score décroissant
     const sortedScores = Object.entries(scores).sort((a, b) => b[1] - a[1]);
     
     sortedScores.forEach(([username, score], index) => {
@@ -329,7 +268,7 @@ function updateScoreboard(scores) {
     });
 }
 
-// Afficher les résultats finaux
+// Affichage du classement final avec palmarès
 function showFinalResults(data) {
     document.getElementById('game-phase').style.display = 'none';
     document.getElementById('results-phase').style.display = 'none';
@@ -365,7 +304,7 @@ function showFinalResults(data) {
     });
 }
 
-// Handler pour les messages WebSocket (appelé depuis websocket.js)
+// Routage des messages WebSocket vers les handlers de phase
 function handleBlindTestMessage(data) {
     switch (data.type) {
         case 'round_start':
@@ -380,12 +319,10 @@ function handleBlindTestMessage(data) {
         case 'game_end':
             showFinalResults(data);
             break;
-        default:
-            console.log('Unknown message type:', data.type);
     }
 }
 
-// Custom Playlist Logic
+// Gestion des playlists personnalisées
 document.addEventListener('DOMContentLoaded', () => {
     const addPlaylistBtn = document.getElementById('add-playlist-btn');
     if (addPlaylistBtn) {
@@ -398,7 +335,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (id && name) {
                 addCustomPlaylist(id, name);
-                // Clear inputs
                 idInput.value = '';
                 nameInput.value = '';
             } else {
@@ -418,7 +354,6 @@ function addCustomPlaylist(id, name) {
     btn.setAttribute('data-playlist-name', name);
     btn.textContent = name;
     
-    // Add click listener (same as existing buttons)
     btn.addEventListener('click', () => {
         if (!playlistSelected) {
             selectPlaylist(id, name);
@@ -426,7 +361,6 @@ function addCustomPlaylist(id, name) {
         }
     });
     
-    // Add visual feedback
     btn.style.animation = 'fadeInUp 0.5s ease';
     
     grid.appendChild(btn);

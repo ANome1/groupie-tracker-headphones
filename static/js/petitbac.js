@@ -1,20 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialisation
     const timerElement = document.getElementById('timer');
     const letterElement = document.getElementById('letter');
     const form = document.getElementById('answers-form');
     
-    // Récupérer la lettre initiale si elle existe
     const initialLetter = letterElement ? letterElement.innerText : '?';
     if (initialLetter !== '?' && initialLetter.length === 1) {
         animateLetter(initialLetter);
     }
 
-    // Démarrer le timer
     const duration = (window.gameConfig && window.gameConfig.timePerRound) ? window.gameConfig.timePerRound : 60;
     startTimer(duration);
 
-    // Gestion de la soumission du formulaire
     if (form) {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -22,23 +18,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Attacher l'événement au bouton de soumission explicitement
     const submitBtn = document.querySelector('.submit-btn');
     if (submitBtn) {
         submitBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            console.log("Bouton valider cliqué");
             submitAnswers();
         });
-        // Support tactile pour mobile
         submitBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            console.log("Bouton valider touché");
             submitAnswers();
         });
     }
     
-    // Bouton nouvelle partie - Rediriger vers le lobby
     const newGameBtn = document.querySelector('.final-results-buttons button') || document.getElementById('new-game-btn');
     if (newGameBtn) {
         newGameBtn.addEventListener('click', () => {
@@ -47,11 +38,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Expose submitAnswers to global scope for button onclick
 window.submitAnswers = submitAnswers;
 
 let timerInterval;
 
+// Synchronisation du timer Petit Bac avec révélation progressive et soumission auto
 function startTimer(duration) {
     let timer = duration;
     const timerElement = document.getElementById('timer');
@@ -60,11 +51,10 @@ function startTimer(duration) {
     
     timerElement.classList.remove('warning');
     
-    // Mise à jour immédiate
     timerElement.textContent = timer;
 
     timerInterval = setInterval(() => {
-        timer--; // Décrémenter d'abord
+        timer--;
         timerElement.textContent = timer;
         
         if (timer <= 10) {
@@ -73,7 +63,6 @@ function startTimer(duration) {
         
         if (timer <= 0) {
             clearInterval(timerInterval);
-            // Auto-submit when time is up
             submitAnswers();
         }
     }, 1000);
@@ -83,8 +72,8 @@ function animateLetter(targetLetter) {
     const letterElement = document.getElementById('letter');
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     let iterations = 0;
-    const maxIterations = 20; // Nombre de changements de lettre
-    const speed = 50; // Vitesse initiale en ms
+    const maxIterations = 20;
+    const speed = 50;
 
     const interval = setInterval(() => {
         letterElement.innerText = alphabet[Math.floor(Math.random() * alphabet.length)];
@@ -93,7 +82,6 @@ function animateLetter(targetLetter) {
         if (iterations >= maxIterations) {
             clearInterval(interval);
             letterElement.innerText = targetLetter;
-            // Effet de "pop" final
             letterElement.style.transform = "scale(1.5)";
             setTimeout(() => {
                 letterElement.style.transform = "scale(1)";
@@ -104,12 +92,10 @@ function animateLetter(targetLetter) {
 
 function submitAnswers() {
     const form = document.getElementById('answers-form');
-    if (!form) return; // Sécurité si le formulaire est déjà caché
+    if (!form) return;
 
-    // Check if already submitted (inputs disabled)
     const inputs = form.querySelectorAll('input');
     if (inputs.length > 0 && inputs[0].disabled) {
-        console.log("Already submitted, ignoring.");
         return;
     }
 
@@ -120,18 +106,12 @@ function submitAnswers() {
         answers[key] = value;
     }
 
-    // Envoyer via WebSocket
-    // Note: sendMessage est défini dans websocket.js
     if (typeof sendMessage === 'function') {
-        console.log("Sending answers:", answers);
         sendMessage("SUBMIT_ANSWERS", {
             Answers: answers
         });
-    } else {
-        console.error("sendMessage function not found");
     }
 
-    // Désactiver le formulaire
     const button = form.querySelector('button');
     inputs.forEach(input => input.disabled = true);
     if (button) {
@@ -140,17 +120,14 @@ function submitAnswers() {
     }
 }
 
-// Fonction appelée par websocket.js lors de la réception de VALIDATION_PHASE
+// Phase de validation: synchronise les réponses et le vote entre joueurs
 window.handleValidationPhase = function(data) {
-    console.log("Received VALIDATION_PHASE data:", data);
-
-    // Stop timer
     if (timerInterval) clearInterval(timerInterval);
     const timerElement = document.getElementById('timer');
     if (timerElement) {
         timerElement.classList.remove('warning');
         timerElement.textContent = "Vote";
-        timerElement.style.fontSize = "1.5rem"; // Adjust font size for text
+        timerElement.style.fontSize = "1.5rem";
     }
 
     let roundData = data;
@@ -161,8 +138,7 @@ window.handleValidationPhase = function(data) {
         roundData = data.Round;
         playerNames = data.PlayerNames || {};
         hostID = data.HostID;
-        window.playerNames = playerNames; // Store for scoreboard
-        console.log("VALIDATION_PHASE - HostID:", hostID, "CurrentPlayerID:", window.currentPlayerID);
+        window.playerNames = playerNames;
     }
 
     document.getElementById('answers-form').style.display = 'none';
@@ -170,36 +146,28 @@ window.handleValidationPhase = function(data) {
     validationDiv.style.display = 'block';
     
     const container = document.getElementById('all-answers');
-    container.innerHTML = ''; // Clear previous
+    container.innerHTML = '';
 
-    // Show Host Button if applicable
     const hostControls = document.getElementById('host-controls');
     if (hostControls) {
-        hostControls.innerHTML = ''; // Clear previous
+        hostControls.innerHTML = '';
         
-        // Always show button for host
         if (hostID && (String(window.currentPlayerID) === String(hostID) || String(window.currentPlayerID).includes(hostID))) {
-            console.log("Showing NEXT_ROUND button for host");
             const button = document.createElement('button');
             button.onclick = () => nextRound();
             button.className = 'btn-primary';
             button.style.cssText = 'background-color: #4CAF50; color: white; padding: 12px 30px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold;';
             button.textContent = '➡️ Manche Suivante';
             hostControls.appendChild(button);
-        } else {
-            console.log("Host check failed - HostID:", hostID, "CurrentPlayerID:", window.currentPlayerID);
         }
     }
 
     if (!roundData.Responses) {
-        console.error("No responses found in round data");
         container.innerHTML = '<p>Aucune réponse reçue.</p>';
         return;
     }
 
-    // Afficher les réponses pour validation
     for (const [playerID, response] of Object.entries(roundData.Responses)) {
-        console.log("Processing response for player:", playerID, response);
         const playerName = playerNames[playerID] || `Joueur ${playerID}`;
         const playerDiv = document.createElement('div');
         playerDiv.className = 'validation-card';
@@ -208,14 +176,11 @@ window.handleValidationPhase = function(data) {
         const list = document.createElement('ul');
         if (response.Answers && Object.keys(response.Answers).length > 0) {
             for (const [category, answer] of Object.entries(response.Answers)) {
-                // Skip hidden fields like 'code'
                 if (category === 'code') continue;
 
                 const li = document.createElement('li');
                 
                 let voteButtons = '';
-                // Allow voting for everyone except self
-                // Also ensure host can vote if they are playing
                 if (window.currentPlayerID && String(window.currentPlayerID) !== String(playerID)) {
                     voteButtons = `
                         <div class="vote-buttons">
@@ -249,11 +214,9 @@ window.nextRound = function() {
 };
 
 window.handleNewRound = function(roundUpdate) {
-    // Reset UI
     document.getElementById('validation-phase').style.display = 'none';
     document.getElementById('answers-form').style.display = 'block';
     
-    // Reset inputs
     const form = document.getElementById('answers-form');
     form.reset();
     const inputs = form.querySelectorAll('input');
@@ -264,13 +227,11 @@ window.handleNewRound = function(roundUpdate) {
         button.textContent = "Valider mes réponses";
     }
 
-    // Update Round Number
     const roundElement = document.getElementById('current-round');
     if (roundElement && roundUpdate.RoundNumber) {
         roundElement.textContent = roundUpdate.RoundNumber;
     }
 
-    // Update Letter and Timer
     const letterElement = document.getElementById('letter');
     if (letterElement) {
         letterElement.innerText = roundUpdate.Letter;
@@ -279,35 +240,30 @@ window.handleNewRound = function(roundUpdate) {
     
     const timerElement = document.getElementById('timer');
     if (timerElement) {
-        timerElement.style.fontSize = ""; // Reset font size
+        timerElement.style.fontSize = "";
     }
     
     startTimer(roundUpdate.Duration);
 };
 
 window.handleGameOver = function(data) {
-    // Afficher les résultats finaux
     clearInterval(timerInterval);
     showFinalResults(data);
 };
 
 window.handleRoundResults = function(roundResults) {
-    // Afficher les résultats détaillés de la manche
     clearInterval(timerInterval);
     showRoundResults(roundResults);
 };
 
 function showRoundResults(roundResults) {
-    // Hide voting phase
     document.getElementById('answers-form').style.display = 'none';
     const votingSection = document.querySelector('[data-phase="voting"]');
     if (votingSection) votingSection.style.display = 'none';
     
-    // Create results display
     const resultsDiv = document.getElementById('round-results') || createRoundResultsDisplay();
     resultsDiv.innerHTML = `<h2>Résultats de la manche ${roundResults.RoundNumber}</h2>`;
     
-    // Show answers and points
     for (const [playerID, answers] of Object.entries(roundResults.Answers)) {
         const playerName = (window.playerNames && window.playerNames[playerID]) || `Joueur ${playerID}`;
         const roundScore = roundResults.RoundScores[playerID] || 0;
@@ -326,7 +282,6 @@ function showRoundResults(roundResults) {
         resultsDiv.innerHTML += playerResultHTML;
     }
     
-    // Add next round button for host
     if (window.currentUserID == window.hostID) {
         const btnDiv = document.createElement('div');
         btnDiv.innerHTML = '<button onclick="nextRound()" class="submit-btn">Manche suivante</button>';
@@ -337,7 +292,6 @@ function showRoundResults(roundResults) {
 }
 
 function showFinalResults(data) {
-    // Hide game form and validation phase
     const answersForm = document.getElementById('answers-form');
     if (answersForm) answersForm.style.display = 'none';
     
@@ -353,11 +307,9 @@ function showFinalResults(data) {
     const timer = document.querySelector('.timer');
     if (timer) timer.style.display = 'none';
     
-    // Show final results
     const finalDiv = document.getElementById('final-results') || createFinalResultsDisplay();
-    finalDiv.innerHTML = ''; // Clear previous content
+    finalDiv.innerHTML = '';
     
-    // Add title
     const title = document.createElement('h2');
     title.innerHTML = '🎮 Partie terminée! 🎮';
     finalDiv.appendChild(title);
@@ -366,11 +318,9 @@ function showFinalResults(data) {
     subtitle.textContent = 'Classement final';
     finalDiv.appendChild(subtitle);
     
-    // Create scoreboard container
     const scoreboardDiv = document.createElement('div');
     scoreboardDiv.id = 'final-scoreboard';
     
-    // Sort and display final scores - handle both wrapped and direct data
     const scores = (data && data.scores) ? data.scores : data;
     const sortedScores = Object.entries(scores || {}).sort((a, b) => b[1] - a[1]);
     const medals = ['🥇', '🥈', '🥉'];
@@ -403,7 +353,6 @@ function showFinalResults(data) {
     
     finalDiv.appendChild(scoreboardDiv);
     
-    // Add button to go back to lobby
     const btnDiv = document.createElement('div');
     btnDiv.className = 'final-results-buttons';
     const newGameBtn = document.createElement('button');
@@ -435,24 +384,15 @@ function createFinalResultsDisplay() {
     return div;
 }
 
-window.nextRound = function() {
-    sendMessage("NEXT_ROUND", {});
-};
-
-window.endRound = function() {
-    sendMessage("END_ROUND", {});
-};
-
+// Routage du vote sur les réponses: vérifie la validité et synchronise avec serveur
 window.vote = function(targetPlayerID, category, isValid, btnElement) {
     if (typeof sendMessage === 'function') {
-        console.log("Sending vote:", { TargetPlayer: targetPlayerID, Category: category, IsValid: isValid });
         sendMessage("SUBMIT_VOTE", {
             TargetPlayer: targetPlayerID,
             Category: category,
             IsValid: isValid
         });
         
-        // Feedback visuel
         const parent = btnElement.parentElement;
         const buttons = parent.querySelectorAll('.vote-btn');
         buttons.forEach(btn => btn.classList.remove('active'));
@@ -460,13 +400,11 @@ window.vote = function(targetPlayerID, category, isValid, btnElement) {
     }
 };
 
-// Fonction pour mettre à jour les scores (appelée par websocket.js)
 window.updateScores = function(scores) {
     const scoresList = document.getElementById('scores-list');
     if (!scoresList) return;
     
     scoresList.innerHTML = '';
-    // scores est une map: PlayerID -> Score
     for (const [playerID, score] of Object.entries(scores)) {
         const playerName = (window.playerNames && window.playerNames[playerID]) || `Joueur ${playerID}`;
         const li = document.createElement('li');
@@ -475,7 +413,7 @@ window.updateScores = function(scores) {
     }
 };
 
-// Configuration Logic
+// Gestion des catégories personnalisées
 let currentCategories = ["Artiste", "Groupe de musique", "Album", "Instrument", "Featuring"];
 
 function renderCategoriesConfig() {
@@ -514,7 +452,6 @@ function removeCategory(index) {
     renderCategoriesConfig();
 }
 
-// Expose globally
 window.removeCategory = removeCategory;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -536,7 +473,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Send START_GAME with config
             if (window.socket && window.socket.readyState === WebSocket.OPEN) {
                 window.socket.send(JSON.stringify({
                     type: 'START_GAME',
@@ -546,8 +482,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         time_per_round: timePerRound
                     }
                 }));
-            } else {
-                console.error("Socket not ready");
             }
         });
     }

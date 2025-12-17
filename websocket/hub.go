@@ -5,29 +5,19 @@ import (
 	"log"
 )
 
-// BroadcastMessage represents a message to be sent to a specific room
 type BroadcastMessage struct {
 	RoomID  string
 	Message []byte
 }
 
-// Hub maintains the set of active clients and broadcasts messages to the
-// clients.
+// Hub gère les connexions WebSocket et diffuse les messages par salle
 type Hub struct {
-	// Registered clients.
-	clients map[*Client]bool
-
-	// Inbound messages from the clients.
-	broadcast chan BroadcastMessage
-
-	// Register requests from the clients.
-	register chan *Client
-
-	// Unregister requests from clients.
+	clients    map[*Client]bool
+	broadcast  chan BroadcastMessage
+	register   chan *Client
 	unregister chan *Client
 }
 
-// NewHub creates a new Hub instance
 func NewHub() *Hub {
 	return &Hub{
 		broadcast:  make(chan BroadcastMessage),
@@ -37,7 +27,7 @@ func NewHub() *Hub {
 	}
 }
 
-// Run starts the Hub's main loop
+// Boucle centrale: enregistre/désenregistre les clients et diffuse les messages aux salles
 func (h *Hub) Run() {
 	for {
 		select {
@@ -63,14 +53,13 @@ func (h *Hub) Run() {
 	}
 }
 
-// BroadcastToRoom sends a JSON message to all clients in a specific room
+// Diffuse un message JSON à tous les clients d'une salle (avec délimiteur newline)
 func (h *Hub) BroadcastToRoom(roomID string, v interface{}) {
 	data, err := json.Marshal(v)
 	if err != nil {
 		log.Printf("Error marshalling broadcast message: %v", err)
 		return
 	}
-	// Add newline delimiter for message parsing
 	data = append(data, '\n')
 	h.broadcast <- BroadcastMessage{
 		RoomID:  roomID,

@@ -4,9 +4,6 @@ import (
 	"os"
 )
 
-// RESPONSABLE: @Nome
-// Configuration de l'application
-
 type Config struct {
 	DatabasePath string
 	ServerPort   string

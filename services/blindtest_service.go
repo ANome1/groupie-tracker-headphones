@@ -10,29 +10,25 @@ import (
 	"time"
 )
 
-// BlindTestManager gère les sessions de blind test
 type BlindTestManager struct {
 	games map[string]*models.BlindTestGame
 	mutex sync.RWMutex
 }
 
-// NewBlindTestManager crée un nouveau gestionnaire
 func NewBlindTestManager() *BlindTestManager {
 	return &BlindTestManager{
 		games: make(map[string]*models.BlindTestGame),
 	}
 }
 
-// CreateGame crée une nouvelle partie de blind test
 func (m *BlindTestManager) CreateGame(roomCode string, hostID int, config models.BlindTestConfig) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
 	m.games[roomCode] = models.NewBlindTestGame(roomCode, hostID, config)
-	log.Printf("Blind test créé pour room %s", roomCode)
+	log.Printf("Blind test created for room %s", roomCode)
 }
 
-// GetGame récupère une partie
 func (m *BlindTestManager) GetGame(roomCode string) *models.BlindTestGame {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
@@ -40,23 +36,24 @@ func (m *BlindTestManager) GetGame(roomCode string) *models.BlindTestGame {
 	return m.games[roomCode]
 }
 
-// HandleMessage traite les messages WebSocket pour le blind test
+// Synchronisation WebSocket: Reçoit les messages depuis les clients et les traite selon le type
+// Routes les messages join_game, select_playlist, submit_answer, next_round vers leurs handlers
 func (m *BlindTestManager) HandleMessage(roomCode, username string, message []byte, broadcastFunc func(string, interface{}), sendToClientFunc func(interface{})) {
 	var msg map[string]interface{}
 	if err := json.Unmarshal(message, &msg); err != nil {
-		log.Printf("Erreur parsing message: %v", err)
+		log.Printf("Error parsing message: %v", err)
 		return
 	}
 
 	msgType, ok := msg["type"].(string)
 	if !ok {
-		log.Printf("Message sans type")
+		log.Printf("Message missing type")
 		return
 	}
 
 	game := m.GetGame(roomCode)
 	if game == nil {
-		log.Printf("Jeu non trouvé pour room %s", roomCode)
+		log.Printf("Game not found for room %s", roomCode)
 		return
 	}
 
@@ -69,38 +66,31 @@ func (m *BlindTestManager) HandleMessage(roomCode, username string, message []by
 		m.handleSubmitAnswer(game, username, msg, broadcastFunc)
 	case "next_round":
 		m.handleNextRound(game, broadcastFunc)
-	default:
-		log.Printf("Type de message inconnu: %s", msgType)
 	}
 }
 
-// handleSelectPlaylist démarre le jeu avec la playlist choisie
 func (m *BlindTestManager) handleSelectPlaylist(game *models.BlindTestGame, msg map[string]interface{}, broadcastFunc func(string, interface{})) {
 	playlistID, ok := msg["playlist_id"].(string)
 	if !ok {
-		log.Printf("Playlist ID manquant")
+		log.Printf("Playlist ID missing")
 		return
 	}
 
-	// Éviter de relancer la première manche si elle a déjà commencé
 	if game.Status == "playing" && game.RoundNumber > 0 {
-		log.Printf("Partie déjà en cours pour room %s, ignorant sélection de playlist", game.RoomCode)
+		log.Printf("Game already in progress for room %s", game.RoomCode)
 		return
 	}
 
 	game.Config.PlaylistID = playlistID
 	game.Status = "playing"
 
-	// Démarrer la première manche
 	m.StartGameRound(game, broadcastFunc)
 }
 
-// StartGameRound démarre une nouvelle manche
 func (m *BlindTestManager) StartGameRound(game *models.BlindTestGame, broadcastFunc func(string, interface{})) {
 	game.RoundNumber++
 	game.ResetRound()
 
-	// Récupérer un track aléatoire depuis Deezer
 	track, err := GetRandomTrackFromDeezerGenre(game.Config.PlaylistID)
 	if err != nil {
 		log.Printf("Erreur récupération track: %v", err)
@@ -113,7 +103,6 @@ func (m *BlindTestManager) StartGameRound(game *models.BlindTestGame, broadcastF
 
 	log.Printf("Track récupéré: ID=%d, Title=%s, Artist=%s, Preview=%s", track.ID, track.Title, track.Artist.Name, track.Preview)
 
-	// Créer la manche
 	game.CurrentRound = &models.BlindTestRound{
 		RoundNumber:           game.RoundNumber,
 		TrackID:               track.ID,
@@ -127,7 +116,7 @@ func (m *BlindTestManager) StartGameRound(game *models.BlindTestGame, broadcastF
 		CorrectAnswersPlayers: []string{},
 	}
 
-	// Broadcast aux clients
+	// Diffuse l'état de la manche à tous les clients WebSocket
 	msg := map[string]interface{}{
 		"type":         "round_start",
 		"round_number": game.RoundNumber,
@@ -141,7 +130,6 @@ func (m *BlindTestManager) StartGameRound(game *models.BlindTestGame, broadcastF
 	log.Printf("Broadcasting round_start message: %+v", msg)
 	broadcastFunc(game.RoomCode, msg)
 
-	// Timer automatique pour finir la manche
 	go func() {
 		time.Sleep(time.Duration(game.Config.TimePerRound) * time.Second)
 		m.endRound(game, broadcastFunc)
@@ -149,13 +137,13 @@ func (m *BlindTestManager) StartGameRound(game *models.BlindTestGame, broadcastF
 	}()
 }
 
-// handleSubmitAnswer traite la réponse d'un joueur
+// Synchronise les réponses des joueurs avec la logique du serveur et recalcule les scores en temps réel
+// Applique le multiplicateur de points (2x si titre+artiste, 1x sinon)
 func (m *BlindTestManager) handleSubmitAnswer(game *models.BlindTestGame, username string, msg map[string]interface{}, broadcastFunc func(string, interface{})) {
 	if game.CurrentRound == nil {
 		return
 	}
 
-	// Vérifier si le joueur a déjà répondu
 	if game.AnsweredPlayers[username] {
 		return
 	}
@@ -163,27 +151,21 @@ func (m *BlindTestManager) handleSubmitAnswer(game *models.BlindTestGame, userna
 	trackAnswer, _ := msg["track"].(string)
 	artistAnswer, _ := msg["artist"].(string)
 
-	// Vérifier si la réponse est correcte
 	isCorrect := m.checkAnswer(trackAnswer, artistAnswer, game.CurrentRound)
 
-	// Calculer le multiplicateur de points (2x si titre ET artiste trouvés)
 	pointMultiplier := m.getPointMultiplier(trackAnswer, artistAnswer, game.CurrentRound)
 
 	// Calculer le rang (position parmi les réponses correctes)
 	rank := game.CurrentRound.CorrectAnswersCount + 1
-
-	// Enregistrer la réponse avec le rang et le multiplicateur
 	game.RecordAnswer(username, isCorrect, rank, pointMultiplier)
 
 	log.Printf("Joueur %s a répondu: correct=%v, rang=%d, multiplicateur=%dx", username, isCorrect, rank, pointMultiplier)
 }
 
-// checkAnswer vérifie si la réponse est correcte
 func (m *BlindTestManager) checkAnswer(trackAnswer, artistAnswer string, round *models.BlindTestRound) bool {
 	trackAnswer = strings.ToLower(strings.TrimSpace(trackAnswer))
 	artistAnswer = strings.ToLower(strings.TrimSpace(artistAnswer))
 
-	// Vérifier s'il y a au moins une réponse
 	if trackAnswer == "" && artistAnswer == "" {
 		return false
 	}
@@ -191,30 +173,24 @@ func (m *BlindTestManager) checkAnswer(trackAnswer, artistAnswer string, round *
 	trackMatch := m.fuzzyMatch(trackAnswer, round.TrackName)
 	artistMatch := m.fuzzyMatch(artistAnswer, round.ArtistName)
 
-	// Au moins l'un des deux doit être correct
-	// (Accepter soit le titre, soit l'artiste)
 	return trackMatch || artistMatch
 }
 
-// getPointMultiplier retourne le multiplicateur de points
-// 2x si le joueur a trouvé à la fois le titre ET l'artiste
-// 1x sinon
+// Logique de scoring: 2x points si titre ET artiste trouvés, 1x sinon
 func (m *BlindTestManager) getPointMultiplier(trackAnswer, artistAnswer string, round *models.BlindTestRound) int {
 	trackAnswer = strings.ToLower(strings.TrimSpace(trackAnswer))
 	artistAnswer = strings.ToLower(strings.TrimSpace(artistAnswer))
 
-	// Vérifier si les deux réponses sont correctes
 	trackMatch := m.fuzzyMatch(trackAnswer, round.TrackName)
 	artistMatch := m.fuzzyMatch(artistAnswer, round.ArtistName)
 
-	// Si les deux sont corrects, retourner 2x, sinon 1x
 	if trackMatch && artistMatch {
 		return 2
 	}
 	return 1
 }
 
-// fuzzyMatch compare deux chaînes avec une tolérance
+// Fuzzy matching tolérant avec distance de Levenshtein (60% similitude minimum)
 func (m *BlindTestManager) fuzzyMatch(answer, correct string) bool {
 	answer = strings.ToLower(strings.TrimSpace(answer))
 	correct = strings.ToLower(strings.TrimSpace(correct))
@@ -223,12 +199,10 @@ func (m *BlindTestManager) fuzzyMatch(answer, correct string) bool {
 		return false
 	}
 
-	// Match exact
 	if answer == correct {
 		return true
 	}
 
-	// Minimum length check: réponse doit être au moins 3 caractères
 	if len(answer) < 3 {
 		return false
 	}
@@ -247,7 +221,6 @@ func (m *BlindTestManager) fuzzyMatch(answer, correct string) bool {
 		}
 	}
 
-	// Match si la réponse contient au moins 60% de la réponse correcte
 	if len(correct) >= 3 {
 		similarity := levenshteinSimilarity(answer, correct)
 		if similarity >= 0.6 {
@@ -258,7 +231,6 @@ func (m *BlindTestManager) fuzzyMatch(answer, correct string) bool {
 	return false
 }
 
-// levenshteinSimilarity calcule la similitude entre deux chaînes (0 à 1)
 func levenshteinSimilarity(s1, s2 string) float64 {
 	dist := levenshteinDistance(s1, s2)
 	maxLen := len(s1)
@@ -271,7 +243,6 @@ func levenshteinSimilarity(s1, s2 string) float64 {
 	return 1.0 - float64(dist)/float64(maxLen)
 }
 
-// levenshteinDistance calcule la distance d'édition entre deux chaînes
 func levenshteinDistance(s1, s2 string) int {
 	if len(s1) < len(s2) {
 		return levenshteinDistance(s2, s1)
@@ -297,9 +268,9 @@ func levenshteinDistance(s1, s2 string) int {
 			}
 
 			curr[j] = min(
-				curr[j-1]+1, // insertion
-				min(prev[j]+1, // deletion
-					prev[j-1]+cost)) // substitution
+				curr[j-1]+1,
+				min(prev[j]+1,
+					prev[j-1]+cost))
 		}
 		prev = curr
 	}
@@ -307,7 +278,6 @@ func levenshteinDistance(s1, s2 string) int {
 	return prev[len(s2)]
 }
 
-// min retourne le minimum de deux entiers
 func min(a, b int) int {
 	if a < b {
 		return a
@@ -315,19 +285,16 @@ func min(a, b int) int {
 	return b
 }
 
-// endRound termine la manche et envoie les résultats
+// Envoie le message round_end au WebSocket avec les résultats et scores mis à jour
 func (m *BlindTestManager) endRound(game *models.BlindTestGame, broadcastFunc func(string, interface{})) {
 	if game.CurrentRound == nil {
 		return
 	}
 
-	// Calculer les points de cette manche
 	roundScores := m.calculateRoundScores(game)
 
-	// Ajouter à l'historique
 	game.RoundHistory = append(game.RoundHistory, *game.CurrentRound)
 
-	// Broadcast les résultats avec les points de la manche
 	broadcastFunc(game.RoomCode, map[string]interface{}{
 		"type":            "round_end",
 		"correct_track":   game.CurrentRound.TrackName,
@@ -339,14 +306,12 @@ func (m *BlindTestManager) endRound(game *models.BlindTestGame, broadcastFunc fu
 		"host_id":         game.HostID,
 	})
 
-	// Mettre à jour le scoreboard
 	broadcastFunc(game.RoomCode, map[string]interface{}{
 		"type":   "scoreboard_update",
 		"scores": game.GetScoreboard(),
 	})
 }
 
-// calculateRoundScores retourne les points gagnés par chaque joueur cette manche
 func (m *BlindTestManager) calculateRoundScores(game *models.BlindTestGame) map[string]int {
 	roundScores := make(map[string]int)
 
@@ -392,7 +357,6 @@ func (m *BlindTestManager) handleNextRound(game *models.BlindTestGame, broadcast
 	m.StartGameRound(game, broadcastFunc)
 }
 
-// RemoveGame supprime une partie
 func (m *BlindTestManager) RemoveGame(roomCode string) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
@@ -401,16 +365,14 @@ func (m *BlindTestManager) RemoveGame(roomCode string) {
 	fmt.Printf("Blind test supprimé pour room %s\n", roomCode)
 }
 
-// handleJoinGame envoie l'état actuel du jeu au client qui vient de rejoindre
+// Synchronise les nouveau clients avec l'état du jeu en cours (temps restant, round actuel)
 func (m *BlindTestManager) handleJoinGame(game *models.BlindTestGame, sendToClientFunc func(interface{})) {
 	if game == nil {
 		log.Printf("Jeu non trouvé pour handleJoinGame")
 		return
 	}
 
-	// Si une manche est en cours, envoyer l'état actuel au client
 	if game.Status == "playing" && game.CurrentRound != nil {
-		// Calculer le temps restant
 		elapsed := time.Since(game.CurrentRound.StartTime).Seconds()
 		remaining := float64(game.Config.TimePerRound) - elapsed
 		if remaining < 0 {

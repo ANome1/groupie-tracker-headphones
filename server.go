@@ -17,8 +17,6 @@ import (
 	"time"
 )
 
-// RESPONSABLE: @Nome (infrastructure), @Quoc Huy (WebSocket Blind Test), @ilian (WebSocket Petit Bac)
-
 // Landing - Page d'accueil
 func Landing(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
@@ -97,17 +95,11 @@ func LeaveRoomHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // BlindTestHandler - Jeu Blind Test
-// TODO @Quoc Huy: Charger les infos de la salle et du jeu
-// TODO @Quoc Huy: Gérer la sélection de playlist (Rock/Rap/Pop)
-// TODO @Quoc Huy: Timer 37s, système de points (3/2/1)
 func BlindTestHandler(w http.ResponseWriter, r *http.Request) {
 	handlers.BlindTestHandler(w, r)
 }
 
 // PetitBacHandler - Jeu Petit Bac
-// TODO @ilian: Charger les infos de la salle et du jeu
-// TODO @ilian: Gérer les 9 manches, validation 2/3 joueurs
-// TODO @ilian: Système de points (unique=2, commun=1)
 func PetitBacHandler(w http.ResponseWriter, r *http.Request) {
 	roomCode := r.URL.Query().Get("code")
 	if roomCode == "" {
@@ -344,7 +336,6 @@ func GetCurrentUser(r *http.Request) *models.User {
 }
 
 func main() {
-	// TODO @Nome: Initialiser la connexion SQLite
 	cfg := config.Load()
 
 	db := database.InitDB(cfg.DatabasePath)

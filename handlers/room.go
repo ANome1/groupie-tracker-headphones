@@ -13,7 +13,6 @@ import (
 
 var globalHub *websocket.Hub
 
-// SetGlobalHub sets the websocket hub for broadcasting room events
 func SetGlobalHub(hub *websocket.Hub) {
 	globalHub = hub
 }
@@ -57,7 +56,7 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		name := r.FormValue("name")
-		gameType := r.FormValue("gameType") // "blindtest" ou "petitbac"
+		gameType := r.FormValue("gameType")
 
 		if name == "" {
 			tmpl, _ := template.ParseFiles("./templates/room/create.html", "./templates/components/header.html", "./templates/components/footer.html")
@@ -72,7 +71,6 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Ajouter l'hôte comme premier participant
 		err = RoomService.JoinRoom(room.ID, userID)
 		if err != nil {
 			log.Printf("Erreur lors de l'ajout de l'hôte: %v", err)
@@ -120,7 +118,6 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Normalize code to uppercase and trim spaces
 		roomCode = strings.ToUpper(strings.TrimSpace(roomCode))
 
 		log.Printf("Tentative de connexion à la salle: '%s' par l'utilisateur %d", roomCode, userID)
@@ -143,17 +140,14 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 
 		log.Printf("Utilisateur %d a rejoint la salle %s", userID, roomCode)
 
-		// Broadcast player joined event to all connected clients in the room
 		user, _ := AuthService.GetUserByID(userID)
 		userName := "Utilisateur"
 		if user != nil {
 			userName = user.Username
 		}
 
-		// Get updated participants
 		participants, _ := RoomService.GetRoomParticipantsWithUsers(room.ID)
 
-		// Broadcast via websocket if hub is available
 		if globalHub != nil {
 			globalHub.BroadcastToRoom(roomCode, models.MessageOut{
 				Type: "PLAYER_JOINED",
@@ -259,17 +253,14 @@ func LeaveRoomHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Utilisateur %d a quitté la salle %s (ID: %d)", userID, roomCode, room.ID)
 
-	// Broadcast player left event to all connected clients in the room
 	user, _ := AuthService.GetUserByID(userID)
 	userName := "Utilisateur"
 	if user != nil {
 		userName = user.Username
 	}
 
-	// Get updated participants
 	participants, _ := RoomService.GetRoomParticipantsWithUsers(room.ID)
 
-	// Broadcast via websocket if hub is available
 	if globalHub != nil {
 		globalHub.BroadcastToRoom(roomCode, models.MessageOut{
 			Type: "PLAYER_LEFT",

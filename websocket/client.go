@@ -1,8 +1,5 @@
 package websocket
 
-// TODO @Quoc Huy & @ilian: Structure Client
-// TODO @Quoc Huy & @ilian: ReadPump, WritePump
-
 import (
 	"encoding/json"
 	"log"
@@ -16,16 +13,9 @@ import (
 )
 
 const (
-	// Time allowed to write a message to the peer.
-	writeWait = 10 * time.Second
-
-	// Time allowed to read the next pong message from the peer.
-	pongWait = 60 * time.Second
-
-	// Send pings to peer with this period. Must be less than pongWait.
-	pingPeriod = (pongWait * 9) / 10
-
-	// Maximum message size allowed from peer.
+	writeWait      = 10 * time.Second
+	pongWait       = 60 * time.Second
+	pingPeriod     = (pongWait * 9) / 10
 	maxMessageSize = 512
 )
 
@@ -33,27 +23,19 @@ var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
-		return true // Allow all origins for now
+		return true
 	},
 }
 
-// Client is a middleman between the websocket connection and the hub.
 type Client struct {
-	hub *Hub
-
-	// The websocket connection.
-	conn *websocket.Conn
-
-	// Buffered channel of outbound messages.
-	send chan []byte
-
-	// Player ID
+	hub      *Hub
+	conn     *websocket.Conn
+	send     chan []byte
 	PlayerID string
-	// Room ID
-	RoomID string
+	RoomID   string
 }
 
-// ReadPump pumps messages from the websocket connection to the hub.
+// Boucle de lecture WebSocket: traite les messages reçus du client et les achemine vers les services
 func (c *Client) ReadPump() {
 	defer func() {
 		c.hub.unregister <- c
@@ -268,7 +250,7 @@ func (c *Client) handleMessage(message []byte) {
 	}
 }
 
-// WritePump pumps messages from the hub to the websocket connection.
+// Boucle d'écriture WebSocket: envoie les messages du hub vers le client
 func (c *Client) WritePump() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
@@ -280,7 +262,6 @@ func (c *Client) WritePump() {
 		case message, ok := <-c.send:
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
-				// The hub closed the channel.
 				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
@@ -291,7 +272,6 @@ func (c *Client) WritePump() {
 			}
 			w.Write(message)
 
-			// Add queued chat messages to the current websocket message.
 			n := len(c.send)
 			for i := 0; i < n; i++ {
 				w.Write(<-c.send)
@@ -309,9 +289,8 @@ func (c *Client) WritePump() {
 	}
 }
 
-// ServeWs handles websocket requests from the peer.
+// Établit la connexion WebSocket et lance les pompes de lecture/écriture
 func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
-	// Extract roomID and playerID from query params
 	roomID := r.URL.Query().Get("room")
 	playerID := r.URL.Query().Get("player")
 
@@ -334,8 +313,6 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	}
 	client.hub.register <- client
 
-	// Allow collection of memory referenced by the caller by doing all work in
-	// new goroutines.
 	go client.WritePump()
 	go client.ReadPump()
 }
