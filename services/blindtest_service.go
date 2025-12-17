@@ -166,13 +166,16 @@ func (m *BlindTestManager) handleSubmitAnswer(game *models.BlindTestGame, userna
 	// Vérifier si la réponse est correcte
 	isCorrect := m.checkAnswer(trackAnswer, artistAnswer, game.CurrentRound)
 
+	// Calculer le multiplicateur de points (2x si titre ET artiste trouvés)
+	pointMultiplier := m.getPointMultiplier(trackAnswer, artistAnswer, game.CurrentRound)
+
 	// Calculer le rang (position parmi les réponses correctes)
 	rank := game.CurrentRound.CorrectAnswersCount + 1
 
-	// Enregistrer la réponse avec le rang
-	game.RecordAnswer(username, isCorrect, rank)
+	// Enregistrer la réponse avec le rang et le multiplicateur
+	game.RecordAnswer(username, isCorrect, rank, pointMultiplier)
 
-	log.Printf("Joueur %s a répondu: correct=%v, rang=%d", username, isCorrect, rank)
+	log.Printf("Joueur %s a répondu: correct=%v, rang=%d, multiplicateur=%dx", username, isCorrect, rank, pointMultiplier)
 }
 
 // checkAnswer vérifie si la réponse est correcte
@@ -191,6 +194,24 @@ func (m *BlindTestManager) checkAnswer(trackAnswer, artistAnswer string, round *
 	// Au moins l'un des deux doit être correct
 	// (Accepter soit le titre, soit l'artiste)
 	return trackMatch || artistMatch
+}
+
+// getPointMultiplier retourne le multiplicateur de points
+// 2x si le joueur a trouvé à la fois le titre ET l'artiste
+// 1x sinon
+func (m *BlindTestManager) getPointMultiplier(trackAnswer, artistAnswer string, round *models.BlindTestRound) int {
+	trackAnswer = strings.ToLower(strings.TrimSpace(trackAnswer))
+	artistAnswer = strings.ToLower(strings.TrimSpace(artistAnswer))
+
+	// Vérifier si les deux réponses sont correctes
+	trackMatch := m.fuzzyMatch(trackAnswer, round.TrackName)
+	artistMatch := m.fuzzyMatch(artistAnswer, round.ArtistName)
+
+	// Si les deux sont corrects, retourner 2x, sinon 1x
+	if trackMatch && artistMatch {
+		return 2
+	}
+	return 1
 }
 
 // fuzzyMatch compare deux chaînes avec une tolérance

@@ -72,7 +72,8 @@ func (g *BlindTestGame) AddPlayer(username string) {
 }
 
 // RecordAnswer enregistre qu'un joueur a répondu correctement
-func (g *BlindTestGame) RecordAnswer(username string, isCorrect bool, rank int) {
+// pointMultiplier permet de multiplier les points (ex: 2 si titre + artiste trouvés)
+func (g *BlindTestGame) RecordAnswer(username string, isCorrect bool, rank int, pointMultiplier int) {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 
@@ -89,6 +90,12 @@ func (g *BlindTestGame) RecordAnswer(username string, isCorrect bool, rank int) 
 		if rank-1 < len(pointsByRank) {
 			points = pointsByRank[rank-1]
 		}
+		// Appliquer le multiplicateur (ex: 2x si titre + artiste trouvés)
+		if pointMultiplier < 1 {
+			pointMultiplier = 1
+		}
+		points *= pointMultiplier
+
 		g.Scores[username] += points
 		g.CurrentRound.CorrectAnswersCount++
 		g.CurrentRound.CorrectAnswersPlayers = append(g.CurrentRound.CorrectAnswersPlayers, username)
