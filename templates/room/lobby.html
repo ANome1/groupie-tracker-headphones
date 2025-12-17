@@ -238,7 +238,7 @@
     <script>
         const roomCode = "{{.Room.Code}}";
         const playerID = "{{.User.ID}}"; // Using User ID as player identifier
-        const isHost = "{{.IsHost}}";
+        const isHost = {{.IsHost}};
         const roomHostID = parseInt("{{.Room.HostID}}", 10) || 0;
         const maxPlayers = parseInt("{{.Room.MaxPlayers}}", 10) || 10;
         let selectedPlaylist = null;
