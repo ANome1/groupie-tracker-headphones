@@ -217,8 +217,7 @@
         <div class="actions-card">
             {{if .IsHost}}
             <!-- Sélection de playlist pour le host -->
-            <div style="margin-bottom: 30px; padding: 20px; background: rgba(166, 142, 224, 0.1); border: 1px solid rgba(166, 142, 224, 0.3); border-radius: 12px;">
-                <p style="color: var(--text); margin-bottom: 15px; font-weight: 600;">Choisir la playlist:</p>
+            <div style="margin-bottom: 30px; padding: 20px;">
                 <div id="playlist-options" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
                     <!-- Les playlists seront ajoutées par JavaScript -->
                 </div>
@@ -282,11 +281,6 @@
                 });
                 playlistOptions.appendChild(btn);
             });
-            // Sélectionner Rock par défaut
-            selectedPlaylist = '152';
-            playlistOptions.querySelectorAll('button')[0].style.background = 'var(--primary)';
-            playlistOptions.querySelectorAll('button')[0].style.borderColor = 'var(--primary)';
-            playlistOptions.querySelectorAll('button')[0].style.color = 'var(--background)';
         }
 
         // Connect to WebSocket
