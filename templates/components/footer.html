@@ -1,11 +1,26 @@
 {{define "footer"}}
     <footer class="site-footer">
         <div class="brand">
-            <p>&copy; 2025 HeadPhone - Pretty Flacko. Tous droits réservés.</p>
+            <p>&copy; 2025 HeadPhone. Tous droits réservés.</p>
         </div>
         <div class="credits">
             <a href="https://storyset.com/">Illustrations by Storyset</a>
         </div>
+        <div class="team">
+            <p>Équipe HeadPhone</p>
+            <div class="team-links">
+                <a href="https://github.com/iliantoo" title="Ilian GitHub" target="_blank">
+                    <img src="/static/assets/images/icons/GitHub.ico" alt="Ilian" class="github-icon">
+                </a>
+                <a href="https://github.com/Quochuy203" title="Quoc Huy GitHub" target="_blank">
+                    <img src="/static/assets/images/icons/GitHub.ico" alt="Quoc Huy" class="github-icon">
+                </a>
+                <a href="https://github.com/ANome1" title="Nome GitHub" target="_blank">
+                    <img src="/static/assets/images/icons/GitHub.ico" alt="Nome" class="github-icon">
+                </a>
+            </div>
+        </div>
+
     </footer>
     <style>
         /* Footer */
@@ -20,12 +35,13 @@
             -webkit-backdrop-filter: blur(10px);
             color: var(--text);
             text-align: center;
-            padding: 20px;
+            padding: 20px 40px;
             border-top: 2px solid rgba(166, 142, 224, 0.3);
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
+            justify-content: space-between;
             align-items: center;
-            gap: 8px;
+            gap: 20px;
         }
 
         .site-footer p {
@@ -44,6 +60,47 @@
             font-size: 0.9rem;
             opacity: 0.8;
             transition: all 0.3s ease;
+        }
+
+        .site-footer .credits {
+            margin: 0 auto;
+        }
+
+        .site-footer .team {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+
+        .site-footer .team p {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .team-links {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .team-links a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .github-icon {
+            width: 24px;
+            height: 24px;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .team-links a:hover .github-icon {
+            opacity: 1;
+            filter: drop-shadow(0 0 8px rgba(166, 142, 224, 0.6));
             border-bottom: 1px solid transparent;
         }
 
