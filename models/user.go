@@ -1,4 +1,11 @@
 package models
 
-// TODO @Nome: Structure User (ID, Username, Email, PasswordHash, CreatedAt)
-// TODO @Nome: Fonctions CRUD
+import "time"
+
+type User struct {
+	ID           int
+	Username     string
+	Email        string
+	PasswordHash string
+	CreatedAt    time.Time
+}

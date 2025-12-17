@@ -5,6 +5,7 @@
 *.so
 *.dylib
 groupie-tracker
+server
 
 # Test binary
 *.test
@@ -38,3 +39,5 @@ Thumbs.db
 *.log
 
 PROJECT_STATUS.TXT
+
+GUIDE_EQUIPE.md

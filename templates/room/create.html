@@ -1,33 +1,210 @@
-<!-- RESPONSABLE: @Nome -->
 <!-- Page de création de salle -->
 
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/static/assets/images/icons/favicon.ico" type="image/x-icon">
     <title>Créer une salle - Groupie Tracker</title>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/main.css">
+    <style>
+        .auth-hero {
+            padding: 60px 20px;
+            background-color: transparent;
+            min-height: calc(100vh - 180px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 60px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 1024px) {
+            .auth-hero {
+                flex-direction: column;
+                gap: 40px;
+            }
+        }
+
+        .auth-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 400px;
+            padding: 20px;
+        }
+
+        .auth-info h2 {
+            font-size: 2.5rem;
+            color: var(--primary);
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .auth-info p {
+            font-size: 1.1rem;
+            color: var(--text);
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        .auth-info img {
+            width: 180px;
+            height: 180px;
+            margin: 15px auto;
+            filter: drop-shadow(0 0 15px rgba(166, 142, 224, 0.3));
+        }
+
+        .auth-container {
+            flex: 0 0 100%;
+            max-width: 500px;
+            background: linear-gradient(135deg, rgba(166, 142, 224, 0.08) 0%, rgba(101, 44, 239, 0.04) 100%);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border: 1px solid rgba(166, 142, 224, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .auth-container h1 {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: var(--primary);
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .auth-container form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .auth-container input,
+        .auth-container select {
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            background-color: rgba(166, 142, 224, 0.1);
+            color: var(--text);
+            font-size: 1rem;
+            font-family: var(--font-body);
+            transition: all 0.3s ease;
+        }
+
+        .auth-container input::placeholder {
+            color: rgba(238, 236, 244, 0.6);
+        }
+
+        .auth-container input:focus,
+        .auth-container select:focus {
+            outline: none;
+            border-color: var(--accent);
+            background-color: rgba(166, 142, 224, 0.15);
+            box-shadow: 0 0 12px rgba(166, 142, 224, 0.3);
+        }
+
+        .auth-container select {
+            cursor: pointer;
+        }
+
+        .auth-container select option {
+            background-color: var(--background);
+            color: var(--text);
+        }
+
+        .auth-container button {
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            background-color: var(--primary);
+            color: var(--background);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            font-family: var(--font-body);
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 24px rgba(166, 142, 224, 0.3);
+        }
+
+        .auth-container button:hover {
+            background-color: var(--accent);
+            border-color: var(--accent);
+            color: var(--text);
+            box-shadow: 0 12px 32px rgba(101, 44, 239, 0.4);
+        }
+
+        .auth-container p {
+            color: var(--text);
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.95rem;
+        }
+
+        .auth-container a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .auth-container a:hover {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+
+        .error-message {
+            background-color: rgba(255, 68, 68, 0.15);
+            border: 1px solid rgba(255, 68, 68, 0.5);
+            color: #ff6b6b;
+            padding: 12px;
+            margin-bottom: 16px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+    </style>
 </head>
 <body>
-    <!-- TODO @Nome: Formulaire de création avec:
-         - Nom de la salle
-         - Sélecteur de jeu (Blind Test ou Petit Bac)
-         - Nombre de joueurs max (2-8)
-         - Bouton Créer
-    -->
-    <h1>Créer une salle de jeu</h1>
-    <form action="/room/create" method="POST">
-        <input type="text" name="room_name" placeholder="Nom de la salle" required>
-        <select name="game_type" required>
-            <option value="blindtest">Blind Test</option>
-            <option value="petitbac">Petit Bac</option>
-        </select>
-        <select name="max_players">
-            <option value="4">4 joueurs</option>
-            <option value="6">6 joueurs</option>
-            <option value="8" selected>8 joueurs</option>
-        </select>
-        <button type="submit">Créer</button>
-    </form>
+    {{template "header" .}}
+    <section class="auth-hero">
+        <div class="auth-info">
+            <h2>Hébergez une partie</h2>
+            <img class="illustration" src="/static/assets/images/Cloud hosting-rafiki.svg" alt="create room illustrations">
+            <p>Invitez vos amis à rejoindre une partie et testez vos connaissances musicales !</p>
+        </div>
+        <div class="auth-container">
+            <h1>Nouvelle salle</h1>
+            {{if .Error}}
+            <div class="error-message">
+                {{.Error}}
+            </div>
+            {{end}}
+            <form action="/room/create" method="POST">
+                <input type="text" name="name" placeholder="Nom de la salle" required>
+                <select name="gameType" required>
+                    <option value="">-- Choisir un jeu --</option>
+                    <option value="blindtest">🎶 Blind Test</option>
+                    <option value="petitbac">📝 Petit Bac</option>
+                </select>
+                <select name="max_players">
+                    <option value="">-- Nombre de joueurs --</option>
+                    <option value="2">2 joueurs</option>
+                    <option value="3">3 joueurs</option>
+                    <option value="4" selected>4 joueurs (recommandé)</option>
+                    <option value="5">5 joueurs</option>
+                    <option value="6">6 joueurs</option>
+                    <option value="7">7 joueurs</option>
+                    <option value="8">8 joueurs</option>
+                </select>
+                <button type="submit">Créer la salle</button>
+            </form>
+            <p>Ou <a href="/home">retourner au menu</a></p>
+        </div>
+    </section>
+    {{template "footer" .}}
 </body>
 </html>

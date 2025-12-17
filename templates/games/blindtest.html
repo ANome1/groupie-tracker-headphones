@@ -1,67 +1,467 @@
-<!-- RESPONSABLE: @Quoc Huy -->
-<!-- Interface de jeu Blind Test -->
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <title>Blind Test - Groupie Tracker</title>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/main.css">
     <link rel="stylesheet" href="/static/css/game.css">
+    <link rel="icon" href="/static/assets/images/icons/favicon.ico" type="image/x-icon">
+    <style>
+        /* Styles spécifiques au Blind Test */
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            padding: 2rem;
+        }
+
+        #playlist-selection {
+            text-align: center;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        #playlist-selection h2 {
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .game-config {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            display: inline-block;
+            text-align: left;
+        }
+
+        .config-group {
+            margin-bottom: 15px;
+        }
+
+        .config-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-secondary);
+        }
+
+        .config-group input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--primary);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            width: 100px;
+        }
+
+        .playlists-grid {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        #game-phase {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #game-phase .round-info {
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        .timer-wrapper {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        #game-phase .timer {
+            margin: 0;
+        }
+
+        .audio-player {
+            margin: 0;
+            text-align: center;
+            width: 100%;
+        }
+
+        .audio-player audio {
+            width: 100%;
+            max-width: 600px;
+            height: 54px;
+            border-radius: 50px;
+            background: linear-gradient(135deg, rgba(166, 142, 224, 0.1) 0%, rgba(101, 44, 239, 0.1) 100%);
+            border: 2px solid var(--primary);
+            box-shadow: 0 8px 24px rgba(166, 142, 224, 0.3),
+                        inset 0 2px 8px rgba(166, 142, 224, 0.2);
+            padding: 0.5rem;
+        }
+
+        .audio-player audio::-webkit-media-controls-panel {
+            background: linear-gradient(135deg, rgba(166, 142, 224, 0.2) 0%, rgba(101, 44, 239, 0.15) 100%);
+            border-radius: 50px;
+        }
+
+        .audio-player audio::-webkit-media-controls-play-button,
+        .audio-player audio::-webkit-media-controls-pause-button {
+            background-color: var(--primary);
+            border-radius: 50%;
+            filter: drop-shadow(0 0 8px rgba(166, 142, 224, 0.6));
+        }
+
+        .audio-player audio::-webkit-media-controls-current-time-display,
+        .audio-player audio::-webkit-media-controls-time-remaining-display {
+            color: var(--text);
+            text-shadow: 0 0 5px rgba(166, 142, 224, 0.5);
+        }
+
+        .audio-player audio::-webkit-media-controls-timeline {
+            background: rgba(166, 142, 224, 0.2);
+            border-radius: 10px;
+        }
+
+        .audio-player audio::-webkit-media-controls-volume-slider {
+            background: rgba(166, 142, 224, 0.2);
+            border-radius: 10px;
+        }
+
+        .track-cover {
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .track-cover img {
+            max-width: 300px;
+            width: 100%;
+            border-radius: 12px;
+            border: 3px solid var(--primary);
+            box-shadow: 0 8px 32px rgba(166, 142, 224, 0.4),
+                        0 0 20px rgba(166, 142, 224, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.5s ease;
+            animation: coverReveal 0.5s ease-out;
+        }
+
+        .track-cover img.blurred {
+            filter: blur(20px) !important;
+        }
+
+        .track-cover img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 40px rgba(166, 142, 224, 0.5),
+                        0 0 30px rgba(166, 142, 224, 0.4);
+        }
+
+        @keyframes coverReveal {
+            from {
+                opacity: 0;
+                transform: scale(0.8) rotateY(90deg);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) rotateY(0deg);
+            }
+        }
+
+        #answer-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin: 2rem auto;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .answer-input {
+            width: 100%;
+        }
+
+        .answer-input label {
+            text-align: left;
+        }
+
+        .answer-input input {
+            width: 100%;
+        }
+
+        #submit-answer-btn {
+            width: 100%;
+            max-width: 300px;
+        }
+
+        #results-phase {
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            margin: 0 auto;
+        }
+
+        #results-phase h3 {
+            font-family: var(--font-tech);
+            font-size: 2rem;
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        #final-results {
+            width: 100%;
+            max-width: 900px;
+            text-align: center;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(168,85,247,0.1) 100%);
+            border-radius: 20px;
+            animation: slideUp 0.8s ease-out;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #final-results h2 {
+            font-size: 2.5em;
+            margin-bottom: 40px;
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .final-rank {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            margin: 15px auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.6s ease-out backwards;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .final-rank:nth-child(2) { animation-delay: 0.1s; }
+        .final-rank:nth-child(3) { animation-delay: 0.2s; }
+        .final-rank:nth-child(4) { animation-delay: 0.3s; }
+        .final-rank:nth-child(5) { animation-delay: 0.4s; }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .final-rank:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .final-rank.first {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            box-shadow: 0 8px 30px rgba(251, 191, 36, 0.3);
+            padding: 25px;
+            transform: scale(1.05);
+        }
+
+        .final-rank.second {
+            background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+        }
+
+        .final-rank.third {
+            background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
+        }
+
+        .rank-medal {
+            font-size: 2.5em;
+            margin-right: 20px;
+            display: inline-block;
+            animation: bounce 0.6s ease-out;
+        }
+
+        @keyframes bounce {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .rank-info {
+            flex: 1;
+            text-align: left;
+        }
+
+        .rank-number {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #6b7280;
+            margin-right: 15px;
+        }
+
+        .rank-username {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #1f2937;
+        }
+
+        .final-rank.first .rank-username {
+            color: #000;
+        }
+
+        .rank-points {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #6366f1;
+        }
+
+        .final-rank.first .rank-points {
+            color: #000;
+            font-size: 1.5em;
+        }
+
+        #final-scoreboard {
+            margin-top: 20px;
+        }
+
+        /* Scoreboard inline */
+        .scoreboard {
+            position: fixed;
+            top: 120px;
+            right: 2rem;
+            width: 280px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 1200px) {
+            .scoreboard {
+                position: static;
+                width: 100%;
+                max-width: 500px;
+                margin: 2rem auto;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- TODO @Quoc Huy: Créer l'interface avec:
-         
-         1. Sélection de playlist (au début):
-            - "Choisis une des playlist !"
-            - Boutons: Rock, Rap, Pop
-         
-         2. Zone de jeu:
-            - Lecteur audio (lecture automatique de l'extrait)
-            - Timer visuel (37 secondes)
-            - Numéro du round (ex: "Round 3/10")
-            
-         3. Zone de réponse:
-            - Champ de saisie pour "Artiste - Titre"
-            - Bouton Valider
-            
-         4. Scoreboard:
-            - Liste des joueurs avec leurs scores
-            - Mise à jour en temps réel
-            
-         Système de points:
-         - Réponse en < 10s: 3 points
-         - Réponse en < 20s: 2 points
-         - Réponse en < 37s: 1 point
-    -->
+    {{template "header" .}}
     
     <div class="game-container">
-        <div id="playlist-selection" style="display: block;">
-            <h2>Choisis une des playlist !</h2>
-            <button onclick="selectPlaylist('Rock')">Rock</button>
-            <button onclick="selectPlaylist('Rap')">Rap</button>
-            <button onclick="selectPlaylist('Pop')">Pop</button>
+        {{if .PreSelectedPlaylist}}
+        <div data-pre-selected-playlist="{{.PreSelectedPlaylist}}" data-playlist-name="Playlist" style="display: none;"></div>
+        {{end}}
+        
+        <!-- Sélection de playlist (phase d'attente) -->
+        <div id="playlist-selection" class="playlist-section">
+            <h2>Démarrage de la partie...</h2>
+            <div class="loader" style="margin: 20px auto;"></div>
+            <p>Connexion au serveur...</p>
         </div>
         
-        <div id="game-area" style="display: none;">
-            <div class="timer" id="timer">37</div>
-            <div class="round-info">Round <span id="current-round">1</span>/<span id="total-rounds">10</span></div>
+        <!-- Phase de jeu -->
+        <div id="game-phase" style="display: none;">
+            <div class="round-info">
+                Manche <span id="current-round">1</span>/<span id="total-rounds">5</span>
+            </div>
             
-            <audio id="audio-player" autoplay></audio>
+            <div class="timer-wrapper">
+                <div class="timer" id="timer">30</div>
+            </div>
             
-            <form id="answer-form">
-                <input type="text" id="answer-input" placeholder="Artiste - Titre">
-                <button type="submit">Valider</button>
+            <!-- Lecteur audio -->
+            <div class="audio-player">
+                <audio id="track-audio" controls style="display: none;"></audio>
+                <div id="track-cover" class="track-cover" style="display: none;">
+                    <img id="cover-image" src="" alt="Album Cover">
+                </div>
+            </div>
+            
+            <!-- Formulaire de réponse -->
+            <form id="answer-form" onsubmit="return false;">
+                <div class="answer-input">
+                    <label>Titre de la chanson :</label>
+                    <input type="text" id="track-answer" name="track" autocomplete="off" placeholder="Entrez le titre...">
+                </div>
+                <div class="answer-input">
+                    <label>Artiste :</label>
+                    <input type="text" id="artist-answer" name="artist" autocomplete="off" placeholder="Entrez l'artiste...">
+                </div>
+                <button type="button" id="submit-answer-btn" class="submit-btn">Valider ma réponse</button>
             </form>
+            
+            <!-- Réponse déjà envoyée -->
+            <div id="answer-sent" style="display: none;">
+                <p class="info-message">✓ Réponse envoyée ! En attente des autres joueurs...</p>
+            </div>
         </div>
         
-        <div class="scoreboard">
-            <h3>Scores</h3>
-            <ul id="scores-list"></ul>
+        <!-- Phase de résultats -->
+        <div id="results-phase" style="display: none;">
+            <h3>Résultat de la manche</h3>
+            <div id="correct-answer" class="correct-answer">
+                <p><strong>Titre:</strong> <span id="correct-track"></span></p>
+                <p><strong>Artiste:</strong> <span id="correct-artist"></span></p>
+            </div>
+            <div id="round-scores" class="round-scores"></div>
+            <button id="next-round-btn" class="submit-btn" style="display: none;">Manche suivante</button>
+        </div>
+        
+        
+        <!-- Phase finale -->
+        <div id="final-results" style="display: none;">
+            <h2>Partie terminée !</h2>
+            <div id="final-scoreboard"></div>
+            <button id="new-game-btn" class="submit-btn">Nouvelle partie</button>
         </div>
     </div>
     
     <script src="/static/js/websocket.js"></script>
     <script src="/static/js/blindtest.js"></script>
+    <script>
+        // Initialisation WebSocket
+        const roomCode = "{{.RoomCode}}";
+        const userPseudo = "{{.User.Username}}";
+        const userID = "{{.User.ID}}";
+        window.currentUser = userPseudo;
+        window.currentUserID = userID;
+        window.roomCode = roomCode;
+        connectWS(roomCode, userID);
+    </script>
+    
+    {{template "footer" .}}
 </body>
 </html>
