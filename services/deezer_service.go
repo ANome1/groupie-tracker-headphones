@@ -20,11 +20,11 @@ var (
 
 // Popular Deezer playlists instead of genres for better results
 var PlaylistMappings = map[string]string{
-	"116": "1677006641",  // Rap US
-	"132": "53362031",    // Pop
-	"152": "1419215845",  // Rock
-	"162": "3272614282",  // Rap Français
-	"172": "14401046561", // Indie
+	"116": "1677006641", // Rap US
+	"132": "53362031",   // Pop
+	"152": "1419215845", // Rock
+	"162": "3272614282", // Rap Français
+	"172": "668126235",  // Indie
 }
 
 // DeezerTrack represents a track from Deezer API
