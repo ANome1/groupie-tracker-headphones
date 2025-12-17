@@ -163,23 +163,6 @@ func (c *Client) handleMessage(message []byte) {
 			game.RUnlock()
 		}
 
-	case "NEXT_ROUND":
-		game := services.Manager.GetGame(c.RoomID)
-		if game != nil && game.HostID == c.PlayerID {
-			update, gameOver := services.Manager.NextRound(c.RoomID)
-			if gameOver {
-				c.hub.BroadcastToRoom(c.RoomID, models.MessageOut{
-					Type: "GAME_OVER",
-					Data: game.Scores,
-				})
-			} else if update != nil {
-				c.hub.BroadcastToRoom(c.RoomID, models.MessageOut{
-					Type: "NEW_ROUND",
-					Data: update,
-				})
-			}
-		}
-
 	case "SUBMIT_VOTE":
 		var vote models.Vote
 		if err := json.Unmarshal(msg.Data, &vote); err != nil {
@@ -198,6 +181,50 @@ func (c *Client) handleMessage(message []byte) {
 				Type: "SCORES_UPDATE",
 				Data: scores,
 			})
+		}
+
+	case "END_ROUND":
+		// Broadcaster les résultats détaillés de la manche
+		game := services.Manager.GetGame(c.RoomID)
+		if game != nil {
+			roundResults := services.Manager.CalculateRoundResults(c.RoomID)
+			if roundResults != nil {
+				// Update actual game scores
+				game.Lock()
+				for pID, total := range roundResults.TotalScores {
+					game.Scores[pID] = total
+				}
+				game.Unlock()
+
+				// Broadcast round results to all players
+				c.hub.BroadcastToRoom(c.RoomID, models.MessageOut{
+					Type: "ROUND_RESULTS",
+					Data: roundResults,
+				})
+			}
+		}
+
+	case "NEXT_ROUND":
+		game := services.Manager.GetGame(c.RoomID)
+		if game != nil && game.HostID == c.PlayerID {
+			// Check if someone completed the round or it's the host action
+			update, gameOver := services.Manager.NextRound(c.RoomID)
+			if gameOver {
+				// Game finished - broadcast final scores
+				c.hub.BroadcastToRoom(c.RoomID, models.MessageOut{
+					Type: "GAME_OVER",
+					Data: map[string]interface{}{
+						"scores": game.Scores,
+						"hostID": game.HostID,
+					},
+				})
+			} else if update != nil {
+				// New round started
+				c.hub.BroadcastToRoom(c.RoomID, models.MessageOut{
+					Type: "NEW_ROUND",
+					Data: update,
+				})
+			}
 		}
 	}
 }

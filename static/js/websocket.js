@@ -59,6 +59,11 @@ function connectWebSocket(roomCode, playerID) {
                             window.handleNewRound(msg.Data);
                         }
                         break;
+                    case "ROUND_RESULTS":
+                        if (window.handleRoundResults) {
+                            window.handleRoundResults(msg.Data);
+                        }
+                        break;
                     case "GAME_OVER":
                         if (window.handleGameOver) {
                             window.handleGameOver(msg.Data);

@@ -52,6 +52,11 @@
             </div>
             <div id="host-controls" style="margin-top: 20px; text-align: center;"></div>
         </div>
+        
+        <!-- Phase finale -->
+        <div id="final-results" class="final-results-phase" style="display: none;">
+            <div id="final-scoreboard"></div>
+        </div>
     </div>
     
     <!-- Modal pour gérer les catégories -->
@@ -71,6 +76,7 @@
         const roomCode = "{{.Room.Code}}";
         const playerID = "{{.User.ID}}"; // Using User ID as player identifier
         window.currentPlayerID = playerID;
+        window.roomCode = roomCode;
         connectWebSocket(roomCode, playerID);
     </script>
     {{template "footer" .}}

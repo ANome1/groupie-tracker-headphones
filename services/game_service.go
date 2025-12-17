@@ -142,8 +142,8 @@ func (m *PetitBacManager) SubmitVote(gameID string, vote models.Vote) {
 	// But let's calculate scores on the fly or when requested
 }
 
-// CalculateScores updates the scores based on votes and answers
-func (m *PetitBacManager) CalculateScores(gameID string) map[string]int {
+// CalculateRoundResults retourne les détails complets des résultats pour une manche
+func (m *PetitBacManager) CalculateRoundResults(gameID string) *models.RoundResults {
 	game := m.GetGame(gameID)
 	if game == nil || len(game.Rounds) == 0 {
 		return nil
@@ -154,7 +154,15 @@ func (m *PetitBacManager) CalculateScores(gameID string) map[string]int {
 
 	currentRound := game.Rounds[len(game.Rounds)-1]
 
-	// Initialize validity map (default false - requires validation)
+	// Initialiser la structure de résultats
+	results := &models.RoundResults{
+		RoundNumber: currentRound.RoundNumber,
+		Answers:     make(map[string]map[string]*models.AnswerResult),
+		RoundScores: make(map[string]int),
+		TotalScores: make(map[string]int),
+	}
+
+	// Initialize validity map
 	validity := make(map[string]map[string]bool)
 	for _, pID := range game.Players {
 		validity[pID] = make(map[string]bool)
@@ -165,7 +173,7 @@ func (m *PetitBacManager) CalculateScores(gameID string) map[string]int {
 		}
 	}
 
-	// Count votes
+	// Count votes: valid > invalid = valid answer
 	type voteCount struct {
 		valid   int
 		invalid int
@@ -187,7 +195,7 @@ func (m *PetitBacManager) CalculateScores(gameID string) map[string]int {
 		}
 	}
 
-	// Apply majority rule: if valid > invalid, mark as valid
+	// Apply majority rule
 	for pID, cats := range votes {
 		for cat, count := range cats {
 			if count.valid > count.invalid {
@@ -200,7 +208,6 @@ func (m *PetitBacManager) CalculateScores(gameID string) map[string]int {
 
 	// Check for uniqueness
 	answerCounts := make(map[string]map[string]int)
-
 	for _, pID := range game.Players {
 		if resp, ok := currentRound.Responses[pID]; ok {
 			for cat, ans := range resp.Answers {
@@ -215,13 +222,11 @@ func (m *PetitBacManager) CalculateScores(gameID string) map[string]int {
 		}
 	}
 
-	projectedScores := make(map[string]int)
-	for k, v := range game.Scores {
-		projectedScores[k] = v
-	}
-
+	// Calculate points for each player
 	for _, pID := range game.Players {
-		points := 0
+		roundPoints := 0
+		results.Answers[pID] = make(map[string]*models.AnswerResult)
+
 		if resp, ok := currentRound.Responses[pID]; ok {
 			for cat, ans := range resp.Answers {
 				// Check if category is valid
@@ -236,21 +241,100 @@ func (m *PetitBacManager) CalculateScores(gameID string) map[string]int {
 					continue
 				}
 
+				// Default: no answer, 0 points
 				if ans == "" {
-					continue
-				}
-				if !validity[pID][cat] {
+					results.Answers[pID][cat] = &models.AnswerResult{
+						Answer: "",
+						Points: 0,
+						Valid:  false,
+						Unique: false,
+					}
 					continue
 				}
 
-				// Points accumulation: 2 points for validated answer
-				points += 2
+				// Check if valid according to votes
+				if !validity[pID][cat] {
+					results.Answers[pID][cat] = &models.AnswerResult{
+						Answer: ans,
+						Points: 0,
+						Valid:  false,
+						Unique: false,
+					}
+					continue
+				}
+
+				// If valid, check uniqueness
+				unique := answerCounts[cat][ans] == 1
+				points := 0
+				if unique {
+					points = 2 // Unique answer
+				} else {
+					points = 1 // Shared answer
+				}
+
+				roundPoints += points
+				results.Answers[pID][cat] = &models.AnswerResult{
+					Answer: ans,
+					Points: points,
+					Valid:  true,
+					Unique: unique,
+				}
 			}
 		}
-		projectedScores[pID] += points
+
+		results.RoundScores[pID] = roundPoints
+		results.TotalScores[pID] = game.Scores[pID] + roundPoints
 	}
 
-	return projectedScores
+	return results
+}
+
+// CalculateScores est appelée par NextRound - elle met à jour game.Scores
+func (m *PetitBacManager) CalculateScores(gameID string) map[string]int {
+	results := m.CalculateRoundResults(gameID)
+	if results == nil {
+		return nil
+	}
+
+	// Return the total scores
+	return results.TotalScores
+}
+
+// CheckRoundCompletion vérifie si un joueur a rempli toutes les catégories ou si le temps est écoulé
+func (m *PetitBacManager) CheckRoundCompletion(gameID string) (bool, string) {
+	game := m.GetGame(gameID)
+	if game == nil || len(game.Rounds) == 0 {
+		return false, ""
+	}
+
+	game.RLock()
+	defer game.RUnlock()
+
+	currentRound := game.Rounds[len(game.Rounds)-1]
+
+	// Vérifier si un joueur a rempli toutes les catégories
+	for _, pID := range game.Players {
+		if resp, ok := currentRound.Responses[pID]; ok && resp.Submitted {
+			allFilled := true
+			for _, cat := range game.Config.Categories {
+				if ans, exists := resp.Answers[cat]; !exists || ans == "" {
+					allFilled = false
+					break
+				}
+			}
+			if allFilled {
+				// Un joueur a complété toutes les catégories
+				return true, pID
+			}
+		}
+	}
+
+	// Vérifier si le temps est écoulé
+	if time.Now().After(currentRound.EndTime) {
+		return true, "" // Temps écoulé
+	}
+
+	return false, ""
 }
 
 // NextRound finalizes the current round and starts the next one

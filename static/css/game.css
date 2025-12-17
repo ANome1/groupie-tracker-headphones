@@ -11,6 +11,11 @@
     min-height: 80vh;
 }
 
+.game-container:has(> #final-results:not([style*="display: none"])) {
+    justify-content: flex-start;
+    min-height: auto;
+}
+
 /* La lettre au milieu */
 .letter-display {
     font-family: var(--font-tech);
@@ -632,4 +637,172 @@
 .scoreboard-item:hover {
     background: rgba(166, 142, 224, 0.15);
     transform: translateX(5px);
+}
+
+/* Styles for final results display */
+.final-results-phase {
+    width: 100%;
+    max-width: 900px;
+    text-align: center;
+    margin: 0 auto;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, rgba(166, 142, 224, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+    border-radius: 20px;
+    animation: slideUp 0.8s ease-out;
+    display: none;
+}
+
+.final-results-phase h2 {
+    font-family: var(--font-display), var(--font-tech), sans-serif;
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin-bottom: 40px;
+    animation: pulse 2s ease-in-out infinite;
+    font-display: swap;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.final-results-phase h3 {
+    font-family: var(--font-tech), sans-serif;
+    font-size: 1.5rem;
+    color: var(--text);
+    margin: 30px 0 20px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-display: swap;
+}
+
+/* Final rank styles */
+.final-rank {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    margin: 15px auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.6s ease-out backwards;
+    width: 100%;
+    max-width: 400px;
+}
+
+.final-rank:nth-child(n+3) { animation-delay: 0.1s; }
+.final-rank:nth-child(n+4) { animation-delay: 0.2s; }
+.final-rank:nth-child(n+5) { animation-delay: 0.3s; }
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.final-rank:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.final-rank.first {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    box-shadow: 0 8px 30px rgba(251, 191, 36, 0.3);
+    padding: 25px;
+    transform: scale(1.05);
+}
+
+.final-rank.second {
+    background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+}
+
+.final-rank.third {
+    background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
+}
+
+.rank-medal {
+    font-size: 2.5em;
+    margin-right: 20px;
+    display: inline-block;
+    animation: bounce 0.6s ease-out;
+}
+
+@keyframes bounce {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.rank-info {
+    flex: 1;
+    text-align: left;
+}
+
+.rank-number {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #6b7280;
+    margin-right: 15px;
+}
+
+.rank-username {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: #1f2937;
+}
+
+.final-rank.first .rank-username {
+    color: #000;
+}
+
+.rank-points {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #6366f1;
+}
+
+.final-rank.first .rank-points {
+    color: #000;
+    font-size: 1.5em;
+}
+
+.final-results-buttons {
+    margin-top: 40px;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    animation: slideUp 0.8s ease-out;
+}
+
+.final-results-buttons button {
+    font-family: var(--font-tech);
+    font-size: 1rem;
+    padding: 12px 30px;
+    background: linear-gradient(135deg, var(--primary) 0%, #7d5fd8 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(166, 142, 224, 0.3);
+}
+
+.final-results-buttons button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(166, 142, 224, 0.4);
+    background: linear-gradient(135deg, #7d5fd8 0%, var(--primary) 100%);
+}
+
+.final-results-buttons button:active {
+    transform: translateY(0px);
 }

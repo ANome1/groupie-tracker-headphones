@@ -89,6 +89,22 @@ type RoundUpdate struct {
 	RoundNumber int    `json:"RoundNumber"`
 }
 
+// RoundResults stores the scoring results for a round
+type RoundResults struct {
+	RoundNumber int                                 `json:"RoundNumber"`
+	Answers     map[string]map[string]*AnswerResult `json:"Answers"`     // PlayerID -> CategoryID -> Answer details
+	RoundScores map[string]int                      `json:"RoundScores"` // PlayerID -> Points gained this round
+	TotalScores map[string]int                      `json:"TotalScores"` // PlayerID -> Cumulative total
+}
+
+// AnswerResult stores details about an answer
+type AnswerResult struct {
+	Answer string `json:"Answer"`
+	Points int    `json:"Points"` // 0, 1, or 2
+	Valid  bool   `json:"Valid"`  // Was it validated?
+	Unique bool   `json:"Unique"` // Is it unique?
+}
+
 // MessageIn represents the standard format for messages received from the client.
 type MessageIn struct {
 	Type string          `json:"Type"`

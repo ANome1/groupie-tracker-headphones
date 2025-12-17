@@ -37,6 +37,14 @@ document.addEventListener('DOMContentLoaded', () => {
             submitAnswers();
         });
     }
+    
+    // Bouton nouvelle partie - Rediriger vers le lobby
+    const newGameBtn = document.querySelector('.final-results-buttons button') || document.getElementById('new-game-btn');
+    if (newGameBtn) {
+        newGameBtn.addEventListener('click', () => {
+            window.location.href = `/room/lobby?code=${window.roomCode}`;
+        });
+    }
 });
 
 // Expose submitAnswers to global scope for button onclick
@@ -277,9 +285,162 @@ window.handleNewRound = function(roundUpdate) {
     startTimer(roundUpdate.Duration);
 };
 
-window.handleGameOver = function(scores) {
-    alert("Partie terminée !");
-    window.updateScores(scores);
+window.handleGameOver = function(data) {
+    // Afficher les résultats finaux
+    clearInterval(timerInterval);
+    showFinalResults(data);
+};
+
+window.handleRoundResults = function(roundResults) {
+    // Afficher les résultats détaillés de la manche
+    clearInterval(timerInterval);
+    showRoundResults(roundResults);
+};
+
+function showRoundResults(roundResults) {
+    // Hide voting phase
+    document.getElementById('answers-form').style.display = 'none';
+    const votingSection = document.querySelector('[data-phase="voting"]');
+    if (votingSection) votingSection.style.display = 'none';
+    
+    // Create results display
+    const resultsDiv = document.getElementById('round-results') || createRoundResultsDisplay();
+    resultsDiv.innerHTML = `<h2>Résultats de la manche ${roundResults.RoundNumber}</h2>`;
+    
+    // Show answers and points
+    for (const [playerID, answers] of Object.entries(roundResults.Answers)) {
+        const playerName = (window.playerNames && window.playerNames[playerID]) || `Joueur ${playerID}`;
+        const roundScore = roundResults.RoundScores[playerID] || 0;
+        
+        let playerResultHTML = `<div class="player-round-result"><h3>${playerName}: +${roundScore} pts</h3>`;
+        
+        for (const [category, answerData] of Object.entries(answers)) {
+            if (!answerData.Answer) {
+                playerResultHTML += `<p class="no-answer">${category}: (pas de réponse)</p>`;
+            } else {
+                const icon = answerData.Valid ? (answerData.Unique ? '✅ 2pts' : '✅ 1pt') : '❌ 0pts';
+                playerResultHTML += `<p class="answer-line ${answerData.Valid ? 'valid' : 'invalid'}">${category}: ${answerData.Answer} ${icon}</p>`;
+            }
+        }
+        playerResultHTML += '</div>';
+        resultsDiv.innerHTML += playerResultHTML;
+    }
+    
+    // Add next round button for host
+    if (window.currentUserID == window.hostID) {
+        const btnDiv = document.createElement('div');
+        btnDiv.innerHTML = '<button onclick="nextRound()" class="submit-btn">Manche suivante</button>';
+        resultsDiv.appendChild(btnDiv);
+    }
+    
+    resultsDiv.style.display = 'block';
+}
+
+function showFinalResults(data) {
+    // Hide game form and validation phase
+    const answersForm = document.getElementById('answers-form');
+    if (answersForm) answersForm.style.display = 'none';
+    
+    const validationPhase = document.getElementById('validation-phase');
+    if (validationPhase) validationPhase.style.display = 'none';
+    
+    const letterDisplay = document.querySelector('.letter-display');
+    if (letterDisplay) letterDisplay.style.display = 'none';
+    
+    const roundInfo = document.querySelector('.round-info');
+    if (roundInfo) roundInfo.style.display = 'none';
+    
+    const timer = document.querySelector('.timer');
+    if (timer) timer.style.display = 'none';
+    
+    // Show final results
+    const finalDiv = document.getElementById('final-results') || createFinalResultsDisplay();
+    finalDiv.innerHTML = ''; // Clear previous content
+    
+    // Add title
+    const title = document.createElement('h2');
+    title.innerHTML = '🎮 Partie terminée! 🎮';
+    finalDiv.appendChild(title);
+    
+    const subtitle = document.createElement('h3');
+    subtitle.textContent = 'Classement final';
+    finalDiv.appendChild(subtitle);
+    
+    // Create scoreboard container
+    const scoreboardDiv = document.createElement('div');
+    scoreboardDiv.id = 'final-scoreboard';
+    
+    // Sort and display final scores - handle both wrapped and direct data
+    const scores = (data && data.scores) ? data.scores : data;
+    const sortedScores = Object.entries(scores || {}).sort((a, b) => b[1] - a[1]);
+    const medals = ['🥇', '🥈', '🥉'];
+    
+    sortedScores.forEach((entry, index) => {
+        const [playerID, score] = entry;
+        const playerName = (window.playerNames && window.playerNames[playerID]) || `Joueur ${playerID}`;
+        const medal = medals[index] || '⭐';
+        const rank = index + 1;
+        
+        let rankClass = '';
+        if (rank === 1) rankClass = 'first';
+        else if (rank === 2) rankClass = 'second';
+        else if (rank === 3) rankClass = 'third';
+        
+        const rankDiv = document.createElement('div');
+        rankDiv.className = `final-rank ${rankClass}`;
+        rankDiv.innerHTML = `
+            <span class="rank-medal">${medal}</span>
+            <div class="rank-info">
+                <div>
+                    <span class="rank-number">#${rank}</span>
+                    <span class="rank-username">${playerName}</span>
+                </div>
+            </div>
+            <div class="rank-points">${score} pts</div>
+        `;
+        scoreboardDiv.appendChild(rankDiv);
+    });
+    
+    finalDiv.appendChild(scoreboardDiv);
+    
+    // Add button to go back to lobby
+    const btnDiv = document.createElement('div');
+    btnDiv.className = 'final-results-buttons';
+    const newGameBtn = document.createElement('button');
+    newGameBtn.className = 'submit-btn';
+    newGameBtn.id = 'new-game-btn';
+    newGameBtn.textContent = 'Nouvelle partie';
+    newGameBtn.addEventListener('click', () => {
+        window.location.href = `/room/lobby?code=${window.roomCode}`;
+    });
+    btnDiv.appendChild(newGameBtn);
+    finalDiv.appendChild(btnDiv);
+    
+    finalDiv.style.display = 'block';
+}
+
+function createRoundResultsDisplay() {
+    const div = document.createElement('div');
+    div.id = 'round-results';
+    div.className = 'results-phase';
+    document.body.appendChild(div);
+    return div;
+}
+
+function createFinalResultsDisplay() {
+    const div = document.createElement('div');
+    div.id = 'final-results';
+    div.className = 'final-results-phase';
+    document.body.appendChild(div);
+    return div;
+}
+
+window.nextRound = function() {
+    sendMessage("NEXT_ROUND", {});
+};
+
+window.endRound = function() {
+    sendMessage("END_ROUND", {});
 };
 
 window.vote = function(targetPlayerID, category, isValid, btnElement) {

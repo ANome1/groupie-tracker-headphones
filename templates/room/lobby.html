@@ -204,7 +204,7 @@
         </div>
 
         <div class="players-card">
-            <h2>Joueurs connectés ({{len .Participants}}/{{.Room.MaxPlayers}})</h2>
+            <h2>Joueurs connectés</h2>
             <ul id="players-list" class="players-list">
                 {{range .Participants}}
                 <li class="player-item {{if eq .UserID $.Room.HostID}}host{{end}}">
@@ -239,7 +239,7 @@
     <script>
         const roomCode = "{{.Room.Code}}";
         const playerID = "{{.User.ID}}"; // Using User ID as player identifier
-        const isHost = {{.IsHost}};
+        const isHost = "{{.IsHost}}";
         const roomHostID = parseInt("{{.Room.HostID}}", 10) || 0;
         const maxPlayers = parseInt("{{.Room.MaxPlayers}}", 10) || 10;
         let selectedPlaylist = null;
