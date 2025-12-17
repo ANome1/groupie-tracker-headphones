@@ -14,50 +14,17 @@ let playlistSelected = false; // Track if playlist has been selected
 
 window.onWSReady = function() {
     wsReady = true;
-    // Si une playlist doit être auto-sélectionnée, le faire maintenant
-    if (pendingPlaylistSelect && !playlistSelected) {
-        const { playlistId, playlistName } = pendingPlaylistSelect;
-        console.log('WebSocket ready, auto-selecting playlist:', playlistId, playlistName);
-        selectPlaylist(playlistId, playlistName);
-        pendingPlaylistSelect = null;
-        playlistSelected = true;
+    console.log('WebSocket ready');
+    // Send join_game to get current state
+    if (typeof sendWebSocketMessage === 'function') {
+        sendWebSocketMessage({
+            type: 'join_game'
+        });
     }
 };
 
 // Sélection de playlist
 document.addEventListener('DOMContentLoaded', () => {
-    // Vérifier si une playlist a été pré-sélectionnée par le host
-    const preSelectedPlaylist = document.querySelector('[data-pre-selected-playlist]');
-    if (preSelectedPlaylist) {
-        const playlistId = preSelectedPlaylist.getAttribute('data-pre-selected-playlist');
-        const playlistName = preSelectedPlaylist.getAttribute('data-playlist-name') || 'Playlist';
-        console.log('Found pre-selected playlist:', playlistId, playlistName);
-        
-        // Si le WS est déjà prêt, auto-select maintenant
-        if (wsReady && !playlistSelected) {
-            console.log('WS ready, auto-selecting now');
-            selectPlaylist(playlistId, playlistName);
-            playlistSelected = true;
-        } else if (!playlistSelected) {
-            // Sinon, garder en mémoire pour plus tard
-            console.log('WS not ready, waiting...');
-            pendingPlaylistSelect = { playlistId, playlistName };
-        }
-    } else {
-        // Sinon, setup les boutons de sélection
-        const playlistBtns = document.querySelectorAll('.playlist-btn');
-        playlistBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const playlistId = btn.getAttribute('data-playlist-id');
-                const playlistName = btn.getAttribute('data-playlist-name');
-                if (!playlistSelected) {
-                    selectPlaylist(playlistId, playlistName);
-                    playlistSelected = true;
-                }
-            });
-        });
-    }
-
     // Bouton soumission réponse
     const submitBtn = document.getElementById('submit-answer-btn');
     if (submitBtn) {
@@ -83,13 +50,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Envoyer la sélection de playlist au serveur
+// Envoyer la sélection de playlist au serveur (Legacy - not used anymore)
 function selectPlaylist(playlistId, playlistName) {
-    sendWebSocketMessage({
-        type: 'select_playlist',
-        playlist_id: playlistId,
-        playlist_name: playlistName
-    });
+    console.log("Legacy selectPlaylist called - ignoring");
+}
     
     // Cacher la sélection
     document.getElementById('playlist-selection').style.display = 'none';
@@ -386,4 +350,51 @@ function handleBlindTestMessage(data) {
         default:
             console.log('Unknown message type:', data.type);
     }
+}
+
+// Custom Playlist Logic
+document.addEventListener('DOMContentLoaded', () => {
+    const addPlaylistBtn = document.getElementById('add-playlist-btn');
+    if (addPlaylistBtn) {
+        addPlaylistBtn.addEventListener('click', () => {
+            const idInput = document.getElementById('custom-playlist-id');
+            const nameInput = document.getElementById('custom-playlist-name');
+            
+            const id = idInput.value.trim();
+            const name = nameInput.value.trim();
+            
+            if (id && name) {
+                addCustomPlaylist(id, name);
+                // Clear inputs
+                idInput.value = '';
+                nameInput.value = '';
+            } else {
+                alert("Veuillez entrer un ID et un Nom pour la playlist.");
+            }
+        });
+    }
+});
+
+function addCustomPlaylist(id, name) {
+    const grid = document.querySelector('.playlists-grid');
+    if (!grid) return;
+
+    const btn = document.createElement('button');
+    btn.className = 'playlist-btn';
+    btn.setAttribute('data-playlist-id', id);
+    btn.setAttribute('data-playlist-name', name);
+    btn.textContent = name;
+    
+    // Add click listener (same as existing buttons)
+    btn.addEventListener('click', () => {
+        if (!playlistSelected) {
+            selectPlaylist(id, name);
+            playlistSelected = true;
+        }
+    });
+    
+    // Add visual feedback
+    btn.style.animation = 'fadeInUp 0.5s ease';
+    
+    grid.appendChild(btn);
 }

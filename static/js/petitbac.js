@@ -10,9 +10,9 @@ document.addEventListener('DOMContentLoaded', () => {
         animateLetter(initialLetter);
     }
 
-    // Démarrer le timer (60s par défaut)
-    // TODO: Récupérer la durée réelle depuis le serveur
-    startTimer(60);
+    // Démarrer le timer
+    const duration = (window.gameConfig && window.gameConfig.timePerRound) ? window.gameConfig.timePerRound : 60;
+    startTimer(duration);
 
     // Gestion de la soumission du formulaire
     if (form) {
@@ -474,3 +474,81 @@ window.updateScores = function(scores) {
         scoresList.appendChild(li);
     }
 };
+
+// Configuration Logic
+let currentCategories = ["Artiste", "Groupe de musique", "Album", "Instrument", "Featuring"];
+
+function renderCategoriesConfig() {
+    const container = document.getElementById('categories-list-config');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    currentCategories.forEach((cat, index) => {
+        const tag = document.createElement('div');
+        tag.className = 'category-tag';
+        tag.style.cssText = 'background: var(--primary); padding: 5px 10px; border-radius: 15px; display: flex; align-items: center; gap: 5px; font-size: 0.9rem;';
+        tag.innerHTML = `
+            ${cat}
+            <span onclick="removeCategory(${index})" style="cursor: pointer; font-weight: bold; margin-left: 5px;">&times;</span>
+        `;
+        container.appendChild(tag);
+    });
+}
+
+function addCategory() {
+    if (currentCategories.length >= 5) {
+        alert("Maximum 5 catégories ! Supprimez-en une pour en ajouter.");
+        return;
+    }
+    const input = document.getElementById('new-category-input');
+    const val = input.value.trim();
+    if (val) {
+        currentCategories.push(val);
+        input.value = '';
+        renderCategoriesConfig();
+    }
+}
+
+function removeCategory(index) {
+    currentCategories.splice(index, 1);
+    renderCategoriesConfig();
+}
+
+// Expose globally
+window.removeCategory = removeCategory;
+
+document.addEventListener('DOMContentLoaded', () => {
+    renderCategoriesConfig();
+    
+    const addBtn = document.getElementById('add-category-btn');
+    if (addBtn) {
+        addBtn.addEventListener('click', addCategory);
+    }
+    
+    const startBtn = document.getElementById('start-game-btn');
+    if (startBtn) {
+        startBtn.addEventListener('click', () => {
+            const numRounds = parseInt(document.getElementById('config-num-rounds').value) || 5;
+            const timePerRound = parseInt(document.getElementById('config-time-round').value) || 60;
+            
+            if (currentCategories.length === 0) {
+                alert("Il faut au moins une catégorie !");
+                return;
+            }
+
+            // Send START_GAME with config
+            if (window.socket && window.socket.readyState === WebSocket.OPEN) {
+                window.socket.send(JSON.stringify({
+                    type: 'START_GAME',
+                    config: {
+                        categories: currentCategories,
+                        num_rounds: numRounds,
+                        time_per_round: timePerRound
+                    }
+                }));
+            } else {
+                console.error("Socket not ready");
+            }
+        });
+    }
+});

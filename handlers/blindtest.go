@@ -48,6 +48,12 @@ func BlindTestHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	room, err := RoomService.GetRoomByCode(roomCode)
+	if err != nil {
+		http.Error(w, "Salle non trouvée", http.StatusNotFound)
+		return
+	}
+
 	tmpl, err := template.ParseFiles(
 		"templates/games/blindtest.html",
 		"templates/components/header.html",
@@ -65,13 +71,23 @@ func BlindTestHandler(w http.ResponseWriter, r *http.Request) {
 		"Playlists": deezerGenres,
 		"RoomCode":  roomCode,
 		"User":      user,
+		"Room":      room,
 	}
 
 	// Vérifier si une playlist a déjà été choisie par le host
 	game := services.BlindTestMgr.GetGame(roomCode)
-	if game != nil && game.Config.PlaylistID != "" {
-		// Une playlist a été définie, la pré-sélectionner
-		data["PreSelectedPlaylist"] = game.Config.PlaylistID
+	if game != nil {
+		if game.Config.PlaylistID != "" && game.Status != "finished" {
+			// Une playlist a été définie, la pré-sélectionner
+			data["PreSelectedPlaylist"] = game.Config.PlaylistID
+		}
+		// Passer la configuration actuelle
+		data["CurrentNumRounds"] = game.Config.NumRounds
+		data["CurrentTimePerRound"] = game.Config.TimePerRound
+	} else {
+		// Valeurs par défaut
+		data["CurrentNumRounds"] = 5
+		data["CurrentTimePerRound"] = 30
 	}
 
 	tmpl.Execute(w, data)

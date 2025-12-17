@@ -14,6 +14,7 @@ import (
 	"net/url"
 	"strconv"
 	"text/template"
+	"time"
 )
 
 // RESPONSABLE: @Nome (infrastructure), @Quoc Huy (WebSocket Blind Test), @ilian (WebSocket Petit Bac)
@@ -172,6 +173,17 @@ func StartGameHandler(w http.ResponseWriter, r *http.Request) {
 	userID, _ := strconv.Atoi(cookie.Value)
 	roomCode := r.FormValue("roomCode")
 
+	// Parse configuration
+	numRounds, _ := strconv.Atoi(r.FormValue("numRounds"))
+	if numRounds <= 0 {
+		numRounds = 5 // Default
+	}
+
+	timePerRound, _ := strconv.Atoi(r.FormValue("timePerRound"))
+	if timePerRound <= 0 {
+		timePerRound = 30 // Default
+	}
+
 	room, err := roomService.GetRoomByCode(roomCode)
 	if err != nil {
 		http.Error(w, "Salle non trouvée", http.StatusNotFound)
@@ -185,6 +197,9 @@ func StartGameHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Initialiser le jeu selon le type
 	if room.GameType == "petitbac" {
+		// Force timePerRound to 60 for Petit Bac
+		timePerRound = 60
+
 		// Récupérer les participants
 		participants, err := roomService.GetRoomParticipantsWithUsers(room.ID)
 		if err != nil {
@@ -204,8 +219,15 @@ func StartGameHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
+		// Config Petit Bac
+		config := models.PetitBacConfig{
+			Categories:   []string{"Artiste", "Groupe de musique", "Album", "Instrument", "Featuring"},
+			TimePerRound: timePerRound,
+			NumRounds:    numRounds,
+		}
+
 		// Créer l'instance de jeu
-		game := services.Manager.CreateGame(room.Code, strconv.Itoa(room.HostID), players, playerNames)
+		game := services.Manager.CreateGame(room.Code, strconv.Itoa(room.HostID), players, playerNames, config)
 
 		// Démarrer le premier round immédiatement pour avoir une lettre
 		services.Manager.StartRound(game.ID)
@@ -216,26 +238,33 @@ func StartGameHandler(w http.ResponseWriter, r *http.Request) {
 			Data: "/game/petitbac?code=" + room.Code,
 		})
 	} else if room.GameType == "blindtest" {
-		// Récupérer la playlist choisie par le host
 		playlistID := r.FormValue("playlistId")
-		if playlistID == "" {
-			playlistID = "152" // Default à Rock
-		}
 
-		// Créer une partie de blind test avec la playlist choisie
+		// Créer une partie de blind test AVEC la configuration
 		config := models.BlindTestConfig{
 			PlaylistID:   playlistID,
-			TimePerRound: 30,
-			NumRounds:    5,
+			TimePerRound: timePerRound,
+			NumRounds:    numRounds,
 		}
 		services.BlindTestMgr.CreateGame(room.Code, room.HostID, config)
+
+		// Démarrer la première manche immédiatement
+		game := services.BlindTestMgr.GetGame(room.Code)
+		if game != nil {
+			// Utiliser une goroutine pour ne pas bloquer la réponse HTTP
+			// et laisser le temps aux clients de se connecter au WebSocket
+			go func() {
+				time.Sleep(3 * time.Second) // Petit délai pour la connexion WS
+				services.BlindTestMgr.StartGameRound(game, hub.BroadcastToRoom)
+			}()
+		}
 
 		// Diffuser le message de début de partie via WebSocket
 		hub.BroadcastToRoom(room.Code, models.MessageOut{
 			Type: "GAME_START",
 			Data: "/game/blindtest?code=" + room.Code,
 		})
-		log.Printf("Blind test démarré pour room %s avec playlist %s", room.Code, playlistID)
+		log.Printf("Blind test initialisé pour room %s avec config: %+v", room.Code, config)
 	}
 
 	w.Header().Set("Content-Type", "application/json")

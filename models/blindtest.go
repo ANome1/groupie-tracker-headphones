@@ -41,6 +41,8 @@ type BlindTestGame struct {
 	AnsweredPlayers map[string]bool   // username -> has answered this round
 	PlayerNames     map[string]string // playerID -> username
 
+	Timer *time.Timer // Timer pour la fin de la manche
+
 	mutex sync.RWMutex
 }
 

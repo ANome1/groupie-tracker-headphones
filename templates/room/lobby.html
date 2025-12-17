@@ -216,12 +216,33 @@
 
         <div class="actions-card">
             {{if .IsHost}}
-            <!-- Sélection de playlist pour le host -->
+            <!-- Configuration de la partie -->
+            <div style="margin-bottom: 20px; padding: 20px; background: rgba(166, 142, 224, 0.05); border-radius: 12px;">
+                <h3 style="color: var(--primary); margin-bottom: 15px;">Configuration</h3>
+                <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                    <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                        <label for="config-num-rounds" style="color: var(--text); margin-bottom: 5px; font-size: 0.9rem;">Nombre de manches</label>
+                        <input type="number" id="config-num-rounds" value="{{if eq .Room.GameType "blindtest"}}5{{else}}9{{end}}" min="1" max="20" style="background: rgba(0, 0, 0, 0.2); border: 1px solid var(--primary); color: white; padding: 8px 12px; border-radius: 8px; width: 100px;">
+                    </div>
+                    {{if eq .Room.GameType "blindtest"}}
+                    <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                        <label for="config-time-round" style="color: var(--text); margin-bottom: 5px; font-size: 0.9rem;">Temps par manche (sec)</label>
+                        <input type="number" id="config-time-round" value="30" min="5" max="120" style="background: rgba(0, 0, 0, 0.2); border: 1px solid var(--primary); color: white; padding: 8px 12px; border-radius: 8px; width: 100px;">
+                    </div>
+                    {{end}}
+                </div>
+            </div>
+
+            <!-- Sélection de playlist pour le host (Blind Test uniquement) -->
+            {{if eq .Room.GameType "blindtest"}}
             <div style="margin-bottom: 30px; padding: 20px;">
+                <h3 style="color: var(--primary); margin-bottom: 15px;">Choisir un thème</h3>
                 <div id="playlist-options" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
                     <!-- Les playlists seront ajoutées par JavaScript -->
                 </div>
             </div>
+            {{end}}
+
             <button id="start-game" class="start-button">🚀 Démarrer la partie</button>
             {{else}}
             <p class="waiting-message">En attente que l'hôte démarre la partie...</p>
@@ -344,9 +365,19 @@
                     alert('Veuillez sélectionner une playlist');
                     return;
                 }
+
+                const numRoundsInput = document.getElementById('config-num-rounds');
+                const timeRoundInput = document.getElementById('config-time-round');
+                
+                const numRounds = numRoundsInput ? numRoundsInput.value : 5;
+                const timePerRound = timeRoundInput ? timeRoundInput.value : 30;
+
                 try {
                     const body = new URLSearchParams();
                     body.append('roomCode', roomCode);
+                    body.append('numRounds', numRounds);
+                    body.append('timePerRound', timePerRound);
+                    
                     if (selectedPlaylist) {
                         body.append('playlistId', selectedPlaylist);
                     }

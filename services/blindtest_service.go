@@ -41,7 +41,7 @@ func (m *BlindTestManager) GetGame(roomCode string) *models.BlindTestGame {
 }
 
 // HandleMessage traite les messages WebSocket pour le blind test
-func (m *BlindTestManager) HandleMessage(roomCode, username string, message []byte, broadcastFunc func(string, interface{})) {
+func (m *BlindTestManager) HandleMessage(roomCode, username string, message []byte, broadcastFunc func(string, interface{}), sendToClientFunc func(interface{})) {
 	var msg map[string]interface{}
 	if err := json.Unmarshal(message, &msg); err != nil {
 		log.Printf("Erreur parsing message: %v", err)
@@ -61,6 +61,8 @@ func (m *BlindTestManager) HandleMessage(roomCode, username string, message []by
 	}
 
 	switch msgType {
+case "join_game":
+		m.handleJoinGame(game, sendToClientFunc)
 	case "select_playlist":
 		m.handleSelectPlaylist(game, msg, broadcastFunc)
 	case "submit_answer":
@@ -90,11 +92,11 @@ func (m *BlindTestManager) handleSelectPlaylist(game *models.BlindTestGame, msg 
 	game.Status = "playing"
 
 	// Démarrer la première manche
-	m.startNewRound(game, broadcastFunc)
+	m.StartGameRound(game, broadcastFunc)
 }
 
-// startNewRound démarre une nouvelle manche
-func (m *BlindTestManager) startNewRound(game *models.BlindTestGame, broadcastFunc func(string, interface{})) {
+// StartGameRound démarre une nouvelle manche
+func (m *BlindTestManager) StartGameRound(game *models.BlindTestGame, broadcastFunc func(string, interface{})) {
 	game.RoundNumber++
 	game.ResetRound()
 
@@ -366,7 +368,7 @@ func (m *BlindTestManager) handleNextRound(game *models.BlindTestGame, broadcast
 		return
 	}
 
-	m.startNewRound(game, broadcastFunc)
+	m.StartGameRound(game, broadcastFunc)
 }
 
 // RemoveGame supprime une partie
@@ -376,4 +378,29 @@ func (m *BlindTestManager) RemoveGame(roomCode string) {
 
 	delete(m.games, roomCode)
 	fmt.Printf("Blind test supprimé pour room %s\n", roomCode)
+}
+
+// handleJoinGame envoie l'état actuel du jeu au client qui vient de rejoindre
+func (m *BlindTestManager) handleJoinGame(game *models.BlindTestGame, sendToClientFunc func(interface{})) {
+if game.Status == "playing" && game.CurrentRound != nil {
+// Calculer le temps restant
+elapsed := time.Since(game.CurrentRound.StartTime).Seconds()
+remaining := float64(game.Config.TimePerRound) - elapsed
+if remaining < 0 {
+remaining = 0
+}
+
+msg := map[string]interface{}{
+"type":         "round_start",
+"round_number": game.RoundNumber,
+"total_rounds": game.Config.NumRounds,
+"preview_url":  game.CurrentRound.PreviewURL,
+"cover_image":  game.CurrentRound.CoverImage,
+"duration":     game.Config.TimePerRound,
+"remaining_time": remaining,
+"track_name":   game.CurrentRound.TrackName,
+"artist_name":  game.CurrentRound.ArtistName,
+}
+sendToClientFunc(msg)
+}
 }
