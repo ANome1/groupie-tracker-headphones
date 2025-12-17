@@ -253,34 +253,36 @@
         // Initialiser les boutons de playlist pour le host
         if (isHost && "{{.Room.GameType}}" === "blindtest") {
             const playlistOptions = document.getElementById('playlist-options');
-            Object.entries(playlists).forEach(([id, name]) => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.textContent = name;
-                btn.style.cssText = `
-                    padding: 10px 20px;
-                    background: rgba(166, 142, 224, 0.1);
-                    border: 2px solid rgba(166, 142, 224, 0.3);
-                    border-radius: 8px;
-                    color: var(--text);
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                `;
-                btn.addEventListener('click', () => {
-                    // Déselectionner tous les autres
-                    playlistOptions.querySelectorAll('button').forEach(b => {
-                        b.style.background = 'rgba(166, 142, 224, 0.1)';
-                        b.style.borderColor = 'rgba(166, 142, 224, 0.3)';
+            if (playlistOptions) {
+                Object.entries(playlists).forEach(([id, name]) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.textContent = name;
+                    btn.style.cssText = `
+                        padding: 10px 20px;
+                        background: rgba(166, 142, 224, 0.1);
+                        border: 2px solid rgba(166, 142, 224, 0.3);
+                        border-radius: 8px;
+                        color: var(--text);
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    `;
+                    btn.addEventListener('click', () => {
+                        // Déselectionner tous les autres
+                        playlistOptions.querySelectorAll('button').forEach(b => {
+                            b.style.background = 'rgba(166, 142, 224, 0.1)';
+                            b.style.borderColor = 'rgba(166, 142, 224, 0.3)';
+                        });
+                        // Selectionner celui-ci
+                        selectedPlaylist = id;
+                        btn.style.background = 'var(--primary)';
+                        btn.style.borderColor = 'var(--primary)';
+                        btn.style.color = 'var(--background)';
                     });
-                    // Selectionner celui-ci
-                    selectedPlaylist = id;
-                    btn.style.background = 'var(--primary)';
-                    btn.style.borderColor = 'var(--primary)';
-                    btn.style.color = 'var(--background)';
+                    playlistOptions.appendChild(btn);
                 });
-                playlistOptions.appendChild(btn);
-            });
+            }
         }
 
         // Connect to WebSocket
