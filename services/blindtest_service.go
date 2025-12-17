@@ -80,6 +80,12 @@ func (m *BlindTestManager) handleSelectPlaylist(game *models.BlindTestGame, msg 
 		return
 	}
 
+	// Éviter de relancer la première manche si elle a déjà commencé
+	if game.Status == "playing" && game.RoundNumber > 0 {
+		log.Printf("Partie déjà en cours pour room %s, ignorant sélection de playlist", game.RoomCode)
+		return
+	}
+
 	game.Config.PlaylistID = playlistID
 	game.Status = "playing"
 

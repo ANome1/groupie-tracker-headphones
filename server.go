@@ -8,8 +8,10 @@ import (
 	"groupie-tracker/services"
 	"groupie-tracker/utils"
 	"groupie-tracker/websocket"
+	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 	"text/template"
 )
@@ -240,6 +242,58 @@ func StartGameHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// AudioProxyHandler proxies audio files from Deezer to avoid CORS issues
+func AudioProxyHandler(w http.ResponseWriter, r *http.Request) {
+	// Get the audio URL from query parameter
+	audioURL := r.URL.Query().Get("url")
+	if audioURL == "" {
+		http.Error(w, "Missing url parameter", http.StatusBadRequest)
+		return
+	}
+
+	// Validate that the URL is from Deezer (security check)
+	parsedURL, err := url.Parse(audioURL)
+	if err != nil {
+		http.Error(w, "Invalid URL", http.StatusBadRequest)
+		return
+	}
+
+	// Allow both cdnt-preview.dzcdn.net and cdns-files-c.dzcdn.net
+	if parsedURL.Host != "cdnt-preview.dzcdn.net" && parsedURL.Host != "cdns-files-c.dzcdn.net" {
+		http.Error(w, "Invalid or untrusted URL", http.StatusBadRequest)
+		return
+	}
+
+	// Fetch the audio from Deezer
+	resp, err := http.Get(audioURL)
+	if err != nil {
+		log.Printf("Error fetching audio from Deezer: %v", err)
+		http.Error(w, "Failed to fetch audio", http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Check response status
+	if resp.StatusCode != http.StatusOK {
+		http.Error(w, "Failed to fetch audio", http.StatusInternalServerError)
+		return
+	}
+
+	// Set proper headers for audio streaming
+	w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
+	if resp.Header.Get("Content-Length") != "" {
+		w.Header().Set("Content-Length", resp.Header.Get("Content-Length"))
+	}
+	w.Header().Set("Accept-Ranges", "bytes")
+	w.Header().Set("Cache-Control", "public, max-age=3600")
+
+	// Stream the audio
+	_, err = io.Copy(w, resp.Body)
+	if err != nil {
+		log.Printf("Error streaming audio: %v", err)
+	}
+}
+
 var authService *services.AuthService
 var roomService *services.RoomService
 var hub *websocket.Hub
@@ -289,6 +343,7 @@ func main() {
 	http.HandleFunc("/game/blindtest", BlindTestHandler)
 	http.HandleFunc("/game/petitbac", PetitBacHandler)
 	http.HandleFunc("/game/start", StartGameHandler)
+	http.HandleFunc("/audio/proxy", AudioProxyHandler)
 
 	// WebSocket
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {

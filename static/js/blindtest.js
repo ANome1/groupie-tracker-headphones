@@ -9,14 +9,18 @@ let currentRoundData = null;
 
 // Exposer la fonction pour websocket.js
 window.handleBlindTestMessage = handleBlindTestMessage;
+
+let playlistSelected = false; // Track if playlist has been selected
+
 window.onWSReady = function() {
     wsReady = true;
     // Si une playlist doit être auto-sélectionnée, le faire maintenant
-    if (pendingPlaylistSelect) {
+    if (pendingPlaylistSelect && !playlistSelected) {
         const { playlistId, playlistName } = pendingPlaylistSelect;
         console.log('WebSocket ready, auto-selecting playlist:', playlistId, playlistName);
         selectPlaylist(playlistId, playlistName);
         pendingPlaylistSelect = null;
+        playlistSelected = true;
     }
 };
 
@@ -30,10 +34,11 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Found pre-selected playlist:', playlistId, playlistName);
         
         // Si le WS est déjà prêt, auto-select maintenant
-        if (wsReady) {
+        if (wsReady && !playlistSelected) {
             console.log('WS ready, auto-selecting now');
             selectPlaylist(playlistId, playlistName);
-        } else {
+            playlistSelected = true;
+        } else if (!playlistSelected) {
             // Sinon, garder en mémoire pour plus tard
             console.log('WS not ready, waiting...');
             pendingPlaylistSelect = { playlistId, playlistName };
@@ -45,7 +50,10 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', () => {
                 const playlistId = btn.getAttribute('data-playlist-id');
                 const playlistName = btn.getAttribute('data-playlist-name');
-                selectPlaylist(playlistId, playlistName);
+                if (!playlistSelected) {
+                    selectPlaylist(playlistId, playlistName);
+                    playlistSelected = true;
+                }
             });
         });
     }
@@ -121,13 +129,29 @@ function startRound(data) {
     // Afficher le lecteur audio
     const audioPlayer = document.getElementById('track-audio');
     if (data.preview_url) {
-        console.log('Setting audio source:', data.preview_url);
-        audioPlayer.src = data.preview_url;
-        audioPlayer.play().then(() => {
-            console.log('Audio started playing');
-        }).catch(err => {
-            console.error('Audio play error:', err);
-        });
+        // Utiliser le proxy audio pour éviter les problèmes CORS
+        const proxyUrl = `/audio/proxy?url=${encodeURIComponent(data.preview_url)}`;
+        console.log('Setting audio source via proxy:', proxyUrl);
+        
+        // Reset audio player
+        audioPlayer.pause();
+        audioPlayer.currentTime = 0;
+        
+        // Set source and wait for it to be loadable
+        audioPlayer.src = proxyUrl;
+        
+        // Wait for canplay event before playing
+        const playAudio = () => {
+            audioPlayer.play().then(() => {
+                console.log('Audio started playing');
+            }).catch(err => {
+                console.error('Audio play error:', err);
+            });
+            audioPlayer.removeEventListener('canplay', playAudio);
+        };
+        
+        audioPlayer.addEventListener('canplay', playAudio, { once: true });
+        audioPlayer.load();
     } else {
         console.error('No preview_url in data');
     }
