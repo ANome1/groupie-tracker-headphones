@@ -91,6 +91,17 @@
             box-shadow: 0 12px 32px rgba(101, 44, 239, 0.4);
         }
 
+        .game-card img {
+            width: 150px;
+            height: 150px;
+            margin: 15px auto;
+            filter: drop-shadow(0 0 15px rgba(166, 142, 224, 0.3));
+        }
+
+        .game-card:hover img {
+            filter: drop-shadow(0 0 25px rgba(101, 44, 239, 0.5));
+        }
+
         /* Join Section */
         .join {
             text-align: center;
@@ -165,12 +176,14 @@
         <section class="games">
             <div class="game-card">
                 <h3>🎶 Blind Test</h3>
+                <img class="illustration" src="/static/assets/images/Headphone-amico.svg" alt="blindtest illustrations">
                 <p>Devinez le titre et l'artiste le plus vite possible !</p>
                 <a href="/room/create?type=blindtest">Créer une partie</a>
             </div>
             
             <div class="game-card">
                 <h3>📝 Petit Bac</h3>
+                <img class="illustration" src="/static/assets/images/Playlist-amico.svg" alt="petit bac illustrations">
                 <p>Trouvez des mots dans différentes catégories !</p>
                 <a href="/room/create?type=petitbac">Créer une partie</a>
             </div>

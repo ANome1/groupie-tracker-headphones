@@ -112,3 +112,27 @@ h4, h5, h6 {
   scrollbar-color: var(--primary) rgba(166, 142, 224, 0.05);
   scrollbar-width: thin;
 }
+
+/* SVG */
+svg {
+  color: var(--text);
+  fill: currentColor;
+  transition: all 0.3s ease;
+}
+
+svg.icon {
+  width: 24px;
+  height: 24px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+svg.illustration {
+  opacity: 0.9;
+  filter: drop-shadow(0 0 20px rgba(166, 142, 224, 0.15));
+}
+
+svg.illustration:hover {
+  opacity: 1;
+  filter: drop-shadow(0 0 30px rgba(101, 44, 239, 0.25));
+}

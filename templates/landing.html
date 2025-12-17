@@ -23,14 +23,17 @@
                 <div class="features-card">
                     <div class="feature-item">
                         <h3>Multijoueur</h3>
+                        <img class="illustration" src="/static/assets/images/Connected world-amico.svg" alt="multiplayer illustrations">
                         <p>Jouez avec vos amis (jusqu'à 8 joueurs).</p>
                     </div>
                     <div class="feature-item">
                         <h3>Playlists variées</h3>
+                        <img class="illustration" src="/static/assets/images/Playlist-bro.svg" alt="playlist illustrations">
                         <p>Découvrez une large gamme de playlists pour tous les goûts.</p>
                     </div>
                     <div class="feature-item">
                         <h3>Classements</h3>
+                        <img class="illustration" src="/static/assets/images/Achievement-bro.svg" alt="podium illustrations">
                         <p>Grimpez dans les classements.</p>
                     </div>
                 </div>
@@ -40,10 +43,12 @@
                 <div class="games-list">
                     <div class="game-item">
                         <h3>Blind Test</h3>
+                        <img class="illustration" src="/static/assets/images/Headphone-amico.svg" alt="blindtest illustrations">
                         <p>Écoutez des extraits et devinez le titre ou l'artiste.</p>
                     </div>
                     <div class="game-item">
                         <h3>Petit Bac</h3>
+                        <img class="illustration" src="/static/assets/images/Playlist-amico.svg" alt="petit bac illustrations">
                         <p>Testez vos connaissances générales du monde musical.</p>
                     </div>
                 </div>
@@ -157,6 +162,10 @@
         max-width: 280px;
         border-radius: 12px;
         transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
     }
 
     .feature-item:hover {
@@ -175,6 +184,17 @@
     .feature-item p {
         color: var(--text);
         font-size: 0.95rem;
+    }
+
+    .feature-item img {
+        width: 120px;
+        height: 120px;
+        margin: 12px auto;
+        filter: drop-shadow(0 0 15px rgba(166, 142, 224, 0.3));
+    }
+
+    .feature-item:hover img {
+        filter: drop-shadow(0 0 25px rgba(101, 44, 239, 0.5));
     }
 
     .our-games {
@@ -239,6 +259,17 @@
     .game-item p {
         color: var(--text);
         font-size: 0.95rem;
+    }
+
+    .game-item img {
+        width: 130px;
+        height: 130px;
+        margin: 12px auto;
+        filter: drop-shadow(0 0 15px rgba(166, 142, 224, 0.3));
+    }
+
+    .game-item:hover img {
+        filter: drop-shadow(0 0 25px rgba(101, 44, 239, 0.5));
     }
 
 </style>
