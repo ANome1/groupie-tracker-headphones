@@ -142,12 +142,24 @@
         .player-btn:hover {
             background-color: rgba(166, 142, 224, 0.2);
             transform: scale(1.05);
+            border-color: var(--accent);
+        }
+
+        .player-btn:active {
+            transform: scale(0.95);
         }
 
         .player-btn.selected {
-            background-color: var(--primary);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
             color: var(--background);
-            box-shadow: 0 0 12px rgba(166, 142, 224, 0.5);
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(166, 142, 224, 0.8), inset 0 0 10px rgba(0, 0, 0, 0.2);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .player-btn.selected::after {
+            content: " ✓";
         }
 
         .player-label {

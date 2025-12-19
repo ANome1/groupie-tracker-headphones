@@ -57,6 +57,7 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 
 		name := r.FormValue("name")
 		gameType := r.FormValue("gameType")
+		maxPlayersStr := r.FormValue("max_players")
 
 		if name == "" {
 			tmpl, _ := template.ParseFiles("./templates/room/create.html", "./templates/components/header.html", "./templates/components/footer.html")
@@ -64,7 +65,14 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		room, err := RoomService.CreateRoom(name, gameType, userID)
+		maxPlayers := 8 // Valeur par défaut
+		if maxPlayersStr != "" {
+			if parsedMax, err := strconv.Atoi(maxPlayersStr); err == nil {
+				maxPlayers = parsedMax
+			}
+		}
+
+		room, err := RoomService.CreateRoom(name, gameType, userID, maxPlayers)
 		if err != nil {
 			tmpl, _ := template.ParseFiles("./templates/room/create.html", "./templates/components/header.html", "./templates/components/footer.html")
 			tmpl.Execute(w, RoomData{Error: "Erreur lors de la création: " + err.Error()})
@@ -76,7 +84,7 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request) {
 			log.Printf("Erreur lors de l'ajout de l'hôte: %v", err)
 		}
 
-		log.Printf("Salle créée: %s (code: %s, host: %d)", name, room.Code, userID)
+		log.Printf("Salle créée: %s (code: %s, host: %d, max_players: %d)", name, room.Code, userID, maxPlayers)
 		http.Redirect(w, r, "/room/lobby?code="+room.Code, http.StatusSeeOther)
 	}
 }

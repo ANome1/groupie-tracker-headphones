@@ -200,6 +200,7 @@
             <div>
                 <span class="lobby-info">Code: <strong>{{.Room.Code}}</strong></span>
                 <span class="lobby-info">Jeu: <strong>{{if eq .Room.GameType "blindtest"}}🎶 Blind Test{{else}}📝 Petit Bac{{end}}</strong></span>
+                <span class="lobby-info">Joueurs: <strong id="player-count">{{len .Participants}}/{{.Room.MaxPlayers}}</strong></span>
             </div>
         </div>
 
@@ -327,6 +328,11 @@
                     playersList.appendChild(li);
                 });
             }
+            // Update the player count badge
+            const playerCountBadge = document.getElementById('player-count');
+            if (playerCountBadge) {
+                playerCountBadge.textContent = `${data.total}/${maxPlayers}`;
+            }
             // Update the player count heading
             const heading = document.querySelector('.players-card h2');
             if (heading) {
@@ -349,6 +355,11 @@
                     li.textContent = p.Username;
                     playersList.appendChild(li);
                 });
+            }
+            // Update the player count badge
+            const playerCountBadge = document.getElementById('player-count');
+            if (playerCountBadge) {
+                playerCountBadge.textContent = `${data.total}/${maxPlayers}`;
             }
             // Update the player count heading
             const heading = document.querySelector('.players-card h2');

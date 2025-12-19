@@ -37,12 +37,12 @@ func (rs *RoomService) GenerateRoomCode() string {
 	}
 }
 
-func (rs *RoomService) CreateRoom(name, gameType string, hostID int) (*models.Room, error) {
+func (rs *RoomService) CreateRoom(name, gameType string, hostID int, maxPlayers int) (*models.Room, error) {
 	code := rs.GenerateRoomCode()
 
 	result, err := rs.DB.DB.Exec(
-		"INSERT INTO rooms (name, code, host_id, game_type, status) VALUES (?, ?, ?, ?, ?)",
-		name, code, hostID, gameType, "waiting",
+		"INSERT INTO rooms (name, code, host_id, game_type, max_players, status) VALUES (?, ?, ?, ?, ?, ?)",
+		name, code, hostID, gameType, maxPlayers, "waiting",
 	)
 	if err != nil {
 		log.Printf("Error creating room: %v", err)
