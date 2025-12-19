@@ -116,6 +116,47 @@
             color: var(--text);
         }
 
+        .players-selector {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .player-btn {
+            flex: 1;
+            min-width: 50px;
+            padding: 10px;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            background-color: rgba(166, 142, 224, 0.1);
+            color: var(--text);
+            font-size: 0.9rem;
+            font-weight: 600;
+            font-family: var(--font-body);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .player-btn:hover {
+            background-color: rgba(166, 142, 224, 0.2);
+            transform: scale(1.05);
+        }
+
+        .player-btn.selected {
+            background-color: var(--primary);
+            color: var(--background);
+            box-shadow: 0 0 12px rgba(166, 142, 224, 0.5);
+        }
+
+        .player-label {
+            font-size: 0.85rem;
+            color: var(--text);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
         .auth-container button {
             padding: 12px;
             margin-bottom: 20px;
@@ -184,27 +225,50 @@
             </div>
             {{end}}
             <form action="/room/create" method="POST">
-                <input type="text" name="name" placeholder="Nom de la salle" required>
+                <input type="text" name="name" placeholder="Nom de la salle" value="Salle de {{.User.Username}}" required>
                 <select name="gameType" required>
                     <option value="">-- Choisir un jeu --</option>
                     <option value="blindtest">🎶 Blind Test</option>
                     <option value="petitbac">📝 Petit Bac</option>
                 </select>
-                <select name="max_players">
-                    <option value="">-- Nombre de joueurs --</option>
-                    <option value="2">2 joueurs</option>
-                    <option value="3">3 joueurs</option>
-                    <option value="4" selected>4 joueurs (recommandé)</option>
-                    <option value="5">5 joueurs</option>
-                    <option value="6">6 joueurs</option>
-                    <option value="7">7 joueurs</option>
-                    <option value="8">8 joueurs</option>
-                </select>
+                
+                <div class="player-label">Nombre de joueurs</div>
+                <div class="players-selector">
+                    <button type="button" class="player-btn" data-players="1">1</button>
+                    <button type="button" class="player-btn" data-players="2">2</button>
+                    <button type="button" class="player-btn" data-players="3">3</button>
+                    <button type="button" class="player-btn selected" data-players="4">4 ⭐</button>
+                    <button type="button" class="player-btn" data-players="5">5</button>
+                    <button type="button" class="player-btn" data-players="6">6</button>
+                    <button type="button" class="player-btn" data-players="7">7</button>
+                    <button type="button" class="player-btn" data-players="8">8</button>
+                </div>
+                <input type="hidden" name="max_players" id="max_players" value="4" required>
+                
                 <button type="submit">Créer la salle</button>
             </form>
             <p>Ou <a href="/home">retourner au menu</a></p>
         </div>
     </section>
     {{template "footer" .}}
+    <script>
+        // Gestion de la sélection du nombre de joueurs
+        document.querySelectorAll('.player-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Retirer la classe selected de tous les boutons
+                document.querySelectorAll('.player-btn').forEach(b => {
+                    b.classList.remove('selected');
+                });
+                
+                // Ajouter la classe selected au bouton cliqué
+                btn.classList.add('selected');
+                
+                // Mettre à jour le champ caché
+                document.getElementById('max_players').value = btn.dataset.players;
+            });
+        });
+    </script>
 </body>
 </html>
