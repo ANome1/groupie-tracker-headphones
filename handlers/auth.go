@@ -22,18 +22,12 @@ type LoginData struct {
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		username := r.FormValue("username")
-		email := r.FormValue("email")
 		password := r.FormValue("password")
+		confirmPassword := r.FormValue("confirm_password")
 
 		if !utils.ValidateUsername(username) {
 			tmpl, _ := template.ParseFiles("./templates/auth/register.html", "./templates/components/header.html", "./templates/components/footer.html")
 			tmpl.Execute(w, RegisterData{Error: "Username invalide (3-20 caractères)"})
-			return
-		}
-
-		if !utils.ValidateEmail(email) {
-			tmpl, _ := template.ParseFiles("./templates/auth/register.html", "./templates/components/header.html", "./templates/components/footer.html")
-			tmpl.Execute(w, RegisterData{Error: "Email invalide"})
 			return
 		}
 
@@ -43,7 +37,13 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		userID, err := AuthService.CreateUser(username, email, password)
+		if password != confirmPassword {
+			tmpl, _ := template.ParseFiles("./templates/auth/register.html", "./templates/components/header.html", "./templates/components/footer.html")
+			tmpl.Execute(w, RegisterData{Error: "Les mots de passe ne correspondent pas"})
+			return
+		}
+
+		userID, err := AuthService.CreateUser(username, password)
 		if err != nil {
 			tmpl, _ := template.ParseFiles("./templates/auth/register.html", "./templates/components/header.html", "./templates/components/footer.html")
 			tmpl.Execute(w, RegisterData{Error: "Erreur : " + err.Error()})

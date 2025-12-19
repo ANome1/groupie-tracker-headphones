@@ -13,13 +13,10 @@ type AuthService struct {
 	DB *database.Database
 }
 
-func (as *AuthService) CreateUser(username, email, password string) (int, error) {
+func (as *AuthService) CreateUser(username, password string) (int, error) {
 
 	if !utils.ValidateUsername(username) {
 		return 0, errors.New("invalid username")
-	}
-	if !utils.ValidateEmail(email) {
-		return 0, errors.New("invalid email")
 	}
 	if !utils.ValidatePassword(password) {
 		return 0, errors.New("invalid password")
@@ -27,7 +24,7 @@ func (as *AuthService) CreateUser(username, email, password string) (int, error)
 
 	hashedPassword := utils.HashPassword(password)
 
-	result, err := as.DB.DB.Exec("INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)", username, email, hashedPassword)
+	result, err := as.DB.DB.Exec("INSERT INTO users (username, password_hash) VALUES (?, ?)", username, hashedPassword)
 	if err != nil {
 		log.Printf("Error creating user: %v", err)
 		return 0, err
@@ -43,8 +40,8 @@ func (as *AuthService) CreateUser(username, email, password string) (int, error)
 
 func (as *AuthService) GetUserByUsername(username string) (*models.User, error) {
 	var user models.User
-	err := as.DB.DB.QueryRow("SELECT id, username, email, password_hash, created_at FROM users WHERE username = ?", username).
-		Scan(&user.ID, &user.Username, &user.Email, &user.PasswordHash, &user.CreatedAt)
+	err := as.DB.DB.QueryRow("SELECT id, username, password_hash, created_at FROM users WHERE username = ?", username).
+		Scan(&user.ID, &user.Username, &user.PasswordHash, &user.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -53,8 +50,8 @@ func (as *AuthService) GetUserByUsername(username string) (*models.User, error) 
 
 func (as *AuthService) GetUserByID(id int) (*models.User, error) {
 	var user models.User
-	err := as.DB.DB.QueryRow("SELECT id, username, email, password_hash, created_at FROM users WHERE id = ?", id).
-		Scan(&user.ID, &user.Username, &user.Email, &user.PasswordHash, &user.CreatedAt)
+	err := as.DB.DB.QueryRow("SELECT id, username, password_hash, created_at FROM users WHERE id = ?", id).
+		Scan(&user.ID, &user.Username, &user.PasswordHash, &user.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
