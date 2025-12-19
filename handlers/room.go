@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"groupie-tracker/models"
 	"groupie-tracker/utils"
 	"groupie-tracker/websocket"
@@ -138,6 +139,21 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Vérifier si la salle est pleine
+		participants, err := RoomService.GetRoomParticipantsWithUsers(room.ID)
+		if err != nil {
+			log.Printf("Erreur récupération participants: %v", err)
+			tmpl, _ := template.ParseFiles("./templates/room/join.html", "./templates/components/header.html", "./templates/components/footer.html")
+			tmpl.Execute(w, RoomData{Error: "Erreur serveur lors de la vérification de la salle"})
+			return
+		}
+
+		if len(participants) >= room.MaxPlayers {
+			tmpl, _ := template.ParseFiles("./templates/room/join.html", "./templates/components/header.html", "./templates/components/footer.html")
+			tmpl.Execute(w, RoomData{Error: fmt.Sprintf("La salle est pleine (%d/%d joueurs)", len(participants), room.MaxPlayers)})
+			return
+		}
+
 		err = RoomService.JoinRoom(room.ID, userID)
 		if err != nil {
 			log.Printf("Erreur JoinRoom: %v", err)
@@ -148,13 +164,18 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 
 		log.Printf("Utilisateur %d a rejoint la salle %s", userID, roomCode)
 
-		user, _ := AuthService.GetUserByID(userID)
+		user, err := AuthService.GetUserByID(userID)
 		userName := "Utilisateur"
-		if user != nil {
+		if err == nil && user != nil {
 			userName = user.Username
 		}
 
-		participants, _ := RoomService.GetRoomParticipantsWithUsers(room.ID)
+		// Récupérer les participants mis à jour après la jointure
+		participants, err = RoomService.GetRoomParticipantsWithUsers(room.ID)
+		if err != nil {
+			log.Printf("Erreur récupération participants après jointure: %v", err)
+			participants = []models.RoomParticipantWithUser{}
+		}
 
 		if globalHub != nil {
 			globalHub.BroadcastToRoom(roomCode, models.MessageOut{
