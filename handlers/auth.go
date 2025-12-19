@@ -33,7 +33,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 		if !utils.ValidatePassword(password) {
 			tmpl, _ := template.ParseFiles("./templates/auth/register.html", "./templates/components/header.html", "./templates/components/footer.html")
-			tmpl.Execute(w, RegisterData{Error: "Mot de passe trop court (min 8 caractères)"})
+			tmpl.Execute(w, RegisterData{Error: "Mot de passe insuffisant: min 12 caractères OU min 8 avec majuscules, minuscules, chiffres et caractères spéciaux"})
 			return
 		}
 
