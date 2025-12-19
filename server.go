@@ -352,20 +352,71 @@ func main() {
 	handlers.Init(authService, roomService)
 	handlers.SetGlobalHub(hub)
 
+	// Middleware de sécurité pour tous les handlers
+	securityHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// En-têtes de sécurité
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("X-XSS-Protection", "1; mode=block")
+		w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
+		
+		// HSTS (Strict-Transport-Security) - activer en production avec HTTPS
+		// w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload")
+	})
+
 	// Routes
-	http.HandleFunc("/", Landing)
-	http.HandleFunc("/home", Home)
-	http.HandleFunc("/register", RegisterHandler)
-	http.HandleFunc("/login", LoginHandler)
-	http.HandleFunc("/logout", LogoutHandler)
-	http.HandleFunc("/room/create", CreateRoomHandler)
-	http.HandleFunc("/room/join", JoinRoomHandler)
-	http.HandleFunc("/room/lobby", LobbyHandler)
-	http.HandleFunc("/room/leave", LeaveRoomHandler)
-	http.HandleFunc("/game/blindtest", BlindTestHandler)
-	http.HandleFunc("/game/petitbac", PetitBacHandler)
-	http.HandleFunc("/game/start", StartGameHandler)
-	http.HandleFunc("/audio/proxy", AudioProxyHandler)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		securityHandler.ServeHTTP(w, r)
+		Landing(w, r)
+	})
+	http.HandleFunc("/home", func(w http.ResponseWriter, r *http.Request) {
+		securityHandler.ServeHTTP(w, r)
+		Home(w, r)
+	})
+	http.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
+		securityHandler.ServeHTTP(w, r)
+		RegisterHandler(w, r)
+	})
+	http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+		securityHandler.ServeHTTP(w, r)
+		LoginHandler(w, r)
+	})
+	http.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
+		securityHandler.ServeHTTP(w, r)
+		LogoutHandler(w, r)
+	})
+	http.HandleFunc("/room/create", func(w http.ResponseWriter, r *http.Request) {
+		securityHandler.ServeHTTP(w, r)
+		CreateRoomHandler(w, r)
+	})
+	http.HandleFunc("/room/join", func(w http.ResponseWriter, r *http.Request) {
+		securityHandler.ServeHTTP(w, r)
+		JoinRoomHandler(w, r)
+	})
+	http.HandleFunc("/room/lobby", func(w http.ResponseWriter, r *http.Request) {
+		securityHandler.ServeHTTP(w, r)
+		LobbyHandler(w, r)
+	})
+	http.HandleFunc("/room/leave", func(w http.ResponseWriter, r *http.Request) {
+		securityHandler.ServeHTTP(w, r)
+		LeaveRoomHandler(w, r)
+	})
+	http.HandleFunc("/game/blindtest", func(w http.ResponseWriter, r *http.Request) {
+		securityHandler.ServeHTTP(w, r)
+		BlindTestHandler(w, r)
+	})
+	http.HandleFunc("/game/petitbac", func(w http.ResponseWriter, r *http.Request) {
+		securityHandler.ServeHTTP(w, r)
+		PetitBacHandler(w, r)
+	})
+	http.HandleFunc("/game/start", func(w http.ResponseWriter, r *http.Request) {
+		securityHandler.ServeHTTP(w, r)
+		StartGameHandler(w, r)
+	})
+	http.HandleFunc("/audio/proxy", func(w http.ResponseWriter, r *http.Request) {
+		securityHandler.ServeHTTP(w, r)
+		AudioProxyHandler(w, r)
+	})
 
 	// WebSocket
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {

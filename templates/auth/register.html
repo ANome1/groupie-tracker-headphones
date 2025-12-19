@@ -179,6 +179,7 @@
             </div>
             {{end}}
             <form action="/register" method="POST">
+                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                 <input type="text" name="username" placeholder="Pseudo" required>
                 <input type="password" name="password" placeholder="Mot de passe" required>
                 <input type="password" name="confirm_password" placeholder="Confirmer le mot de passe" required>

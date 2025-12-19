@@ -10,43 +10,59 @@ import (
 )
 
 type RegisterData struct {
-	User  *models.User
-	Error string
+	User      *models.User
+	Error     string
+	CSRFToken string
 }
 
 type LoginData struct {
-	User  *models.User
-	Error string
+	User      *models.User
+	Error     string
+	CSRFToken string
 }
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
+		// Vérifier le token CSRF
+		if !utils.VerifyCSRFToken(r) {
+			http.Error(w, "CSRF token invalid", http.StatusForbidden)
+			return
+		}
+
 		username := r.FormValue("username")
 		password := r.FormValue("password")
 		confirmPassword := r.FormValue("confirm_password")
 
 		if !utils.ValidateUsername(username) {
 			tmpl, _ := template.ParseFiles("./templates/auth/register.html", "./templates/components/header.html", "./templates/components/footer.html")
-			tmpl.Execute(w, RegisterData{Error: "Username invalide (3-20 caractères)"})
+			csrfToken := utils.GenerateCSRFToken()
+			utils.SetCSRFToken(w, csrfToken, false)
+			tmpl.Execute(w, RegisterData{Error: "Username invalide (3-20 caractères)", CSRFToken: csrfToken})
 			return
 		}
 
 		if !utils.ValidatePassword(password) {
 			tmpl, _ := template.ParseFiles("./templates/auth/register.html", "./templates/components/header.html", "./templates/components/footer.html")
-			tmpl.Execute(w, RegisterData{Error: "Mot de passe insuffisant: min 12 caractères OU min 8 avec majuscules, minuscules, chiffres et caractères spéciaux"})
+			csrfToken := utils.GenerateCSRFToken()
+			utils.SetCSRFToken(w, csrfToken, false)
+			tmpl.Execute(w, RegisterData{Error: "Mot de passe insuffisant: min 12 caractères OU min 8 avec majuscules, minuscules, chiffres et caractères spéciaux", CSRFToken: csrfToken})
 			return
 		}
 
 		if password != confirmPassword {
 			tmpl, _ := template.ParseFiles("./templates/auth/register.html", "./templates/components/header.html", "./templates/components/footer.html")
-			tmpl.Execute(w, RegisterData{Error: "Les mots de passe ne correspondent pas"})
+			csrfToken := utils.GenerateCSRFToken()
+			utils.SetCSRFToken(w, csrfToken, false)
+			tmpl.Execute(w, RegisterData{Error: "Les mots de passe ne correspondent pas", CSRFToken: csrfToken})
 			return
 		}
 
 		userID, err := AuthService.CreateUser(username, password)
 		if err != nil {
 			tmpl, _ := template.ParseFiles("./templates/auth/register.html", "./templates/components/header.html", "./templates/components/footer.html")
-			tmpl.Execute(w, RegisterData{Error: "Erreur : " + err.Error()})
+			csrfToken := utils.GenerateCSRFToken()
+			utils.SetCSRFToken(w, csrfToken, false)
+			tmpl.Execute(w, RegisterData{Error: "Erreur : " + err.Error(), CSRFToken: csrfToken})
 			return
 		}
 
@@ -60,30 +76,44 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	if userID > 0 {
 		user, _ = AuthService.GetUserByID(userID)
 	}
+	// Générer un nouveau token CSRF
+	csrfToken := utils.GenerateCSRFToken()
+	utils.SetCSRFToken(w, csrfToken, false)
+
 	tmpl, err := template.ParseFiles("./templates/auth/register.html", "./templates/components/header.html", "./templates/components/footer.html")
 	if err != nil {
 		log.Printf("Erreur: %v", err)
 		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
 		return
 	}
-	tmpl.Execute(w, RegisterData{User: user, Error: ""})
+	tmpl.Execute(w, RegisterData{User: user, Error: "", CSRFToken: csrfToken})
 }
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
+		// Vérifier le token CSRF
+		if !utils.VerifyCSRFToken(r) {
+			http.Error(w, "CSRF token invalid", http.StatusForbidden)
+			return
+		}
+
 		username := r.FormValue("username")
 		password := r.FormValue("password")
 
 		if username == "" || password == "" {
 			tmpl, _ := template.ParseFiles("./templates/auth/login.html", "./templates/components/header.html", "./templates/components/footer.html")
-			tmpl.Execute(w, LoginData{Error: "Nom d'utilisateur et mot de passe requis"})
+			csrfToken := utils.GenerateCSRFToken()
+			utils.SetCSRFToken(w, csrfToken, false)
+			tmpl.Execute(w, LoginData{Error: "Nom d'utilisateur et mot de passe requis", CSRFToken: csrfToken})
 			return
 		}
 
 		user, err := AuthService.ValidateUserCredentials(username, password)
 		if err != nil {
 			tmpl, _ := template.ParseFiles("./templates/auth/login.html", "./templates/components/header.html", "./templates/components/footer.html")
-			tmpl.Execute(w, LoginData{Error: "Identifiants invalides"})
+			csrfToken := utils.GenerateCSRFToken()
+			utils.SetCSRFToken(w, csrfToken, false)
+			tmpl.Execute(w, LoginData{Error: "Identifiants invalides", CSRFToken: csrfToken})
 			return
 		}
 
@@ -93,6 +123,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			MaxAge:   3600 * 24 * 7, // 7 jours
 			Path:     "/",
 			HttpOnly: true,
+			Secure:   false, // À mettre à true en production avec HTTPS
 			SameSite: http.SameSiteStrictMode,
 		})
 
@@ -106,13 +137,17 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if userID > 0 {
 		user, _ = AuthService.GetUserByID(userID)
 	}
+	// Générer un nouveau token CSRF
+	csrfToken := utils.GenerateCSRFToken()
+	utils.SetCSRFToken(w, csrfToken, false)
+
 	tmpl, err := template.ParseFiles("./templates/auth/login.html", "./templates/components/header.html", "./templates/components/footer.html")
 	if err != nil {
 		log.Printf("Erreur: %v", err)
 		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
 		return
 	}
-	tmpl.Execute(w, LoginData{User: user, Error: ""})
+	tmpl.Execute(w, LoginData{User: user, Error: "", CSRFToken: csrfToken})
 }
 
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
