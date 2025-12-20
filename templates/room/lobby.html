@@ -156,6 +156,150 @@
             transform: none;
         }
 
+        .config-card {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(166, 142, 224, 0.1) 0%, rgba(101, 44, 239, 0.05) 100%);
+            border: 1px solid rgba(166, 142, 224, 0.2);
+            border-radius: 12px;
+        }
+
+        .config-card h3 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .config-inputs {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .config-input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .config-input-group label {
+            color: var(--text);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .config-input-group input {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.2) 0%, rgba(166, 142, 224, 0.05) 100%);
+            border: 2px solid var(--primary);
+            color: var(--text);
+            padding: 10px 12px;
+            border-radius: 8px;
+            width: 120px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            font-family: var(--font-body);
+            transition: all 0.3s ease;
+        }
+
+        .config-input-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background-color: rgba(166, 142, 224, 0.15);
+            box-shadow: 0 0 12px rgba(166, 142, 224, 0.3);
+        }
+
+        .config-input-group input::-webkit-outer-spin-button,
+        .config-input-group input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .config-input-group input[type="number"] {
+            position: relative;
+        }
+
+        .config-input-group input[type="number"]::-webkit-outer-spin-button,
+        .config-input-group input[type="number"]::-webkit-inner-spin-button {
+            opacity: 1;
+            height: 30px;
+            cursor: pointer;
+        }
+
+        /* Style des flèches pour Firefox */
+        .config-input-group input[type="number"] {
+            background-image: 
+                linear-gradient(135deg, var(--primary) 0%, var(--primary) 40%, transparent 40%, transparent 60%, var(--primary) 60%, var(--primary) 100%),
+                linear-gradient(45deg, var(--primary) 0%, var(--primary) 40%, transparent 40%, transparent 60%, var(--primary) 60%, var(--primary) 100%);
+            background-repeat: no-repeat;
+            background-size: 20px 10px;
+            background-position: right 5px center;
+            padding-right: 30px;
+        }
+
+        /* Alternative avec buttons custom */
+        .number-input-wrapper {
+            display: flex;
+            align-items: center;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.2) 0%, rgba(166, 142, 224, 0.05) 100%);
+            overflow: hidden;
+        }
+
+        .number-input-wrapper input[type="number"] {
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+            width: 80px;
+            padding: 10px;
+            outline: none;
+        }
+
+        .number-input-wrapper input[type="number"]::-webkit-outer-spin-button,
+        .number-input-wrapper input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+            display: none;
+        }
+
+        /* Pour Firefox */
+        .number-input-wrapper input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        .spinner-btn {
+            width: 30px;
+            height: 100%;
+            border: none;
+            background: rgba(166, 142, 224, 0.2);
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .spinner-btn:hover {
+            background: var(--primary);
+            color: var(--background);
+        }
+
+        .spinner-btn:active {
+            transform: scale(0.9);
+        }
+
         .leave-button {
             padding: 12px 30px;
             margin-top: 20px;
@@ -218,17 +362,25 @@
         <div class="actions-card">
             {{if .IsHost}}
             <!-- Configuration de la partie -->
-            <div style="margin-bottom: 20px; padding: 20px; background: rgba(166, 142, 224, 0.05); border-radius: 12px;">
-                <h3 style="color: var(--primary); margin-bottom: 15px;">Configuration</h3>
-                <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
-                    <div style="display: flex; flex-direction: column; align-items: flex-start;">
-                        <label for="config-num-rounds" style="color: var(--text); margin-bottom: 5px; font-size: 0.9rem;">Nombre de manches</label>
-                        <input type="number" id="config-num-rounds" value="{{if eq .Room.GameType "blindtest"}}5{{else}}9{{end}}" min="1" max="20" style="background: rgba(0, 0, 0, 0.2); border: 1px solid var(--primary); color: white; padding: 8px 12px; border-radius: 8px; width: 100px;">
+            <div class="config-card">
+                <h3>Configuration</h3>
+                <div class="config-inputs">
+                    <div class="config-input-group">
+                        <label for="config-num-rounds">Nombre de manches</label>
+                        <div class="number-input-wrapper">
+                            <button type="button" class="spinner-btn" data-input="config-num-rounds" data-action="down">−</button>
+                            <input type="number" id="config-num-rounds" value="{{if eq .Room.GameType "blindtest"}}5{{else}}9{{end}}" min="1" max="20">
+                            <button type="button" class="spinner-btn" data-input="config-num-rounds" data-action="up">+</button>
+                        </div>
                     </div>
                     {{if eq .Room.GameType "blindtest"}}
-                    <div style="display: flex; flex-direction: column; align-items: flex-start;">
-                        <label for="config-time-round" style="color: var(--text); margin-bottom: 5px; font-size: 0.9rem;">Temps par manche (sec)</label>
-                        <input type="number" id="config-time-round" value="30" min="5" max="120" style="background: rgba(0, 0, 0, 0.2); border: 1px solid var(--primary); color: white; padding: 8px 12px; border-radius: 8px; width: 100px;">
+                    <div class="config-input-group">
+                        <label for="config-time-round">Temps par manche (sec)</label>
+                        <div class="number-input-wrapper">
+                            <button type="button" class="spinner-btn" data-input="config-time-round" data-action="down">−</button>
+                            <input type="number" id="config-time-round" value="30" min="5" max="120">
+                            <button type="button" class="spinner-btn" data-input="config-time-round" data-action="up">+</button>
+                        </div>
                     </div>
                     {{end}}
                 </div>
@@ -264,6 +416,30 @@
         const roomHostID = parseInt("{{.Room.HostID}}", 10) || 0;
         const maxPlayers = parseInt("{{.Room.MaxPlayers}}", 10) || 10;
         let selectedPlaylist = null;
+
+        // Gestion des boutons +/- pour les inputs number
+        document.querySelectorAll('.spinner-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const inputId = btn.dataset.input;
+                const action = btn.dataset.action;
+                const input = document.getElementById(inputId);
+                
+                if (input) {
+                    const min = parseInt(input.min) || 0;
+                    const max = parseInt(input.max) || 999;
+                    let value = parseInt(input.value) || 0;
+                    
+                    if (action === 'up' && value < max) {
+                        value++;
+                    } else if (action === 'down' && value > min) {
+                        value--;
+                    }
+                    
+                    input.value = value;
+                }
+            });
+        });
 
         // Playlists disponibles pour le Blind Test
         const playlists = {
