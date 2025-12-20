@@ -300,6 +300,113 @@
             transform: scale(0.9);
         }
 
+        .categories-card {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(166, 142, 224, 0.1) 0%, rgba(101, 44, 239, 0.05) 100%);
+            border: 1px solid rgba(166, 142, 224, 0.2);
+            border-radius: 12px;
+            display: none;
+        }
+
+        .categories-card.show {
+            display: block;
+        }
+
+        .categories-card h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .categories-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .category-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(166, 142, 224, 0.2);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .category-item:hover {
+            border-color: var(--primary);
+            background: rgba(166, 142, 224, 0.1);
+        }
+
+        .category-item input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            padding: 5px;
+            outline: none;
+            font-size: 0.95rem;
+        }
+
+        .category-item button {
+            padding: 5px 10px;
+            background: rgba(255, 68, 68, 0.2);
+            border: 1px solid rgba(255, 68, 68, 0.5);
+            color: #ff6b6b;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+        }
+
+        .category-item button:hover {
+            background: rgba(255, 68, 68, 0.5);
+            color: white;
+        }
+
+        .add-category-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .add-category-group input {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.2);
+            border: 2px solid var(--primary);
+            color: var(--text);
+            padding: 10px 12px;
+            border-radius: 8px;
+            outline: none;
+            font-size: 0.95rem;
+        }
+
+        .add-category-group input:focus {
+            background: rgba(166, 142, 224, 0.1);
+            border-color: var(--accent);
+        }
+
+        .add-category-group button {
+            padding: 10px 20px;
+            background: var(--primary);
+            border: 2px solid var(--primary);
+            color: var(--background);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .add-category-group button:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
         .leave-button {
             padding: 12px 30px;
             margin-top: 20px;
@@ -326,6 +433,107 @@
             font-size: 0.95rem;
             opacity: 0.8;
             margin-top: 15px;
+        }
+
+        .categories-card {
+            margin-top: 25px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(166, 142, 224, 0.1) 0%, rgba(101, 44, 239, 0.05) 100%);
+            border: 1px solid rgba(166, 142, 224, 0.2);
+            border-radius: 12px;
+        }
+
+        .categories-card h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .categories-list {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .category-tag {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(166, 142, 224, 0.2);
+            border: 1px solid var(--primary);
+            border-radius: 20px;
+            color: var(--text);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .category-tag .remove-btn {
+            background: none;
+            border: none;
+            color: #ff6b6b;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .category-tag .remove-btn:hover {
+            background: rgba(255, 68, 68, 0.3);
+            color: #ff4444;
+        }
+
+        .category-input-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+
+        .category-input-wrapper input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.2) 0%, rgba(166, 142, 224, 0.05) 100%);
+            color: var(--text);
+            font-family: var(--font-body);
+            transition: all 0.3s ease;
+        }
+
+        .category-input-wrapper input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background-color: rgba(166, 142, 224, 0.15);
+            box-shadow: 0 0 12px rgba(166, 142, 224, 0.3);
+        }
+
+        .category-input-wrapper button {
+            padding: 10px 20px;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            background-color: var(--primary);
+            color: var(--background);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            font-family: var(--font-body);
+            transition: all 0.3s ease;
+        }
+
+        .category-input-wrapper button:hover {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .category-input-wrapper button:active {
+            transform: scale(0.95);
         }
     </style>
 </head>
@@ -392,6 +600,20 @@
                 <h3 style="color: var(--primary); margin-bottom: 15px;">Choisir un thème</h3>
                 <div id="playlist-options" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
                     <!-- Les playlists seront ajoutées par JavaScript -->
+                </div>
+            </div>
+            {{end}}
+
+            <!-- Gestion des catégories pour le Petit Bac -->
+            {{if eq .Room.GameType "petitbac"}}
+            <div class="categories-card show">
+                <h3>Catégories du jeu</h3>
+                <div class="categories-list" id="categories-list">
+                    <!-- Les catégories seront ajoutées par JavaScript -->
+                </div>
+                <div class="add-category-group">
+                    <input type="text" id="new-category" placeholder="Ajouter une catégorie...">
+                    <button type="button" id="add-category-btn">+ Ajouter</button>
                 </div>
             </div>
             {{end}}
@@ -543,6 +765,135 @@
                 heading.textContent = `Joueurs connectés (${data.total}/${maxPlayers})`;
             }
         };
+
+        // Load categories for Petit Bac
+        if ("{{.Room.GameType}}" === "petitbac" && isHost) {
+            loadCategories();
+        }
+
+        // Load and display categories
+        async function loadCategories() {
+            try {
+                const response = await fetch(`/petitbac/categories`);
+                if (!response.ok) {
+                    console.error('Failed to load categories');
+                    // Initialize with default categories if load fails
+                    displayCategories(["Artiste", "Album", "Groupe de musique", "Instrument de musique", "Featuring"]);
+                    return;
+                }
+                const categories = await response.json();
+                displayCategories(categories || ["Artiste", "Album", "Groupe de musique", "Instrument de musique", "Featuring"]);
+            } catch (error) {
+                console.error('Error loading categories:', error);
+                // Initialize with default categories on error
+                displayCategories(["Artiste", "Album", "Groupe de musique", "Instrument de musique", "Featuring"]);
+            }
+        }
+
+        // Display categories as tags
+        function displayCategories(categories) {
+            const categoriesList = document.getElementById('categories-list');
+            if (!categoriesList) return;
+            
+            categoriesList.innerHTML = '';
+            categories.forEach(category => {
+                const tag = document.createElement('div');
+                tag.className = 'category-item';
+                tag.innerHTML = `
+                    <span>${category}</span>
+                    <button type="button" class="remove-btn" data-category="${category}">×</button>
+                `;
+                categoriesList.appendChild(tag);
+            });
+
+            // Add event listeners to remove buttons
+            document.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const category = btn.dataset.category;
+                    removeCategory(category);
+                });
+            });
+        }
+
+        // Add new category
+        const addCategoryBtn = document.getElementById('add-category-btn');
+        if (addCategoryBtn) {
+            addCategoryBtn.addEventListener('click', async () => {
+                const input = document.getElementById('new-category');
+                const category = input.value.trim();
+                
+                if (!category) {
+                    alert('Veuillez entrer un nom de catégorie');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/petitbac/categories', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            category: category
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const error = await response.text();
+                        alert('Erreur: ' + error);
+                        return;
+                    }
+                    
+                    // Clear input and reload categories
+                    input.value = '';
+                    loadCategories();
+                } catch (error) {
+                    console.error('Error adding category:', error);
+                    alert('Erreur lors de l\'ajout de la catégorie');
+                }
+            });
+
+            // Allow Enter key to add category
+            const input = document.getElementById('new-category');
+            if (input) {
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        addCategoryBtn.click();
+                    }
+                });
+            }
+        }
+
+        // Remove category
+        async function removeCategory(category) {
+            if (!confirm(`Êtes-vous sûr de vouloir supprimer la catégorie "${category}" ?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/petitbac/categories', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        category: category
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.text();
+                    alert('Erreur: ' + error);
+                    return;
+                }
+                
+                // Reload categories
+                loadCategories();
+            } catch (error) {
+                console.error('Error removing category:', error);
+                alert('Erreur lors de la suppression de la catégorie');
+            }
+        }
 
         // Handle Start Game button
         const startButton = document.getElementById('start-game');

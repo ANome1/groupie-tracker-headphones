@@ -418,6 +418,20 @@ func main() {
 		AudioProxyHandler(w, r)
 	})
 
+	// Routes pour la gestion des catégories du Petit Bac
+	http.HandleFunc("/petitbac/categories", func(w http.ResponseWriter, r *http.Request) {
+		securityHandler.ServeHTTP(w, r)
+		if r.Method == "GET" {
+			handlers.GetCategoriesHandler(w, r)
+		} else if r.Method == "POST" {
+			handlers.AddCategoryHandler(w, r)
+		} else if r.Method == "DELETE" {
+			handlers.DeleteCategoryHandler(w, r)
+		} else {
+			http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
+		}
+	})
+
 	// WebSocket
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		websocket.ServeWs(hub, w, r)
