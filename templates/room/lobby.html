@@ -10,9 +10,22 @@
     <title>Lobby - Groupie Tracker</title>
     <link rel="stylesheet" href="/static/css/main.css">
     <style>
+        .lobby-info-section {
+            max-width: 1000px;
+            margin: 15px auto 20px;
+            padding: 30px 50px;
+        }
+
+        .lobby-info-card {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
         .lobby-container {
             max-width: 1000px;
-            margin: 80px auto 60px;
+            margin: 0 auto 60px;
             padding: 50px;
             background: linear-gradient(135deg, rgba(166, 142, 224, 0.12) 0%, rgba(101, 44, 239, 0.06) 100%);
             backdrop-filter: blur(20px);
@@ -23,12 +36,12 @@
         }
 
         .lobby-hero {
-            padding: 30px 20px;
-            background: linear-gradient(135deg, rgba(166, 142, 224, 0.08) 0%, rgba(101, 44, 239, 0.04) 100%);
-            border: 1px solid rgba(166, 142, 224, 0.2);
+            /* padding: 30px 20px; */
+            /* background: linear-gradient(135deg, rgba(166, 142, 224, 0.08) 0%, rgba(101, 44, 239, 0.04) 100%);
+            border: 1px solid rgba(166, 142, 224, 0.2); */
             border-radius: 16px;
             text-align: center;
-            margin-bottom: 30px;
+            /* margin-bottom: 30px; */
         }
 
         .lobby-hero h1 {
@@ -40,7 +53,7 @@
 
         .lobby-info {
             display: inline-block;
-            margin: 0 15px;
+            margin: 0 5px;
             padding: 10px 20px;
             background: rgba(166, 142, 224, 0.15);
             border: 1px solid rgba(166, 142, 224, 0.25);
@@ -58,7 +71,7 @@
         .presetation-card {
             padding: 25px 30px;
             text-align: center;
-            margin-bottom: 30px;
+            /* margin-bottom: 30px; */
         }
 
         .presetation-card p {
@@ -540,21 +553,24 @@
 <body>
     {{template "header" .}}
     
-    <section class="lobby-container">
-        <div class="lobby-hero">
+    <section class="lobby-info-section">
+        <div class="lobby-info-card">
+            <div class="lobby-hero">
             <div class="presetation-card">
             {{if .Room.GameType}}
             <p>Vous êtes dans la salle <strong>{{.Room.Name}}</strong> en attente du début de la partie de <strong>{{if eq .Room.GameType "blindtest"}}Blind Test{{else}}Petit Bac{{end}}</strong>.</p>
             {{else}}
             <p>Vous êtes dans la salle <strong>{{.Room.Name}}</strong> en attente du début de la partie.</p>
             {{end}}
-        </div>
-            <div>
-                <span class="lobby-info">Code: <strong>{{.Room.Code}}</strong></span>
-                <span class="lobby-info">Jeu: <strong>{{if eq .Room.GameType "blindtest"}}🎶 Blind Test{{else}}📝 Petit Bac{{end}}</strong></span>
-                <span class="lobby-info">Joueurs: <strong id="player-count">{{len .Participants}}/{{.Room.MaxPlayers}}</strong></span>
             </div>
         </div>
+            <span class="lobby-info">Code: <strong>{{.Room.Code}}</strong></span>
+            <span class="lobby-info">Jeu: <strong>{{if eq .Room.GameType "blindtest"}}🎶 Blind Test{{else}}📝 Petit Bac{{end}}</strong></span>
+            <span class="lobby-info">Joueurs: <strong id="player-count">{{len .Participants}}/{{.Room.MaxPlayers}}</strong></span>
+        </div>
+    </section>
+
+    <section class="lobby-container">
 
         <div class="players-card">
             <h2>Joueurs connectés</h2>
