@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"groupie-tracker/models"
 	"groupie-tracker/utils"
@@ -303,4 +304,76 @@ func LeaveRoomHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/home", http.StatusSeeOther)
+}
+
+func ChangeGameTypeHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Get user ID from cookie
+	cookie, err := r.Cookie("user_id")
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	userID, err := strconv.Atoi(cookie.Value)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+
+	// Parse JSON body
+	var req struct {
+		RoomCode string `json:"roomCode"`
+		GameType string `json:"gameType"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	// Get the room
+	room, err := RoomService.GetRoomByCode(req.RoomCode)
+	if err != nil {
+		http.Error(w, "Room not found", http.StatusNotFound)
+		return
+	}
+
+	// Verify the user is the host
+	if room.HostID != userID {
+		http.Error(w, "Only the host can change the game type", http.StatusForbidden)
+		return
+	}
+
+	// Validate game type
+	if req.GameType != "blindtest" && req.GameType != "petitbac" {
+		http.Error(w, "Invalid game type", http.StatusBadRequest)
+		return
+	}
+
+	// Update the game type
+	err = RoomService.UpdateRoomGameType(room.ID, req.GameType)
+	if err != nil {
+		http.Error(w, "Error updating game type: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Notify all players in the room via WebSocket
+	globalHub.Broadcast(websocket.BroadcastMessage{
+		RoomID: req.RoomCode,
+		Message: []byte(`{
+			"type": "GAME_TYPE_CHANGED",
+			"data": {
+				"gameType": "` + req.GameType + `"
+			}
+		}`),
+	})
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, `{"message":"Game type updated"}`)
 }

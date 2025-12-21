@@ -401,6 +401,10 @@ func main() {
 		securityHandler.ServeHTTP(w, r)
 		LeaveRoomHandler(w, r)
 	})
+	http.HandleFunc("/room/change-game-type", func(w http.ResponseWriter, r *http.Request) {
+		securityHandler.ServeHTTP(w, r)
+		handlers.ChangeGameTypeHandler(w, r)
+	})
 	http.HandleFunc("/game/blindtest", func(w http.ResponseWriter, r *http.Request) {
 		securityHandler.ServeHTTP(w, r)
 		BlindTestHandler(w, r)

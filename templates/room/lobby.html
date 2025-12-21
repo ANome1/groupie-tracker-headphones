@@ -285,7 +285,14 @@
 
         /* Pour Firefox */
         .number-input-wrapper input[type="number"] {
+            appearance: textfield;
             -moz-appearance: textfield;
+        }
+        
+        .number-input-wrapper input[type=number]::-webkit-inner-spin-button,
+        .number-input-wrapper input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
         }
 
         .spinner-btn {
@@ -548,6 +555,55 @@
         .category-input-wrapper button:active {
             transform: scale(0.95);
         }
+
+        /* Game Type Selector */
+        .game-type-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(166, 142, 224, 0.1) 0%, rgba(101, 44, 239, 0.05) 100%);
+            border: 1px solid rgba(166, 142, 224, 0.2);
+            border-radius: 12px;
+        }
+
+        .game-type-section h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .game-type-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .game-type-btn {
+            padding: 12px 25px;
+            border: 2px solid rgba(166, 142, 224, 0.3);
+            border-radius: 10px;
+            background: rgba(166, 142, 224, 0.1);
+            color: var(--text);
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: var(--font-body);
+        }
+
+        .game-type-btn:hover {
+            border-color: var(--primary);
+            background: rgba(166, 142, 224, 0.15);
+        }
+
+        .game-type-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: var(--background);
+            box-shadow: 0 4px 12px rgba(166, 142, 224, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -565,7 +621,7 @@
             </div>
         </div>
             <span class="lobby-info">Code: <strong>{{.Room.Code}}</strong></span>
-            <span class="lobby-info">Jeu: <strong>{{if eq .Room.GameType "blindtest"}}🎶 Blind Test{{else}}📝 Petit Bac{{end}}</strong></span>
+            <span class="lobby-info">Jeu: <strong id="game-type-display">{{if eq .Room.GameType "blindtest"}}🎶 Blind Test{{else}}📝 Petit Bac{{end}}</strong></span>
             <span class="lobby-info">Joueurs: <strong id="player-count">{{len .Participants}}/{{.Room.MaxPlayers}}</strong></span>
         </div>
     </section>
@@ -585,6 +641,19 @@
 
         <div class="actions-card">
             {{if .IsHost}}
+            <!-- Changement de type de jeu -->
+            <div class="game-type-section">
+                <h3>Changer le type de jeu</h3>
+                <div class="game-type-buttons">
+                    <button type="button" class="game-type-btn {{if eq .Room.GameType "blindtest"}}active{{end}}" data-game-type="blindtest">
+                        🎶 Blind Test
+                    </button>
+                    <button type="button" class="game-type-btn {{if eq .Room.GameType "petitbac"}}active{{end}}" data-game-type="petitbac">
+                        📝 Petit Bac
+                    </button>
+                </div>
+            </div>
+
             <!-- Configuration de la partie -->
             <div class="config-card">
                 <h3>Configuration</h3>
@@ -597,8 +666,7 @@
                             <button type="button" class="spinner-btn" data-input="config-num-rounds" data-action="up">+</button>
                         </div>
                     </div>
-                    {{if eq .Room.GameType "blindtest"}}
-                    <div class="config-input-group">
+                    <div class="config-input-group" id="time-round-group" {{if eq .Room.GameType "petitbac"}}style="display: none;"{{end}}>
                         <label for="config-time-round">Temps par manche (sec)</label>
                         <div class="number-input-wrapper">
                             <button type="button" class="spinner-btn" data-input="config-time-round" data-action="down">−</button>
@@ -606,23 +674,19 @@
                             <button type="button" class="spinner-btn" data-input="config-time-round" data-action="up">+</button>
                         </div>
                     </div>
-                    {{end}}
                 </div>
             </div>
 
             <!-- Sélection de playlist pour le host (Blind Test uniquement) -->
-            {{if eq .Room.GameType "blindtest"}}
-            <div style="margin-bottom: 30px; padding: 20px;">
+            <div id="playlist-section" {{if eq .Room.GameType "blindtest"}}style="margin-bottom: 30px; padding: 20px;"{{else}}style="display: none; margin-bottom: 30px; padding: 20px;"{{end}}>
                 <h3 style="color: var(--primary); margin-bottom: 15px;">Choisir un thème</h3>
                 <div id="playlist-options" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
                     <!-- Les playlists seront ajoutées par JavaScript -->
                 </div>
             </div>
-            {{end}}
 
             <!-- Gestion des catégories pour le Petit Bac -->
-            {{if eq .Room.GameType "petitbac"}}
-            <div class="categories-card show">
+            <div id="categories-section" class="categories-card" {{if eq .Room.GameType "blindtest"}}style="display: none;"{{end}}>
                 <h3>Catégories du jeu</h3>
                 <div class="categories-list" id="categories-list">
                     <!-- Les catégories seront ajoutées par JavaScript -->
@@ -632,7 +696,6 @@
                     <button type="button" id="add-category-btn">+ Ajouter</button>
                 </div>
             </div>
-            {{end}}
 
             <button id="start-game" class="start-button">🚀 Démarrer la partie</button>
             {{else}}
@@ -690,38 +753,123 @@
 
         // Initialiser les boutons de playlist pour le host
         if (isHost && "{{.Room.GameType}}" === "blindtest") {
-            const playlistOptions = document.getElementById('playlist-options');
-            if (playlistOptions) {
-                Object.entries(playlists).forEach(([id, name]) => {
-                    const btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.textContent = name;
-                    btn.style.cssText = `
-                        padding: 10px 20px;
-                        background: rgba(166, 142, 224, 0.1);
-                        border: 2px solid rgba(166, 142, 224, 0.3);
-                        border-radius: 8px;
-                        color: var(--text);
-                        font-weight: 600;
-                        cursor: pointer;
-                        transition: all 0.3s ease;
-                    `;
-                    btn.addEventListener('click', () => {
-                        // Déselectionner tous les autres
-                        playlistOptions.querySelectorAll('button').forEach(b => {
-                            b.style.background = 'rgba(166, 142, 224, 0.1)';
-                            b.style.borderColor = 'rgba(166, 142, 224, 0.3)';
-                        });
-                        // Selectionner celui-ci
-                        selectedPlaylist = id;
-                        btn.style.background = 'var(--primary)';
-                        btn.style.borderColor = 'var(--primary)';
-                        btn.style.color = 'var(--background)';
-                    });
-                    playlistOptions.appendChild(btn);
-                });
-            }
+            initializePlaylists();
         }
+
+        // Gestion du changement de type de jeu
+        document.querySelectorAll('.game-type-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const gameType = btn.dataset.gameType;
+                
+                try {
+                    const response = await fetch('/room/change-game-type', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            roomCode: roomCode,
+                            gameType: gameType
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const error = await response.text();
+                        alert('Erreur: ' + error);
+                        return;
+                    }
+                    
+                    // Update button states
+                    document.querySelectorAll('.game-type-btn').forEach(b => {
+                        b.classList.remove('active');
+                    });
+                    btn.classList.add('active');
+                    
+                    // Update the game type display immediately
+                    const gameTypeDisplay = document.getElementById('game-type-display');
+                    if (gameTypeDisplay) {
+                        gameTypeDisplay.textContent = gameType === 'blindtest' ? '🎶 Blind Test' : '📝 Petit Bac';
+                    }
+
+                    // Update configuration panels visibility
+                    const timeRoundGroup = document.getElementById('time-round-group');
+                    const playlistSection = document.getElementById('playlist-section');
+                    const categoriesSection = document.getElementById('categories-section');
+
+                    if (gameType === 'blindtest') {
+                        // Blind Test: show time round and playlists
+                        if (timeRoundGroup) timeRoundGroup.style.display = 'flex';
+                        if (playlistSection) playlistSection.style.display = 'block';
+                        if (categoriesSection) categoriesSection.style.display = 'none';
+                        
+                        // Initialize playlists if not already done
+                        if (!playlistSection.querySelector('button')) {
+                            initializePlaylists();
+                        }
+                    } else {
+                        // Petit Bac: hide time round and playlists, show categories
+                        if (timeRoundGroup) timeRoundGroup.style.display = 'none';
+                        if (playlistSection) playlistSection.style.display = 'none';
+                        if (categoriesSection) categoriesSection.style.display = 'block';
+                        
+                        // Load categories if not already done
+                        if (!categoriesSection.querySelector('.category-tag')) {
+                            loadCategories();
+                        }
+                    }
+
+                    // Reset num rounds to default for the new game type
+                    const numRoundsInput = document.getElementById('config-num-rounds');
+                    if (numRoundsInput) {
+                        numRoundsInput.value = gameType === 'blindtest' ? 5 : 9;
+                    }
+                } catch (error) {
+                    console.error('Error changing game type:', error);
+                    alert('Erreur lors du changement de jeu');
+                }
+            });
+        });
+
+        // Initialize playlists
+        function initializePlaylists() {
+            const playlistOptions = document.getElementById('playlist-options');
+            if (!playlistOptions) return;
+            
+            Object.entries(playlists).forEach(([id, name]) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.textContent = name;
+                btn.style.cssText = `
+                    padding: 10px 20px;
+                    background: rgba(166, 142, 224, 0.1);
+                    border: 2px solid rgba(166, 142, 224, 0.3);
+                    border-radius: 8px;
+                    color: var(--text);
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                `;
+                btn.addEventListener('click', () => {
+                    playlistOptions.querySelectorAll('button').forEach(b => {
+                        b.style.background = 'rgba(166, 142, 224, 0.1)';
+                        b.style.borderColor = 'rgba(166, 142, 224, 0.3)';
+                        b.style.color = 'var(--text)';
+                    });
+                    selectedPlaylist = id;
+                    btn.style.background = 'var(--primary)';
+                    btn.style.borderColor = 'var(--primary)';
+                    btn.style.color = 'var(--background)';
+                });
+                playlistOptions.appendChild(btn);
+            });
+        }
+
+        // Handle game type change via WebSocket
+        window.handleGameTypeChanged = function(data) {
+            console.log("Game type changed:", data);
+            // Recharge la page pour mettre à jour l'UI avec le nouveau jeu
+            location.reload();
+        };
 
         // Connect to WebSocket
         connectWebSocket(roomCode, playerID);

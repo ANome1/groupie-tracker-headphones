@@ -75,6 +75,11 @@ function connectWebSocket(roomCode, playerID) {
                             window.handlePlayerLeft(msg.Data);
                         }
                         break;
+                    case "GAME_TYPE_CHANGED":
+                        if (window.handleGameTypeChanged) {
+                            window.handleGameTypeChanged(msg.Data);
+                        }
+                        break;
                 }
             } catch (e) {
             }

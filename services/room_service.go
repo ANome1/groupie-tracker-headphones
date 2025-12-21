@@ -185,3 +185,11 @@ func (rs *RoomService) DeleteRoom(roomID int) error {
 	}
 	return nil
 }
+func (rs *RoomService) UpdateRoomGameType(roomID int, gameType string) error {
+	_, err := rs.DB.DB.Exec("UPDATE rooms SET game_type = ? WHERE id = ?", gameType, roomID)
+	if err != nil {
+		log.Printf("Error updating room game type: %v", err)
+		return err
+	}
+	return nil
+}

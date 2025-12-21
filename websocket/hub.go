@@ -66,3 +66,8 @@ func (h *Hub) BroadcastToRoom(roomID string, v interface{}) {
 		Message: data,
 	}
 }
+
+// Diffuse un message brut à tous les clients d'une salle
+func (h *Hub) Broadcast(msg BroadcastMessage) {
+	h.broadcast <- msg
+}
