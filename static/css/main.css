@@ -28,7 +28,7 @@ body {
     margin: 0;
     padding: 0;
     padding-top: 80px;
-    padding-bottom: 100px;
+    padding-bottom: 15px;
     background-color: var(--background);
     color: var(--text);
     font-family: var(--font-body);
@@ -77,10 +77,11 @@ h4, h5, h6 {
 
 /* Footer */
 .site-footer {
-    background-color: var(--border-color);
+    background-color: transparent;
     color: var(--text);
     text-align: center;
-    padding: 20px;
+    padding: 20px 40px;
+    border-top: 2px solid rgba(166, 142, 224, 0.3);
     margin-top: 50px;
 }
 
