@@ -19,13 +19,18 @@
         .lobby-info-card {
             display: flex;
             justify-content: center;
+            align-items: center;
             gap: 10px;
             flex-wrap: wrap;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(166, 142, 224, 0.08) 0%, rgba(101, 44, 239, 0.04) 100%);
+            border: 1px solid rgba(166, 142, 224, 0.2);
+            border-radius: 16px;
         }
 
         .lobby-container {
-            max-width: 1000px;
-            margin: 0 auto 60px;
+            max-width: 1400px;
+            margin: 30px auto 60px;
             padding: 50px;
             background: linear-gradient(135deg, rgba(166, 142, 224, 0.12) 0%, rgba(101, 44, 239, 0.06) 100%);
             backdrop-filter: blur(20px);
@@ -33,6 +38,18 @@
             border: 1px solid rgba(166, 142, 224, 0.3);
             border-radius: 24px;
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+            display: flex;
+            gap: 30px;
+        }
+
+        .lobby-left-panel {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .lobby-right-panel {
+            flex: 1.2;
+            min-width: 350px;
         }
 
         .lobby-hero {
@@ -139,6 +156,9 @@
             padding: 30px;
             border-radius: 16px;
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
         }
 
         .start-button {
@@ -604,42 +624,88 @@
             color: var(--background);
             box-shadow: 0 4px 12px rgba(166, 142, 224, 0.3);
         }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .lobby-container {
+                flex-direction: column;
+            }
+
+            .lobby-left-panel,
+            .lobby-right-panel {
+                flex: 1;
+                min-width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .lobby-container {
+                padding: 30px;
+            }
+
+            .config-inputs {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .game-type-buttons {
+                gap: 8px;
+            }
+
+            .game-type-btn {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+
+            .players-list {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
     </style>
 </head>
 <body>
     {{template "header" .}}
     
-    <section class="lobby-info-section">
-        <div class="lobby-info-card">
-            <div class="lobby-hero">
-            <div class="presetation-card">
-            {{if .Room.GameType}}
-            <p>Vous êtes dans la salle <strong>{{.Room.Name}}</strong> en attente du début de la partie de <strong>{{if eq .Room.GameType "blindtest"}}Blind Test{{else}}Petit Bac{{end}}</strong>.</p>
-            {{else}}
-            <p>Vous êtes dans la salle <strong>{{.Room.Name}}</strong> en attente du début de la partie.</p>
-            {{end}}
-            </div>
-        </div>
-            <span class="lobby-info">Code: <strong>{{.Room.Code}}</strong></span>
-            <span class="lobby-info">Jeu: <strong id="game-type-display">{{if eq .Room.GameType "blindtest"}}🎶 Blind Test{{else}}📝 Petit Bac{{end}}</strong></span>
-            <span class="lobby-info">Joueurs: <strong id="player-count">{{len .Participants}}/{{.Room.MaxPlayers}}</strong></span>
-        </div>
-    </section>
-
     <section class="lobby-container">
+        <!-- Panneau gauche: Informations de salle et Joueurs connectés -->
+        <div class="lobby-left-panel">
+            <!-- Infos de la salle -->
+            <div class="lobby-info-card" style="margin-bottom: 25px;">
+                <div class="lobby-hero">
+                    <div class="presetation-card">
+                        {{if .Room.GameType}}
+                        <p>Vous êtes dans la salle <strong>{{.Room.Name}}</strong> en attente du début de la partie de <strong>{{if eq .Room.GameType "blindtest"}}Blind Test{{else}}Petit Bac{{end}}</strong>.</p>
+                        {{else}}
+                        <p>Vous êtes dans la salle <strong>{{.Room.Name}}</strong> en attente du début de la partie.</p>
+                        {{end}}
+                    </div>
+                </div>
+                <span class="lobby-info">Code: <strong>{{.Room.Code}}</strong></span>
+                <span class="lobby-info">Jeu: <strong id="game-type-display">{{if eq .Room.GameType "blindtest"}}🎶 Blind Test{{else}}📝 Petit Bac{{end}}</strong></span>
+                <span class="lobby-info">Joueurs: <strong id="player-count">{{len .Participants}}/{{.Room.MaxPlayers}}</strong></span>
+            </div>
 
-        <div class="players-card">
-            <h2>Joueurs connectés</h2>
-            <ul id="players-list" class="players-list">
-                {{range .Participants}}
-                <li class="player-item {{if eq .UserID $.Room.HostID}}host{{end}}">
-                    {{.Username}}
-                </li>
-                {{end}}
-            </ul>
+            <!-- Joueurs connectés -->
+            <div class="players-card">
+                <h2>Joueurs connectés</h2>
+                <ul id="players-list" class="players-list">
+                    {{range .Participants}}
+                    <li class="player-item {{if eq .UserID $.Room.HostID}}host{{end}}">
+                        {{.Username}}
+                    </li>
+                    {{end}}
+                </ul>
+            </div>
+
+            <form action="/room/leave" method="POST" style="display: flex; justify-content: center; width: 100%;">
+                <input type="hidden" name="roomCode" value="{{.Room.Code}}">
+                <button type="submit" class="leave-button" style="width: 100%; padding: 16px 50px; font-size: 1.1rem;">Quitter la salle</button>
+            </form>
         </div>
 
-        <div class="actions-card">
+        <!-- Panneau droit: Configuration du jeu -->
+        <div class="lobby-right-panel">
+            <div class="actions-card">
             {{if .IsHost}}
             <!-- Changement de type de jeu -->
             <div class="game-type-section">
@@ -702,10 +768,7 @@
             <p class="waiting-message">En attente que l'hôte démarre la partie...</p>
             {{end}}
             <br>
-            <form action="/room/leave" method="POST" style="display: inline;">
-                <input type="hidden" name="roomCode" value="{{.Room.Code}}">
-                <button type="submit" class="leave-button">Quitter la salle</button>
-            </form>
+            </div>
         </div>
     </section>
 
