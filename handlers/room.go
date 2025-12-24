@@ -363,14 +363,11 @@ func ChangeGameTypeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Notify all players in the room via WebSocket
-	globalHub.Broadcast(websocket.BroadcastMessage{
-		RoomID: req.RoomCode,
-		Message: []byte(`{
-			"type": "GAME_TYPE_CHANGED",
-			"data": {
-				"gameType": "` + req.GameType + `"
-			}
-		}`),
+	globalHub.BroadcastToRoom(req.RoomCode, map[string]interface{}{
+		"Type": "GAME_TYPE_CHANGED",
+		"Data": map[string]interface{}{
+			"gameType": req.GameType,
+		},
 	})
 
 	w.Header().Set("Content-Type", "application/json")

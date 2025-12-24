@@ -39,7 +39,13 @@
             border-radius: 24px;
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
             display: flex;
+            flex-wrap: wrap;
             gap: 30px;
+            justify-content: center;
+        }
+
+        .lobby-container > div:first-child {
+            flex-basis: 100%;
         }
 
         .lobby-left-panel {
@@ -667,19 +673,21 @@
     {{template "header" .}}
     
     <section class="lobby-container">
+        <!-- Presentation card en haut et centré -->
+        <div style="width: 100%; text-align: center; margin-bottom: 30px;">
+            <div class="presetation-card">
+                {{if .Room.GameType}}
+                <p>Vous êtes dans la salle <strong>{{.Room.Name}}</strong> en attente du début de la partie de <strong>{{if eq .Room.GameType "blindtest"}}Blind Test{{else}}Petit Bac{{end}}</strong>.</p>
+                {{else}}
+                <p>Vous êtes dans la salle <strong>{{.Room.Name}}</strong> en attente du début de la partie.</p>
+                {{end}}
+            </div>
+        </div>
+
         <!-- Panneau gauche: Informations de salle et Joueurs connectés -->
         <div class="lobby-left-panel">
             <!-- Infos de la salle -->
             <div class="lobby-info-card" style="margin-bottom: 25px;">
-                <div class="lobby-hero">
-                    <div class="presetation-card">
-                        {{if .Room.GameType}}
-                        <p>Vous êtes dans la salle <strong>{{.Room.Name}}</strong> en attente du début de la partie de <strong>{{if eq .Room.GameType "blindtest"}}Blind Test{{else}}Petit Bac{{end}}</strong>.</p>
-                        {{else}}
-                        <p>Vous êtes dans la salle <strong>{{.Room.Name}}</strong> en attente du début de la partie.</p>
-                        {{end}}
-                    </div>
-                </div>
                 <span class="lobby-info">Code: <strong>{{.Room.Code}}</strong></span>
                 <span class="lobby-info">Jeu: <strong id="game-type-display">{{if eq .Room.GameType "blindtest"}}🎶 Blind Test{{else}}📝 Petit Bac{{end}}</strong></span>
                 <span class="lobby-info">Joueurs: <strong id="player-count">{{len .Participants}}/{{.Room.MaxPlayers}}</strong></span>
@@ -765,7 +773,36 @@
 
             <button id="start-game" class="start-button">🚀 Démarrer la partie</button>
             {{else}}
-            <p class="waiting-message">En attente que l'hôte démarre la partie...</p>
+            <div style="text-align: center;">
+                <p class="waiting-message">En attente que l'hôte démarre la partie...</p>
+                
+                <!-- Règles du jeu -->
+                <div id="game-rules-container" style="margin-top: 40px; padding: 20px; background: rgba(166, 142, 224, 0.08); border: 1px solid rgba(166, 142, 224, 0.2); border-radius: 12px; text-align: left; max-width: 500px; margin-left: auto; margin-right: auto;">
+                    <h3 style="color: var(--primary); text-align: center; margin-bottom: 15px; font-size: 1.2rem;">📋 Règles du jeu</h3>
+                    
+                    <div id="game-rules-content" style="color: var(--text); font-size: 0.95rem; line-height: 1.6;">
+                        {{if eq .Room.GameType "blindtest"}}
+                        <p><strong>🎶 Blind Test</strong></p>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li>Écoutez le début d'une chanson</li>
+                            <li>Devinez le titre et l'artiste</li>
+                            <li>Plus rapide = plus de points</li>
+                            <li>Répondez correctement pour marquer des points</li>
+                        </ul>
+                        {{else if eq .Room.GameType "petitbac"}}
+                        <p><strong>📝 Petit Bac</strong></p>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li>Pour chaque catégorie, trouvez un mot commençant par la lettre tirée au sort</li>
+                            <li>Les autres joueurs doivent valider ou rejeter votre réponse</li>
+                            <li>Si valide : vous gagnez des points</li>
+                            <li>Jouez plusieurs rounds pour accumuler les points</li>
+                        </ul>
+                        {{else}}
+                        <p>L'hôte choisira le jeu avant de démarrer...</p>
+                        {{end}}
+                    </div>
+                </div>
+            </div>
             {{end}}
             <br>
             </div>
@@ -775,6 +812,7 @@
     <script src="/static/js/websocket.js"></script>
     <script>
         const roomCode = "{{.Room.Code}}";
+        const roomName = "{{.Room.Name}}";
         const playerID = "{{.User.ID}}"; // Using User ID as player identifier
         const isHost = "{{.IsHost}}" === "true";
         const roomHostID = parseInt("{{.Room.HostID}}", 10) || 0;
@@ -929,9 +967,95 @@
 
         // Handle game type change via WebSocket
         window.handleGameTypeChanged = function(data) {
-            console.log("Game type changed:", data);
-            // Recharge la page pour mettre à jour l'UI avec le nouveau jeu
-            location.reload();
+            // Parse data if it's a string
+            let gameType;
+            if (typeof data === 'string') {
+                try {
+                    const parsed = JSON.parse(data);
+                    gameType = parsed.gameType;
+                } catch (e) {
+                    console.error("Failed to parse data:", e);
+                    return;
+                }
+            } else {
+                gameType = data.gameType;
+            }
+
+            // Update the presentation text
+            const presentationCard = document.querySelector('.presetation-card p');
+            if (presentationCard) {
+                const gameTypeName = gameType === 'blindtest' ? 'Blind Test' : 'Petit Bac';
+                presentationCard.innerHTML = `Vous êtes dans la salle <strong>${roomName}</strong> en attente du début de la partie de <strong>${gameTypeName}</strong>.`;
+            }
+
+            // Update button states
+            document.querySelectorAll('.game-type-btn').forEach(b => {
+                b.classList.remove('active');
+                if (b.dataset.gameType === gameType) {
+                    b.classList.add('active');
+                }
+            });
+
+            // Update the game type display
+            const gameTypeDisplay = document.getElementById('game-type-display');
+            if (gameTypeDisplay) {
+                gameTypeDisplay.textContent = gameType === 'blindtest' ? '🎶 Blind Test' : '📝 Petit Bac';
+            }
+
+            // Update configuration panels visibility
+            const timeRoundGroup = document.getElementById('time-round-group');
+            const playlistSection = document.getElementById('playlist-section');
+            const categoriesSection = document.getElementById('categories-section');
+
+            if (gameType === 'blindtest') {
+                if (timeRoundGroup) timeRoundGroup.style.display = 'flex';
+                if (playlistSection) playlistSection.style.display = 'block';
+                if (categoriesSection) categoriesSection.style.display = 'none';
+                
+                if (playlistSection && !playlistSection.querySelector('button')) {
+                    initializePlaylists();
+                }
+            } else {
+                if (timeRoundGroup) timeRoundGroup.style.display = 'none';
+                if (playlistSection) playlistSection.style.display = 'none';
+                if (categoriesSection) categoriesSection.style.display = 'block';
+                
+                if (categoriesSection && !categoriesSection.querySelector('.category-item')) {
+                    loadCategories();
+                }
+            }
+
+            // Reset num rounds to default for the new game type
+            const numRoundsInput = document.getElementById('config-num-rounds');
+            if (numRoundsInput) {
+                numRoundsInput.value = gameType === 'blindtest' ? 5 : 9;
+            }
+
+            // Update game rules for non-host players
+            const rulesContent = document.getElementById('game-rules-content');
+            if (rulesContent) {
+                if (gameType === 'blindtest') {
+                    rulesContent.innerHTML = `
+                        <p><strong>🎶 Blind Test</strong></p>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li>Écoutez le début d'une chanson</li>
+                            <li>Devinez le titre et l'artiste</li>
+                            <li>Plus rapide = plus de points</li>
+                            <li>Répondez correctement pour marquer des points</li>
+                        </ul>
+                    `;
+                } else {
+                    rulesContent.innerHTML = `
+                        <p><strong>📝 Petit Bac</strong></p>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li>Pour chaque catégorie, trouvez un mot commençant par la lettre tirée au sort</li>
+                            <li>Les autres joueurs doivent valider ou rejeter votre réponse</li>
+                            <li>Si valide : vous gagnez des points</li>
+                            <li>Jouez plusieurs rounds pour accumuler les points</li>
+                        </ul>
+                    `;
+                }
+            }
         };
 
         // Connect to WebSocket
