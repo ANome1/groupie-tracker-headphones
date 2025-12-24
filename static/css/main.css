@@ -28,11 +28,13 @@ body {
     margin: 0;
     padding: 0;
     padding-top: 80px;
-    padding-bottom: 15px;
+    padding-bottom: 0;
     background-color: var(--background);
     color: var(--text);
     font-family: var(--font-body);
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
     
     /* Voiles de lumière aurore : 3 gradients radiaux qui bougent */
     background-image: 
@@ -82,7 +84,8 @@ h4, h5, h6 {
     text-align: center;
     padding: 20px 40px;
     border-top: 2px solid rgba(166, 142, 224, 0.3);
-    margin-top: 50px;
+    margin-top: auto;
+    flex-shrink: 0;
 }
 
 .site-footer p {
