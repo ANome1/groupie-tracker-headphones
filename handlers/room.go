@@ -182,6 +182,7 @@ func JoinRoomHandler(w http.ResponseWriter, r *http.Request) {
 			globalHub.BroadcastToRoom(roomCode, models.MessageOut{
 				Type: "PLAYER_JOINED",
 				Data: map[string]interface{}{
+					"newPlayer":    userName,
 					"username":     userName,
 					"userID":       userID,
 					"participants": participants,
@@ -295,6 +296,7 @@ func LeaveRoomHandler(w http.ResponseWriter, r *http.Request) {
 		globalHub.BroadcastToRoom(roomCode, models.MessageOut{
 			Type: "PLAYER_LEFT",
 			Data: map[string]interface{}{
+				"leftPlayer":   userName,
 				"username":     userName,
 				"userID":       userID,
 				"participants": participants,

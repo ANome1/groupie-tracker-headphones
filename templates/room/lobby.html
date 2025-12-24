@@ -30,8 +30,8 @@
 
         .lobby-container {
             max-width: 1400px;
-            margin: 30px auto 60px;
-            padding: 50px;
+            margin: 20px auto 60px;
+            padding: 40px;
             background: linear-gradient(135deg, rgba(166, 142, 224, 0.12) 0%, rgba(101, 44, 239, 0.06) 100%);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
@@ -631,7 +631,94 @@
             box-shadow: 0 4px 12px rgba(166, 142, 224, 0.3);
         }
 
+        /* Notifications */
+        #notifications-container {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 400px;
+        }
+
+        .notification {
+            margin-bottom: 15px;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, rgba(166, 142, 224, 0.15) 0%, rgba(101, 44, 239, 0.08) 100%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(166, 142, 224, 0.3);
+            border-radius: 12px;
+            color: var(--text);
+            font-weight: 500;
+            font-size: 0.95rem;
+            animation: slideIn 0.3s ease-out;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .notification.game-change {
+            border-left: 4px solid var(--primary);
+        }
+
+        .notification.player-joined {
+            border-left: 4px solid #4ade80;
+        }
+
+        .notification.player-left {
+            border-left: 4px solid #f87171;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        .notification.exit {
+            animation: slideOut 0.3s ease-out forwards;
+        }
+
         /* Responsive Design */
+        @media (max-width: 1200px) {
+            .lobby-container {
+                flex-direction: column;
+            }
+
+            .lobby-left-panel,
+            .lobby-right-panel {
+                flex: 1;
+                min-width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #notifications-container {
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+
+            .notification {
+                font-size: 0.9rem;
+                padding: 12px 16px;
+            }
+        }
+
         @media (max-width: 1200px) {
             .lobby-container {
                 flex-direction: column;
@@ -670,11 +757,14 @@
     </style>
 </head>
 <body>
+    <!-- Notifications Container -->
+    <div id="notifications-container"></div>
+
     {{template "header" .}}
     
     <section class="lobby-container">
         <!-- Presentation card en haut et centré -->
-        <div style="width: 100%; text-align: center; margin-bottom: 30px;">
+        <div style="width: 100%; text-align: center; margin-bottom: 15px;">
             <div class="presetation-card">
                 {{if .Room.GameType}}
                 <p>Vous êtes dans la salle <strong>{{.Room.Name}}</strong> en attente du début de la partie de <strong>{{if eq .Room.GameType "blindtest"}}Blind Test{{else}}Petit Bac{{end}}</strong>.</p>
@@ -818,6 +908,24 @@
         const roomHostID = parseInt("{{.Room.HostID}}", 10) || 0;
         const maxPlayers = parseInt("{{.Room.MaxPlayers}}", 10) || 10;
         let selectedPlaylist = null;
+
+        // Function to show notifications
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notifications-container');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            container.appendChild(notification);
+            
+            // Auto-remove after 4 seconds
+            setTimeout(() => {
+                notification.classList.add('exit');
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 4000);
+        }
 
         // Gestion des boutons +/- pour les inputs number
         document.querySelectorAll('.spinner-btn').forEach(btn => {
@@ -981,10 +1089,13 @@
                 gameType = data.gameType;
             }
 
+            // Show notification
+            const gameTypeName = gameType === 'blindtest' ? '🎶 Blind Test' : '📝 Petit Bac';
+            showNotification(`🎮 L'hôte a changé le jeu en ${gameTypeName}`, 'game-change');
+
             // Update the presentation text
             const presentationCard = document.querySelector('.presetation-card p');
             if (presentationCard) {
-                const gameTypeName = gameType === 'blindtest' ? 'Blind Test' : 'Petit Bac';
                 presentationCard.innerHTML = `Vous êtes dans la salle <strong>${roomName}</strong> en attente du début de la partie de <strong>${gameTypeName}</strong>.`;
             }
 
@@ -1063,7 +1174,11 @@
 
         // Handle player joined
         window.handlePlayerJoined = function(data) {
-            console.log("Player joined:", data);
+            // Show notification
+            if (data.newPlayer) {
+                showNotification(`👋 ${data.newPlayer} a rejoint la salle`, 'player-joined');
+            }
+            
             // Update the player count and list
             const playersList = document.getElementById('players-list');
             if (playersList && data.participants) {
@@ -1091,7 +1206,11 @@
 
         // Handle player left
         window.handlePlayerLeft = function(data) {
-            console.log("Player left:", data);
+            // Show notification
+            if (data.leftPlayer) {
+                showNotification(`👋 ${data.leftPlayer} a quitté la salle`, 'player-left');
+            }
+            
             // Update the player count and list
             const playersList = document.getElementById('players-list');
             if (playersList && data.participants) {
